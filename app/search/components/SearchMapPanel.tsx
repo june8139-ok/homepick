@@ -9,6 +9,11 @@ import {
 } from "react";
 
 import type { Apartment } from "../../../types/apartment";
+import type { UserLocation } from "../SearchClient";
+import {
+  isFirstComeApartment,
+  isSubscriptionApartment,
+} from "../../../lib/subscriptionVisibility";
 
 declare global {
   interface Window {
@@ -22,10 +27,9 @@ type LocatedApartment = Apartment & {
   longitude: number;
 };
 
-type MapViewState = {
-  latitude: number;
-  longitude: number;
-  zoom: number;
+type MarkerEntry = {
+  marker: any;
+  apartment: LocatedApartment;
 };
 
 const DEFAULT_CENTER = {
@@ -33,21 +37,65 @@ const DEFAULT_CENTER = {
   longitude: 127.8,
 };
 
-const MAP_STATE_KEY = "homepick-search-map-view";
-
-function getScoreColor(score: number) {
-  if (score >= 90) return "#059669";
-  if (score >= 80) return "#10b981";
-  if (score >= 70) return "#f59e0b";
-  return "#ef4444";
+function escapeHtml(value: unknown) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
-function getCoordinates(
-  apartment: Apartment
-): {
-  latitude: number;
-  longitude: number;
-} | null {
+function getStatusInfo(apartment: Apartment) {
+  if (isSubscriptionApartment(apartment)) {
+    return {
+      label: apartment.status || "청약",
+      color: "#2563eb",
+      light: "#eff6ff",
+      text: "#1d4ed8",
+    };
+  }
+
+  if (isFirstComeApartment(apartment)) {
+    return {
+      label: "선착순",
+      color: "#059669",
+      light: "#ecfdf5",
+      text: "#047857",
+    };
+  }
+
+  return {
+    label: apartment.status || "분양중",
+    color: "#f59e0b",
+    light: "#fffbeb",
+    text: "#b45309",
+  };
+}
+
+function getHeroImage(apartment?: Apartment | null) {
+  if (!apartment) return "";
+
+  const hero = apartment.images?.hero;
+  if (Array.isArray(hero)) return hero[0] ?? "";
+
+  if (
+    typeof hero === "string" &&
+    !hero.includes("/images/apartments/default/main.jpg")
+  ) {
+    return hero;
+  }
+
+  return (
+    apartment.images?.gallery?.find(
+      (image) =>
+        Boolean(image) &&
+        !image.includes("/images/apartments/default/main.jpg")
+    ) ?? ""
+  );
+}
+
+function getCoordinates(apartment: Apartment) {
   const source = apartment as Apartment & {
     data?: {
       latitude?: number | string | null;
@@ -63,65 +111,20 @@ function getCoordinates(
   );
 
   if (
-    Number.isFinite(latitude) &&
-    Number.isFinite(longitude) &&
-    latitude !== 0 &&
-    longitude !== 0
+    !Number.isFinite(latitude) ||
+    !Number.isFinite(longitude) ||
+    latitude === 0 ||
+    longitude === 0
   ) {
-    return { latitude, longitude };
+    return null;
   }
 
-  return null;
-}
-
-function loadSavedMapView(): MapViewState | null {
-  try {
-    const saved = sessionStorage.getItem(MAP_STATE_KEY);
-
-    if (!saved) return null;
-
-    const parsed = JSON.parse(saved) as MapViewState;
-
-    if (
-      Number.isFinite(parsed.latitude) &&
-      Number.isFinite(parsed.longitude) &&
-      Number.isFinite(parsed.zoom)
-    ) {
-      return parsed;
-    }
-  } catch {
-    // 저장된 지도 상태 오류는 무시합니다.
-  }
-
-  return null;
-}
-
-function saveMapView(map: any) {
-  try {
-    const center = map.getCenter();
-    const zoom = map.getZoom();
-
-    sessionStorage.setItem(
-      MAP_STATE_KEY,
-      JSON.stringify({
-        latitude: center.lat(),
-        longitude: center.lng(),
-        zoom,
-      } satisfies MapViewState)
-    );
-  } catch {
-    // 저장 실패는 무시합니다.
-  }
+  return { latitude, longitude };
 }
 
 function loadNaverMapScript(clientId: string) {
-  if (typeof window === "undefined") {
-    return Promise.resolve();
-  }
-
-  if (window.naver?.maps) {
-    return Promise.resolve();
-  }
+  if (typeof window === "undefined") return Promise.resolve();
+  if (window.naver?.maps) return Promise.resolve();
 
   if (window.__homepickNaverMapPromise) {
     return window.__homepickNaverMapPromise;
@@ -177,24 +180,15 @@ function loadNaverMapScript(clientId: string) {
 
 async function geocodeAddress(
   address: string
-): Promise<{
-  latitude: number;
-  longitude: number;
-} | null> {
-  if (!window.naver?.maps?.Service) {
-    return null;
-  }
+): Promise<UserLocation | null> {
+  if (!window.naver?.maps?.Service) return null;
 
   const cacheKey = `homepick-geocode:${address}`;
 
   try {
     const cached = sessionStorage.getItem(cacheKey);
-
     if (cached) {
-      const parsed = JSON.parse(cached) as {
-        latitude: number;
-        longitude: number;
-      };
+      const parsed = JSON.parse(cached) as UserLocation;
 
       if (
         Number.isFinite(parsed.latitude) &&
@@ -204,7 +198,7 @@ async function geocodeAddress(
       }
     }
   } catch {
-    // 캐시 오류는 무시합니다.
+    // 캐시 오류 무시
   }
 
   return new Promise((resolve) => {
@@ -212,8 +206,7 @@ async function geocodeAddress(
       { query: address },
       (status: unknown, response: any) => {
         if (
-          status !==
-            window.naver.maps.Service.Status.OK ||
+          status !== window.naver.maps.Service.Status.OK ||
           !response?.v2?.addresses?.length
         ) {
           resolve(null);
@@ -232,7 +225,7 @@ async function geocodeAddress(
             JSON.stringify(result)
           );
         } catch {
-          // 캐시 오류는 무시합니다.
+          // 캐시 오류 무시
         }
 
         resolve(result);
@@ -243,57 +236,55 @@ async function geocodeAddress(
 
 function createMarkerHtml(
   apartment: Apartment,
-  selected: boolean
+  highlighted: boolean
 ) {
-  const score = apartment.score.total;
-  const color = getScoreColor(score);
+  const status = getStatusInfo(apartment);
 
   return `
     <div style="
       display:flex;
       flex-direction:column;
       align-items:center;
-      transform:${selected ? "scale(1.12)" : "scale(1)"};
+      transform:${highlighted ? "scale(1.12)" : "scale(1)"};
       transform-origin:center bottom;
-      transition:transform .18s ease;
+      transition:transform .16s ease;
       cursor:pointer;
     ">
       <div style="
-        min-width:58px;
+        min-width:64px;
         padding:9px 13px;
         border-radius:999px;
-        background:${color};
+        background:${status.color};
         border:3px solid #ffffff;
         box-shadow:0 8px 24px rgba(15,23,42,.22);
         color:#ffffff;
-        font-size:13px;
+        font-size:12px;
         line-height:1;
         font-weight:900;
         text-align:center;
         white-space:nowrap;
       ">
-        ${score}점
+        ${escapeHtml(status.label)}
       </div>
       ${
-        selected
+        highlighted
           ? `
             <div style="
-              max-width:160px;
+              max-width:190px;
               margin-top:5px;
-              padding:6px 9px;
+              padding:7px 10px;
               overflow:hidden;
               border:1px solid #e4e4e7;
-              border-radius:9px;
+              border-radius:10px;
               background:#ffffff;
-              box-shadow:0 6px 16px rgba(15,23,42,.14);
+              box-shadow:0 8px 20px rgba(15,23,42,.16);
               color:#18181b;
               font-size:11px;
-              line-height:1.25;
               font-weight:800;
               text-overflow:ellipsis;
               white-space:nowrap;
             ">
-              ${apartment.name}
+              ${escapeHtml(apartment.name)}
             </div>
           `
           : ""
@@ -302,136 +293,77 @@ function createMarkerHtml(
   `;
 }
 
-function createClusterHtml(count: number) {
+function createUserLocationHtml() {
   return `
     <div style="
       display:flex;
-      height:52px;
-      min-width:52px;
+      height:24px;
+      width:24px;
       align-items:center;
       justify-content:center;
       border:4px solid #ffffff;
       border-radius:999px;
-      background:#111827;
-      box-shadow:0 10px 28px rgba(15,23,42,.28);
-      color:#ffffff;
-      font-size:15px;
-      font-weight:900;
-      cursor:pointer;
+      background:#2563eb;
+      box-shadow:0 0 0 8px rgba(37,99,235,.16);
     ">
-      ${count}
+      <div style="
+        height:7px;
+        width:7px;
+        border-radius:999px;
+        background:#ffffff;
+      "></div>
     </div>
   `;
 }
 
-function getClusterCellSize(zoom: number) {
-  if (zoom >= 14) return 0;
-  if (zoom >= 12) return 0.025;
-  if (zoom >= 10) return 0.07;
-  if (zoom >= 8) return 0.18;
-  return 0.42;
-}
-
-function clusterApartments(
-  apartments: LocatedApartment[],
-  zoom: number,
-  selectedSlug?: string
-) {
-  const cellSize = getClusterCellSize(zoom);
-
-  if (cellSize === 0) {
-    return apartments.map((apartment) => ({
-      type: "single" as const,
-      apartments: [apartment],
-      latitude: apartment.latitude,
-      longitude: apartment.longitude,
-    }));
+function formatDistance(distanceKm?: number) {
+  if (
+    distanceKm === undefined ||
+    !Number.isFinite(distanceKm)
+  ) {
+    return "";
   }
 
-  const selected = selectedSlug
-    ? apartments.find(
-        (apartment) => apartment.slug === selectedSlug
-      )
-    : undefined;
-
-  const normalApartments = selected
-    ? apartments.filter(
-        (apartment) => apartment.slug !== selected.slug
-      )
-    : apartments;
-
-  const groups = new Map<string, LocatedApartment[]>();
-
-  normalApartments.forEach((apartment) => {
-    const latKey = Math.round(
-      apartment.latitude / cellSize
-    );
-    const lngKey = Math.round(
-      apartment.longitude / cellSize
-    );
-    const key = `${latKey}:${lngKey}`;
-
-    const current = groups.get(key) ?? [];
-    current.push(apartment);
-    groups.set(key, current);
-  });
-
-  const clustered = [...groups.values()].map((group) => {
-    const latitude =
-      group.reduce(
-        (sum, apartment) =>
-          sum + apartment.latitude,
-        0
-      ) / group.length;
-
-    const longitude =
-      group.reduce(
-        (sum, apartment) =>
-          sum + apartment.longitude,
-        0
-      ) / group.length;
-
-    return {
-      type:
-        group.length > 1
-          ? ("cluster" as const)
-          : ("single" as const),
-      apartments: group,
-      latitude,
-      longitude,
-    };
-  });
-
-  if (selected) {
-    clustered.push({
-      type: "single" as const,
-      apartments: [selected],
-      latitude: selected.latitude,
-      longitude: selected.longitude,
-    });
+  if (distanceKm < 1) {
+    return `${Math.round(distanceKm * 1000)}m`;
   }
 
-  return clustered;
+  if (distanceKm < 10) {
+    return `${distanceKm.toFixed(1)}km`;
+  }
+
+  return `${Math.round(distanceKm)}km`;
 }
 
 export default function SearchMapPanel({
   apartments,
+  activeApartment,
   selectedApartment,
+  userLocation,
+  distanceBySlug,
+  onHover,
   onSelect,
   onOpen,
   onViewportChange,
 }: {
   apartments: Apartment[];
+  activeApartment: Apartment | null;
   selectedApartment: Apartment | null;
+  userLocation: UserLocation | null;
+  distanceBySlug: Record<string, number>;
+  onHover: (slug: string | null) => void;
   onSelect: (slug: string) => void;
   onOpen: (slug: string) => void;
-  onViewportChange: (slugs: string[]) => void;
+  onViewportChange: (slugs: string[] | null) => void;
 }) {
   const mapElementRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<any>(null);
-  const markersRef = useRef<any[]>([]);
+  const markersRef = useRef<Map<string, MarkerEntry>>(
+    new Map()
+  );
+  const userMarkerRef = useRef<any>(null);
   const idleListenerRef = useRef<any>(null);
-  const restoredViewRef = useRef(false);
+  const previousActiveSlugRef = useRef<string | null>(null);
 
   const [scriptReady, setScriptReady] = useState(false);
   const [mapReady, setMapReady] = useState(false);
@@ -490,98 +422,33 @@ export default function SearchMapPanel({
     if (
       !scriptReady ||
       !mapElementRef.current ||
-      !window.naver?.maps
+      !window.naver?.maps ||
+      mapRef.current
     ) {
       return;
     }
 
-    let cancelled = false;
-    let retryCount = 0;
-    let retryTimer: ReturnType<typeof setTimeout> | null =
-      null;
+    const element = mapElementRef.current;
 
-    const createMapWhenSized = () => {
-      if (
-        cancelled ||
-        !mapElementRef.current ||
-        !window.naver?.maps
-      ) {
-        return;
-      }
+    mapRef.current = new window.naver.maps.Map(element, {
+      center: new window.naver.maps.LatLng(
+        DEFAULT_CENTER.latitude,
+        DEFAULT_CENTER.longitude
+      ),
+      zoom: 7,
+      minZoom: 6,
+      maxZoom: 19,
+      zoomControl: true,
+      zoomControlOptions: {
+        position: window.naver.maps.Position.TOP_RIGHT,
+      },
+      mapTypeControl: false,
+      scaleControl: false,
+      logoControl: true,
+      mapDataControl: false,
+    });
 
-      const element = mapElementRef.current;
-      const rect = element.getBoundingClientRect();
-
-      if (
-        (rect.width < 10 || rect.height < 10) &&
-        retryCount < 30
-      ) {
-        retryCount += 1;
-        retryTimer = setTimeout(
-          createMapWhenSized,
-          100
-        );
-        return;
-      }
-
-      const savedView = loadSavedMapView();
-
-      if (!mapRef.current) {
-        mapRef.current = new window.naver.maps.Map(
-          element,
-          {
-            center: new window.naver.maps.LatLng(
-              savedView?.latitude ??
-                DEFAULT_CENTER.latitude,
-              savedView?.longitude ??
-                DEFAULT_CENTER.longitude
-            ),
-            zoom: savedView?.zoom ?? 7,
-            minZoom: 6,
-            maxZoom: 19,
-            zoomControl: true,
-            zoomControlOptions: {
-              position:
-                window.naver.maps.Position.TOP_RIGHT,
-            },
-            mapTypeControl: false,
-            scaleControl: false,
-            logoControl: true,
-            mapDataControl: false,
-          }
-        );
-
-        restoredViewRef.current = Boolean(savedView);
-      }
-
-      const map = mapRef.current;
-
-      map.setSize(
-        new window.naver.maps.Size(
-          Math.max(1, Math.round(rect.width)),
-          Math.max(1, Math.round(rect.height))
-        )
-      );
-
-      window.naver.maps.Event.trigger(map, "resize");
-
-      requestAnimationFrame(() => {
-        if (!cancelled) {
-          window.naver.maps.Event.trigger(
-            map,
-            "resize"
-          );
-          setMapReady(true);
-        }
-      });
-    };
-
-    requestAnimationFrame(createMapWhenSized);
-
-    return () => {
-      cancelled = true;
-      if (retryTimer) clearTimeout(retryTimer);
-    };
+    setMapReady(true);
   }, [scriptReady]);
 
   useEffect(() => {
@@ -604,11 +471,9 @@ export default function SearchMapPanel({
           }
 
           const address = apartment.region?.trim();
-
           if (!address) return null;
 
           const geocoded = await geocodeAddress(address);
-
           if (!geocoded) return null;
 
           return {
@@ -646,84 +511,37 @@ export default function SearchMapPanel({
       !window.naver?.maps ||
       locatedApartments.length === 0
     ) {
-      onViewportChange([]);
+      onViewportChange(null);
       return;
     }
 
     const bounds = map.getBounds();
 
-    const visible = locatedApartments
-      .filter((apartment) =>
-        bounds.hasLatLng(
-          new window.naver.maps.LatLng(
-            apartment.latitude,
-            apartment.longitude
+    onViewportChange(
+      locatedApartments
+        .filter((apartment) =>
+          bounds.hasLatLng(
+            new window.naver.maps.LatLng(
+              apartment.latitude,
+              apartment.longitude
+            )
           )
         )
-      )
-      .map((apartment) => apartment.slug);
-
-    onViewportChange(visible);
+        .map((apartment) => apartment.slug)
+    );
   }, [locatedApartments, onViewportChange]);
 
-  const renderMarkers = useCallback(() => {
+  useEffect(() => {
     const map = mapRef.current;
 
-    if (!map || !window.naver?.maps) return;
+    if (!mapReady || !map || !window.naver?.maps) return;
 
-    markersRef.current.forEach((marker) => {
+    markersRef.current.forEach(({ marker }) => {
       marker.setMap(null);
     });
-    markersRef.current = [];
+    markersRef.current.clear();
 
-    const groups = clusterApartments(
-      locatedApartments,
-      map.getZoom(),
-      selectedApartment?.slug
-    );
-
-    groups.forEach((group) => {
-      if (
-        group.type === "cluster" &&
-        group.apartments.length > 1
-      ) {
-        const marker = new window.naver.maps.Marker({
-          position: new window.naver.maps.LatLng(
-            group.latitude,
-            group.longitude
-          ),
-          map,
-          icon: {
-            content: createClusterHtml(
-              group.apartments.length
-            ),
-            anchor: new window.naver.maps.Point(28, 28),
-          },
-          zIndex: 80,
-        });
-
-        window.naver.maps.Event.addListener(
-          marker,
-          "click",
-          () => {
-            map.morph(
-              new window.naver.maps.LatLng(
-                group.latitude,
-                group.longitude
-              ),
-              Math.min(map.getZoom() + 2, 16)
-            );
-          }
-        );
-
-        markersRef.current.push(marker);
-        return;
-      }
-
-      const apartment = group.apartments[0];
-      const selected =
-        selectedApartment?.slug === apartment.slug;
-
+    locatedApartments.forEach((apartment) => {
       const marker = new window.naver.maps.Marker({
         position: new window.naver.maps.LatLng(
           apartment.latitude,
@@ -732,55 +550,33 @@ export default function SearchMapPanel({
         map,
         title: apartment.name,
         icon: {
-          content: createMarkerHtml(
-            apartment,
-            selected
-          ),
-          anchor: new window.naver.maps.Point(
-            selected ? 42 : 31,
-            selected ? 68 : 45
-          ),
+          content: createMarkerHtml(apartment, false),
+          anchor: new window.naver.maps.Point(34, 46),
         },
-        zIndex: selected ? 200 : 100,
+        zIndex: 100,
       });
 
+      window.naver.maps.Event.addListener(
+        marker,
+        "mouseover",
+        () => onHover(apartment.slug)
+      );
+      window.naver.maps.Event.addListener(
+        marker,
+        "mouseout",
+        () => onHover(null)
+      );
       window.naver.maps.Event.addListener(
         marker,
         "click",
         () => onSelect(apartment.slug)
       );
 
-      window.naver.maps.Event.addListener(
+      markersRef.current.set(apartment.slug, {
         marker,
-        "dblclick",
-        () => onOpen(apartment.slug)
-      );
-
-      markersRef.current.push(marker);
+        apartment,
+      });
     });
-  }, [
-    locatedApartments,
-    onOpen,
-    onSelect,
-    selectedApartment?.slug,
-  ]);
-
-  useEffect(() => {
-    if (!mapReady || !mapRef.current) return;
-
-    renderMarkers();
-  }, [mapReady, renderMarkers]);
-
-  useEffect(() => {
-    const map = mapRef.current;
-
-    if (
-      !mapReady ||
-      !map ||
-      !window.naver?.maps
-    ) {
-      return;
-    }
 
     if (idleListenerRef.current) {
       window.naver.maps.Event.removeListener(
@@ -789,15 +585,11 @@ export default function SearchMapPanel({
     }
 
     idleListenerRef.current =
-      window.naver.maps.Event.addListener(
-        map,
-        "idle",
-        () => {
-          saveMapView(map);
-          updateVisibleApartments();
-          renderMarkers();
-        }
-      );
+      window.naver.maps.Event.addListener(map, "idle", () => {
+        updateVisibleApartments();
+      });
+
+    updateVisibleApartments();
 
     return () => {
       if (idleListenerRef.current) {
@@ -808,126 +600,56 @@ export default function SearchMapPanel({
       }
     };
   }, [
+    locatedApartments,
     mapReady,
-    renderMarkers,
+    onHover,
+    onSelect,
     updateVisibleApartments,
   ]);
+
+  const activeSlug =
+    activeApartment?.slug ??
+    selectedApartment?.slug ??
+    null;
+
+  useEffect(() => {
+    const previousSlug = previousActiveSlugRef.current;
+
+    if (previousSlug && previousSlug !== activeSlug) {
+      const previous = markersRef.current.get(previousSlug);
+
+      if (previous) {
+        previous.marker.setIcon({
+          content: createMarkerHtml(
+            previous.apartment,
+            false
+          ),
+          anchor: new window.naver.maps.Point(34, 46),
+        });
+        previous.marker.setZIndex(100);
+      }
+    }
+
+    if (activeSlug) {
+      const active = markersRef.current.get(activeSlug);
+
+      if (active) {
+        active.marker.setIcon({
+          content: createMarkerHtml(active.apartment, true),
+          anchor: new window.naver.maps.Point(48, 72),
+        });
+        active.marker.setZIndex(220);
+      }
+    }
+
+    previousActiveSlugRef.current = activeSlug;
+  }, [activeSlug]);
 
   useEffect(() => {
     const map = mapRef.current;
 
     if (
       !mapReady ||
-      !map ||
-      !window.naver?.maps ||
-      locatedApartments.length === 0
-    ) {
-      return;
-    }
-
-    if (locatedApartments.length === 1) {
-      const only = locatedApartments[0];
-
-      map.morph(
-        new window.naver.maps.LatLng(
-          only.latitude,
-          only.longitude
-        ),
-        16
-      );
-      return;
-    }
-
-    if (
-      restoredViewRef.current &&
-      apartments.length > 1
-    ) {
-      restoredViewRef.current = false;
-      updateVisibleApartments();
-      return;
-    }
-
-    const bounds =
-      new window.naver.maps.LatLngBounds();
-
-    locatedApartments.forEach((apartment) => {
-      bounds.extend(
-        new window.naver.maps.LatLng(
-          apartment.latitude,
-          apartment.longitude
-        )
-      );
-    });
-
-    map.fitBounds(bounds, {
-      top: 80,
-      right: 80,
-      bottom: 80,
-      left: 80,
-    });
-  }, [
-    apartmentSignature,
-    apartments.length,
-    locatedApartments,
-    mapReady,
-    updateVisibleApartments,
-  ]);
-
-  useEffect(() => {
-    if (!mapReady || !mapElementRef.current) {
-      return;
-    }
-
-    const element = mapElementRef.current;
-    const map = mapRef.current;
-
-    const resizeMap = () => {
-      if (!map || !window.naver?.maps) return;
-
-      const rect = element.getBoundingClientRect();
-
-      if (rect.width < 10 || rect.height < 10) {
-        return;
-      }
-
-      map.setSize(
-        new window.naver.maps.Size(
-          Math.round(rect.width),
-          Math.round(rect.height)
-        )
-      );
-      window.naver.maps.Event.trigger(map, "resize");
-    };
-
-    const observer = new ResizeObserver(resizeMap);
-    observer.observe(element);
-
-    window.addEventListener("resize", resizeMap);
-
-    const firstTimer = window.setTimeout(
-      resizeMap,
-      100
-    );
-    const secondTimer = window.setTimeout(
-      resizeMap,
-      500
-    );
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener(
-        "resize",
-        resizeMap
-      );
-      window.clearTimeout(firstTimer);
-      window.clearTimeout(secondTimer);
-    };
-  }, [mapReady]);
-
-  const fitAllApartments = () => {
-    const map = mapRef.current;
-
-    if (
       !map ||
       !window.naver?.maps ||
       locatedApartments.length === 0
@@ -948,8 +670,7 @@ export default function SearchMapPanel({
       return;
     }
 
-    const bounds =
-      new window.naver.maps.LatLngBounds();
+    const bounds = new window.naver.maps.LatLngBounds();
 
     locatedApartments.forEach((apartment) => {
       bounds.extend(
@@ -961,12 +682,138 @@ export default function SearchMapPanel({
     });
 
     map.fitBounds(bounds, {
-      top: 80,
-      right: 80,
-      bottom: 80,
-      left: 80,
+      top: 70,
+      right: 70,
+      bottom: 70,
+      left: 70,
+    });
+  }, [apartmentSignature, locatedApartments, mapReady]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+
+    if (
+      !mapReady ||
+      !map ||
+      !window.naver?.maps ||
+      !selectedApartment
+    ) {
+      return;
+    }
+
+    const located = markersRef.current.get(
+      selectedApartment.slug
+    );
+
+    if (!located) return;
+
+    map.panTo(located.marker.getPosition());
+  }, [mapReady, selectedApartment]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+
+    if (!mapReady || !map || !window.naver?.maps) return;
+
+    if (!userLocation) {
+      userMarkerRef.current?.setMap(null);
+      userMarkerRef.current = null;
+      return;
+    }
+
+    const position = new window.naver.maps.LatLng(
+      userLocation.latitude,
+      userLocation.longitude
+    );
+
+    if (userMarkerRef.current) {
+      userMarkerRef.current.setPosition(position);
+      userMarkerRef.current.setMap(map);
+    } else {
+      userMarkerRef.current = new window.naver.maps.Marker({
+        position,
+        map,
+        title: "현재 위치",
+        icon: {
+          content: createUserLocationHtml(),
+          anchor: new window.naver.maps.Point(12, 12),
+        },
+        zIndex: 500,
+      });
+    }
+
+    map.morph(position, 13);
+  }, [mapReady, userLocation]);
+
+  useEffect(() => {
+    if (!mapReady || !mapElementRef.current) return;
+
+    const element = mapElementRef.current;
+    const map = mapRef.current;
+
+    const resizeMap = () => {
+      if (!map || !window.naver?.maps) return;
+
+      const rect = element.getBoundingClientRect();
+      if (rect.width < 10 || rect.height < 10) return;
+
+      map.setSize(
+        new window.naver.maps.Size(
+          Math.round(rect.width),
+          Math.round(rect.height)
+        )
+      );
+      window.naver.maps.Event.trigger(map, "resize");
+    };
+
+    const observer = new ResizeObserver(resizeMap);
+    observer.observe(element);
+    window.addEventListener("resize", resizeMap);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", resizeMap);
+    };
+  }, [mapReady]);
+
+  const fitAllApartments = () => {
+    const map = mapRef.current;
+    if (
+      !map ||
+      !window.naver?.maps ||
+      locatedApartments.length === 0
+    ) {
+      return;
+    }
+
+    const bounds = new window.naver.maps.LatLngBounds();
+
+    locatedApartments.forEach((apartment) => {
+      bounds.extend(
+        new window.naver.maps.LatLng(
+          apartment.latitude,
+          apartment.longitude
+        )
+      );
+    });
+
+    map.fitBounds(bounds, {
+      top: 70,
+      right: 70,
+      bottom: 70,
+      left: 70,
     });
   };
+
+  const floatingApartment =
+    activeApartment ?? selectedApartment;
+  const floatingImage = getHeroImage(floatingApartment);
+  const floatingStatus = floatingApartment
+    ? getStatusInfo(floatingApartment)
+    : null;
+  const floatingDistance = floatingApartment
+    ? formatDistance(distanceBySlug[floatingApartment.slug])
+    : "";
 
   return (
     <section className="sticky top-4 overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm">
@@ -976,7 +823,7 @@ export default function SearchMapPanel({
             NAVER MAP
           </p>
           <h2 className="mt-1 text-lg font-bold">
-            분양지도
+            부동산지도
           </h2>
         </div>
 
@@ -984,12 +831,12 @@ export default function SearchMapPanel({
           <button
             type="button"
             onClick={fitAllApartments}
-            className="rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-semibold text-zinc-600 transition hover:bg-zinc-50"
+            className="rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-600 transition hover:bg-zinc-50"
           >
             전체 핀 보기
           </button>
 
-          <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-semibold text-zinc-600">
+          <span className="rounded-full bg-zinc-100 px-3 py-1.5 text-xs font-semibold text-zinc-600">
             핀 {locatedApartments.length}개
           </span>
         </div>
@@ -998,20 +845,75 @@ export default function SearchMapPanel({
       <div className="relative h-[calc(100vh-190px)] min-h-[680px] overflow-hidden">
         <div
           ref={mapElementRef}
-          style={{
-            width: "100%",
-            height: "100%",
-            minHeight: "680px",
-          }}
           className="absolute inset-0 bg-[#eaf5f8]"
         />
 
-        {(mapError || !scriptReady) && (
-          <div className="absolute inset-0 z-30 flex items-center justify-center bg-white/95 p-8 text-center">
-            <div>
-              <p className="font-bold">
-                네이버 지도 연결 확인
+        {floatingApartment && floatingStatus && (
+          <div className="absolute bottom-5 right-5 z-30 hidden w-[330px] overflow-hidden rounded-3xl border border-white/80 bg-white/95 shadow-2xl backdrop-blur-xl md:block">
+            <div className="flex gap-3 p-4">
+              <div className="h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-zinc-100">
+                {floatingImage ? (
+                  <img
+                    src={floatingImage}
+                    alt={floatingApartment.name}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-xs text-zinc-400">
+                    이미지 준비 중
+                  </div>
+                )}
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-2">
+                  <span
+                    style={{
+                      backgroundColor: floatingStatus.light,
+                      color: floatingStatus.text,
+                    }}
+                    className="rounded-full px-2.5 py-1 text-[10px] font-extrabold"
+                  >
+                    {floatingStatus.label}
+                  </span>
+
+                  {floatingDistance && (
+                    <span className="text-[11px] font-bold text-blue-600">
+                      {floatingDistance}
+                    </span>
+                  )}
+                </div>
+
+                <h3 className="mt-2 line-clamp-2 break-keep text-base font-black leading-6">
+                  {floatingApartment.name}
+                </h3>
+
+                <p className="mt-1 truncate text-xs text-zinc-500">
+                  {floatingApartment.region}
+                </p>
+              </div>
+            </div>
+
+            <div className="border-t border-zinc-100 px-4 py-3">
+              <p className="line-clamp-2 text-xs font-bold text-zinc-700">
+                {floatingApartment.condition || "조건 확인 필요"}
               </p>
+
+              <button
+                type="button"
+                onClick={() => onOpen(floatingApartment.slug)}
+                className="mt-3 inline-flex min-h-10 w-full items-center justify-center rounded-xl bg-zinc-900 px-4 py-2 text-sm font-bold text-white transition hover:bg-emerald-600"
+              >
+                상세정보 확인 →
+              </button>
+            </div>
+          </div>
+        )}
+
+        {(mapError || !scriptReady) && (
+          <div className="absolute inset-0 z-40 flex items-center justify-center bg-white/95 p-8 text-center">
+            <div>
+              <p className="font-bold">네이버 지도 연결 확인</p>
               <p className="mt-2 max-w-md text-sm leading-6 text-zinc-500">
                 {mapError ||
                   "네이버 지도 스크립트를 불러오는 중입니다."}
@@ -1022,24 +924,15 @@ export default function SearchMapPanel({
 
         {scriptReady && !mapReady && !mapError && (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/80 text-sm font-semibold text-zinc-500">
-            지도 화면 크기를 맞추는 중입니다...
+            지도 화면을 준비하고 있습니다.
           </div>
         )}
 
         {scriptReady && mapReady && isLocating && (
-          <div className="absolute left-5 top-5 z-20 rounded-2xl border border-zinc-200 bg-white/95 px-4 py-3 text-sm font-semibold shadow-lg backdrop-blur">
-            지도를 불러오는 중입니다...
+          <div className="absolute left-5 top-5 z-20 rounded-2xl border border-zinc-200 bg-white/95 px-4 py-3 text-sm font-semibold shadow-lg">
+            단지 위치를 불러오는 중입니다.
           </div>
         )}
-
-        {scriptReady &&
-          mapReady &&
-          !isLocating &&
-          locatedApartments.length > 0 && (
-            <div className="pointer-events-none absolute bottom-5 left-5 z-20 rounded-full border border-zinc-200 bg-white/90 px-3 py-2 text-xs font-semibold text-zinc-600 shadow-sm backdrop-blur">
-              지도를 이동하면 왼쪽 목록이 자동으로 바뀝니다.
-            </div>
-          )}
       </div>
     </section>
   );
