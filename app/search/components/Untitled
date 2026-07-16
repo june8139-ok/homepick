@@ -1,0 +1,118 @@
+import type { Apartment } from "../../../types/apartment";
+
+function getHeroImage(apartment: Apartment) {
+  const hero = apartment.images?.hero;
+
+  if (Array.isArray(hero)) return hero[0] ?? "";
+  if (typeof hero === "string") return hero;
+
+  return "";
+}
+
+export default function SearchResultCard({
+  apartment,
+  selected,
+  onHover,
+  onClick,
+}: {
+  apartment: Apartment;
+  selected: boolean;
+  onHover: () => void;
+  onClick: () => void;
+}) {
+  const heroImage = getHeroImage(apartment);
+
+  return (
+    <article
+      onMouseEnter={onHover}
+      className={[
+        "overflow-hidden rounded-3xl border bg-white shadow-sm transition duration-200",
+        selected
+          ? "border-emerald-400 shadow-md"
+          : "border-zinc-200 hover:-translate-y-0.5 hover:shadow-md",
+      ].join(" ")}
+    >
+      <button
+        type="button"
+        onClick={onClick}
+        className="grid w-full text-left sm:grid-cols-[170px_1fr]"
+      >
+        <div className="relative min-h-[180px] bg-zinc-100">
+          {heroImage ? (
+            <img
+              src={heroImage}
+              alt={apartment.name}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div className="flex h-full min-h-[180px] items-center justify-center text-sm text-zinc-400">
+              이미지 준비중
+            </div>
+          )}
+
+          <span className="absolute left-3 top-3 rounded-full bg-zinc-900 px-3 py-1 text-xs font-bold text-white">
+            {apartment.status}
+          </span>
+        </div>
+
+        <div className="flex min-w-0 flex-col p-5">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-emerald-600">
+                {apartment.cityName || apartment.city}
+              </p>
+
+              <h3 className="mt-1 truncate text-xl font-bold">
+                {apartment.name}
+              </h3>
+
+              <p className="mt-1 truncate text-sm text-zinc-500">
+                {apartment.region}
+              </p>
+            </div>
+
+            <div className="shrink-0 text-right">
+              <p className="text-[11px] text-zinc-400">
+                분석 점수
+              </p>
+              <p className="text-2xl font-extrabold text-emerald-600">
+                {apartment.score.total}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
+            <div className="rounded-xl bg-zinc-50 px-3 py-2">
+              <p className="text-zinc-400">분양가</p>
+              <p className="mt-1 truncate font-bold">
+                {apartment.price || "문의"}
+              </p>
+            </div>
+
+            <div className="rounded-xl bg-zinc-50 px-3 py-2">
+              <p className="text-zinc-400">유형</p>
+              <p className="mt-1 truncate font-bold">
+                {apartment.type || "아파트"}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-3 rounded-xl bg-emerald-50 px-3 py-3">
+            <p className="text-[11px] font-semibold text-emerald-700">
+              핵심 계약조건
+            </p>
+            <p className="mt-1 line-clamp-2 text-sm font-bold text-zinc-800">
+              {apartment.condition || "조건 확인 필요"}
+            </p>
+          </div>
+
+          <div className="mt-auto flex justify-end pt-4">
+            <span className="rounded-full bg-zinc-900 px-4 py-2 text-xs font-bold text-white">
+              상세보기 →
+            </span>
+          </div>
+        </div>
+      </button>
+    </article>
+  );
+}
