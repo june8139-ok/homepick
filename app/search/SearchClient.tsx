@@ -30,22 +30,22 @@ export type UserLocation = {
   longitude: number;
 };
 
-const initialFilters: SearchFilterState = {
+const DEFAULT_FILTERS: SearchFilterState = {
   status: "",
   benefits: [],
 };
 
-function normalizeText(value: unknown) {
+function normalize(value: unknown) {
   return String(value ?? "")
     .trim()
     .toLowerCase()
     .replace(/\s+/g, "");
 }
 
-function matchesKeyword(apartment: Apartment, keyword: string) {
+function keywordMatch(apartment: Apartment, keyword: string) {
   if (!keyword) return true;
 
-  const targets = [
+  return [
     apartment.name,
     apartment.region,
     apartment.city,
@@ -60,75 +60,31 @@ function matchesKeyword(apartment: Apartment, keyword: string) {
     ...(apartment.keywords ?? []),
     ...(apartment.pros ?? []),
     ...(apartment.cons ?? []),
-    ...(apartment.images?.floorPlans ?? []).map(
-      (floorPlan) => floorPlan.name
-    ),
-  ].filter(Boolean);
+  ]
+    .filter(Boolean)
+    .some((value) => normalize(value).includes(keyword));
+}
 
-  return targets.some((target) =>
-    normalizeText(target).includes(keyword)
+function benefitMatch(text: string, benefit: string) {
+  const rules: Record<string, string[]> = {
+    "계약금 500만원": ["500만원", "500만"],
+    "계약금 1,000만원": ["1,000만원", "1000만원", "천만원"],
+    "계약금 5%": ["계약금5%"],
+    "계약금 10%": ["계약금10%"],
+    "중도금 무이자": ["중도금무이자", "전액무이자"],
+    이자후불제: ["이자후불제", "이자후불"],
+    축하금: ["축하금", "페이백", "지원금"],
+    "발코니 무상": ["발코니무상", "발코니무료"],
+    "풀옵션 무상": ["풀옵션무상", "풀옵션무료"],
+    잔금유예: ["잔금유예", "입주유예"],
+  };
+
+  return (rules[benefit] ?? [normalize(benefit)]).some((rule) =>
+    text.includes(rule)
   );
 }
 
-function conditionMatches(conditionText: string, benefit: string) {
-  switch (benefit) {
-    case "1차 계약금 500만원":
-      return (
-        conditionText.includes("500만원") ||
-        conditionText.includes("500만")
-      );
-    case "1차 계약금 1,000만원":
-      return (
-        conditionText.includes("1,000만원") ||
-        conditionText.includes("1000만원") ||
-        conditionText.includes("천만원")
-      );
-    case "계약금 5%":
-      return conditionText.includes("계약금5%");
-    case "계약금 10%":
-      return conditionText.includes("계약금10%");
-    case "중도금 무이자":
-      return (
-        conditionText.includes("중도금무이자") ||
-        conditionText.includes("전액무이자")
-      );
-    case "일부 무이자":
-      return conditionText.includes("일부무이자");
-    case "이자후불제":
-      return (
-        conditionText.includes("이자후불제") ||
-        conditionText.includes("이자후불")
-      );
-    case "축하금":
-      return (
-        conditionText.includes("축하금") ||
-        conditionText.includes("페이백") ||
-        conditionText.includes("지원금")
-      );
-    case "발코니 무상":
-      return (
-        conditionText.includes("발코니") &&
-        (conditionText.includes("무상") ||
-          conditionText.includes("무료"))
-      );
-    case "풀옵션 무상":
-      return (
-        conditionText.includes("풀옵션") &&
-        (conditionText.includes("무상") ||
-          conditionText.includes("무료"))
-      );
-    case "잔금/입주지원":
-      return (
-        conditionText.includes("잔금") ||
-        conditionText.includes("입주지원") ||
-        conditionText.includes("입주유예")
-      );
-    default:
-      return conditionText.includes(normalizeText(benefit));
-  }
-}
-
-function matchesStatus(
+function statusMatch(
   apartment: Apartment,
   status: SearchFilterState["status"]
 ) {
@@ -141,27 +97,11 @@ function matchesStatus(
   if (status === "청약중") return subscription;
   if (status === "선착순") return firstCome;
   if (status === "분양중") return !subscription && !firstCome;
-
   return true;
 }
 
-function matchesFilters(
-  apartment: Apartment,
-  filters: SearchFilterState
-) {
-  const conditionText = normalizeText(apartment.condition);
-
-  return (
-    matchesStatus(apartment, filters.status) &&
-    (filters.benefits.length === 0 ||
-      filters.benefits.every((benefit) =>
-        conditionMatches(conditionText, benefit)
-      ))
-  );
-}
-
-function getApartmentCoordinates(apartment: Apartment) {
-  const source = apartment as Apartment & {
+function coordinateOf(apartment: Apartment) {
+  const data = apartment as Apartment & {
     data?: {
       latitude?: number | string | null;
       longitude?: number | string | null;
@@ -169,10 +109,10 @@ function getApartmentCoordinates(apartment: Apartment) {
   };
 
   const latitude = Number(
-    apartment.latitude ?? source.data?.latitude
+    apartment.latitude ?? data.data?.latitude
   );
   const longitude = Number(
-    apartment.longitude ?? source.data?.longitude
+    apartment.longitude ?? data.data?.longitude
   );
 
   if (
@@ -187,86 +127,19 @@ function getApartmentCoordinates(apartment: Apartment) {
   return { latitude, longitude };
 }
 
-function calculateDistanceKm(
-  first: UserLocation,
-  second: UserLocation
-) {
-  const earthRadiusKm = 6371;
-  const toRadians = (value: number) =>
-    (value * Math.PI) / 180;
+function distanceKm(first: UserLocation, second: UserLocation) {
+  const radius = 6371;
+  const rad = (value: number) => (value * Math.PI) / 180;
+  const dLat = rad(second.latitude - first.latitude);
+  const dLng = rad(second.longitude - first.longitude);
+  const lat1 = rad(first.latitude);
+  const lat2 = rad(second.latitude);
 
-  const latitudeDifference = toRadians(
-    second.latitude - first.latitude
-  );
-  const longitudeDifference = toRadians(
-    second.longitude - first.longitude
-  );
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
 
-  const firstLatitude = toRadians(first.latitude);
-  const secondLatitude = toRadians(second.latitude);
-
-  const haversine =
-    Math.sin(latitudeDifference / 2) ** 2 +
-    Math.cos(firstLatitude) *
-      Math.cos(secondLatitude) *
-      Math.sin(longitudeDifference / 2) ** 2;
-
-  return (
-    earthRadiusKm *
-    2 *
-    Math.atan2(
-      Math.sqrt(haversine),
-      Math.sqrt(1 - haversine)
-    )
-  );
-}
-
-function sortApartments(
-  apartments: Apartment[],
-  sort: SortOption,
-  distanceBySlug: Record<string, number>
-) {
-  const copied = [...apartments];
-
-  if (sort === "distance") {
-    return copied.sort(
-      (a, b) =>
-        (distanceBySlug[a.slug] ?? Number.MAX_SAFE_INTEGER) -
-        (distanceBySlug[b.slug] ?? Number.MAX_SAFE_INTEGER)
-    );
-  }
-
-  if (sort === "contract") {
-    return copied.sort(
-      (a, b) =>
-        (b.score?.contract ?? 0) -
-        (a.score?.contract ?? 0)
-    );
-  }
-
-  if (sort === "name") {
-    return copied.sort((a, b) =>
-      a.name.localeCompare(b.name, "ko")
-    );
-  }
-
-  return copied;
-}
-
-function isExactApartmentQuery(
-  apartment: Apartment,
-  query: string
-) {
-  const normalizedQuery = normalizeText(query);
-  if (!normalizedQuery) return false;
-
-  return [
-    apartment.name,
-    apartment.slug,
-    ...(apartment.keywords ?? []),
-  ].some(
-    (target) => normalizeText(target) === normalizedQuery
-  );
+  return radius * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
 export default function SearchClient({
@@ -276,16 +149,16 @@ export default function SearchClient({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const initialQuery = searchParams.get("q") ?? "";
+  const query = searchParams.get("q") ?? "";
 
-  const visibleApartments = useMemo(
+  const sourceApartments = useMemo(
     () => getHomeVisibleApartments(apartments),
     [apartments]
   );
 
-  const [keyword, setKeyword] = useState(initialQuery);
+  const [keyword, setKeyword] = useState(query);
   const [filters, setFilters] =
-    useState<SearchFilterState>(initialFilters);
+    useState<SearchFilterState>(DEFAULT_FILTERS);
   const [sort, setSort] = useState<SortOption>("default");
   const [mobileView, setMobileView] =
     useState<"list" | "map">("list");
@@ -293,123 +166,120 @@ export default function SearchClient({
     useState<string | null>(null);
   const [selectedSlug, setSelectedSlug] =
     useState<string | null>(null);
-  const [activeSuggestionIndex, setActiveSuggestionIndex] =
-    useState(-1);
   const [visibleSlugs, setVisibleSlugs] =
     useState<string[] | null>(null);
   const [userLocation, setUserLocation] =
     useState<UserLocation | null>(null);
   const [locationStatus, setLocationStatus] =
     useState<LocationStatus>("idle");
-  const [locationMessage, setLocationMessage] =
-    useState("");
+  const [locationMessage, setLocationMessage] = useState("");
+  const [suggestionIndex, setSuggestionIndex] = useState(-1);
 
   const cardRefs = useRef<Map<string, HTMLElement>>(new Map());
   const deferredKeyword = useDeferredValue(keyword);
 
-  const distanceBySlug = useMemo(() => {
+  useEffect(() => {
+    setKeyword(query);
+    setSuggestionIndex(-1);
+  }, [query]);
+
+  const distances = useMemo(() => {
     if (!userLocation) return {};
 
     const result: Record<string, number> = {};
 
-    visibleApartments.forEach((apartment) => {
-      const coordinates = getApartmentCoordinates(apartment);
-      if (!coordinates) return;
-
-      result[apartment.slug] = calculateDistanceKm(
-        userLocation,
-        coordinates
-      );
+    sourceApartments.forEach((apartment) => {
+      const coordinate = coordinateOf(apartment);
+      if (!coordinate) return;
+      result[apartment.slug] = distanceKm(userLocation, coordinate);
     });
 
     return result;
-  }, [userLocation, visibleApartments]);
-
-  const suggestions = useMemo(() => {
-    const text = normalizeText(deferredKeyword);
-    if (!text) return [];
-
-    return visibleApartments
-      .filter((apartment) => matchesKeyword(apartment, text))
-      .slice(0, 6);
-  }, [deferredKeyword, visibleApartments]);
+  }, [sourceApartments, userLocation]);
 
   const filteredResults = useMemo(() => {
-    const query = normalizeText(initialQuery);
+    const normalizedQuery = normalize(query);
 
-    const filtered = visibleApartments.filter(
-      (apartment) =>
-        matchesKeyword(apartment, query) &&
-        matchesFilters(apartment, filters)
-    );
+    const result = sourceApartments.filter((apartment) => {
+      const condition = normalize(apartment.condition);
 
-    return sortApartments(filtered, sort, distanceBySlug);
-  }, [
-    distanceBySlug,
-    filters,
-    initialQuery,
-    sort,
-    visibleApartments,
-  ]);
+      return (
+        keywordMatch(apartment, normalizedQuery) &&
+        statusMatch(apartment, filters.status) &&
+        (filters.benefits.length === 0 ||
+          filters.benefits.every((benefit) =>
+            benefitMatch(condition, benefit)
+          ))
+      );
+    });
 
-  const filteredSignature = useMemo(
-    () =>
-      filteredResults
-        .map((apartment) => apartment.slug)
-        .join("|"),
+    if (sort === "distance") {
+      return [...result].sort(
+        (a, b) =>
+          (distances[a.slug] ?? Number.MAX_SAFE_INTEGER) -
+          (distances[b.slug] ?? Number.MAX_SAFE_INTEGER)
+      );
+    }
+
+    if (sort === "contract") {
+      return [...result].sort(
+        (a, b) =>
+          (b.score?.contract ?? 0) -
+          (a.score?.contract ?? 0)
+      );
+    }
+
+    if (sort === "name") {
+      return [...result].sort((a, b) =>
+        a.name.localeCompare(b.name, "ko")
+      );
+    }
+
+    return result;
+  }, [distances, filters, query, sort, sourceApartments]);
+
+  const resultSignature = useMemo(
+    () => filteredResults.map((item) => item.slug).join("|"),
     [filteredResults]
   );
 
   useEffect(() => {
     setVisibleSlugs(null);
     setHoveredSlug(null);
-  }, [filteredSignature]);
+
+    if (
+      selectedSlug &&
+      !filteredResults.some((item) => item.slug === selectedSlug)
+    ) {
+      setSelectedSlug(null);
+    }
+  }, [filteredResults, resultSignature, selectedSlug]);
 
   const listResults = useMemo(() => {
     if (visibleSlugs === null) return filteredResults;
 
-    const visibleSet = new Set(visibleSlugs);
-    return filteredResults.filter((apartment) =>
-      visibleSet.has(apartment.slug)
-    );
+    const visible = new Set(visibleSlugs);
+    return filteredResults.filter((item) => visible.has(item.slug));
   }, [filteredResults, visibleSlugs]);
 
-  const exactQueryApartment = useMemo(
-    () =>
-      visibleApartments.find((apartment) =>
-        isExactApartmentQuery(apartment, initialQuery)
-      ) ?? null,
-    [initialQuery, visibleApartments]
-  );
-
-  useEffect(() => {
-    setKeyword(initialQuery);
-    setActiveSuggestionIndex(-1);
-  }, [initialQuery]);
-
-  useEffect(() => {
-    if (
-      selectedSlug &&
-      filteredResults.some(
-        (apartment) => apartment.slug === selectedSlug
-      )
-    ) {
-      return;
-    }
-
-    setSelectedSlug(exactQueryApartment?.slug ?? null);
-  }, [exactQueryApartment, filteredResults, selectedSlug]);
-
   const selectedApartment =
-    filteredResults.find(
-      (apartment) => apartment.slug === selectedSlug
-    ) ?? null;
+    filteredResults.find((item) => item.slug === selectedSlug) ??
+    null;
 
   const activeApartment =
     filteredResults.find(
-      (apartment) =>
-        apartment.slug === (hoveredSlug ?? selectedSlug)
+      (item) => item.slug === (hoveredSlug ?? selectedSlug)
     ) ?? null;
+
+  const suggestions = useMemo(() => {
+    const value = normalize(deferredKeyword);
+
+    if (!value || value === normalize(query)) return [];
+
+    return sourceApartments
+      .filter((apartment) => keywordMatch(apartment, value))
+      .slice(0, 6);
+  }, [deferredKeyword, query, sourceApartments]);
 
   const scrollToCard = useCallback((slug: string) => {
     requestAnimationFrame(() => {
@@ -420,13 +290,6 @@ export default function SearchClient({
     });
   }, []);
 
-  const handleMapHover = useCallback(
-    (slug: string | null) => {
-      setHoveredSlug(slug);
-    },
-    []
-  );
-
   const handleMapSelect = useCallback(
     (slug: string) => {
       setSelectedSlug(slug);
@@ -435,90 +298,21 @@ export default function SearchClient({
     [scrollToCard]
   );
 
-  const moveToSearch = (
-    text: string,
-    preferredSlug?: string
-  ) => {
-    const trimmed = text.trim();
+  const submitSearch = (value?: string, slug?: string) => {
+    const next = (value ?? keyword).trim();
 
-    if (!trimmed) {
+    if (!next) {
       router.push("/search");
       return;
     }
 
-    setKeyword(trimmed);
-    setActiveSuggestionIndex(-1);
+    if (slug) setSelectedSlug(slug);
     setVisibleSlugs(null);
-
-    if (preferredSlug) {
-      setSelectedSlug(preferredSlug);
-    }
-
-    router.push(`/search?q=${encodeURIComponent(trimmed)}`);
+    setSuggestionIndex(-1);
+    router.push(`/search?q=${encodeURIComponent(next)}`);
   };
 
-  const handleSearch = () => {
-    if (
-      activeSuggestionIndex >= 0 &&
-      suggestions[activeSuggestionIndex]
-    ) {
-      const selected = suggestions[activeSuggestionIndex];
-      moveToSearch(selected.name, selected.slug);
-      return;
-    }
-
-    const text = keyword.trim();
-
-    if (!text) {
-      router.push("/search");
-      return;
-    }
-
-    const exactApartment = visibleApartments.find(
-      (apartment) => isExactApartmentQuery(apartment, text)
-    );
-
-    moveToSearch(
-      exactApartment?.name ?? text,
-      exactApartment?.slug
-    );
-  };
-
-  const handleSearchKeyDown = (
-    event: React.KeyboardEvent<HTMLInputElement>
-  ) => {
-    if (event.key === "ArrowDown") {
-      if (suggestions.length === 0) return;
-
-      event.preventDefault();
-      setActiveSuggestionIndex((current) =>
-        current < suggestions.length - 1 ? current + 1 : 0
-      );
-      return;
-    }
-
-    if (event.key === "ArrowUp") {
-      if (suggestions.length === 0) return;
-
-      event.preventDefault();
-      setActiveSuggestionIndex((current) =>
-        current > 0 ? current - 1 : suggestions.length - 1
-      );
-      return;
-    }
-
-    if (event.key === "Escape") {
-      setActiveSuggestionIndex(-1);
-      return;
-    }
-
-    if (event.key === "Enter") {
-      event.preventDefault();
-      handleSearch();
-    }
-  };
-
-  const requestUserLocation = useCallback(() => {
+  const requestLocation = useCallback(() => {
     if (
       typeof navigator === "undefined" ||
       !navigator.geolocation
@@ -555,9 +349,7 @@ export default function SearchClient({
         }
 
         setLocationStatus("error");
-        setLocationMessage(
-          "현재 위치를 확인하지 못했습니다."
-        );
+        setLocationMessage("현재 위치를 확인하지 못했습니다.");
       },
       {
         enableHighAccuracy: false,
@@ -569,18 +361,14 @@ export default function SearchClient({
 
   const clearAll = () => {
     setKeyword("");
-    setFilters(initialFilters);
+    setFilters(DEFAULT_FILTERS);
     setSort("default");
     setHoveredSlug(null);
     setSelectedSlug(null);
-    setActiveSuggestionIndex(-1);
     setVisibleSlugs(null);
+    setSuggestionIndex(-1);
     router.push("/search");
   };
-
-  const showSuggestions =
-    suggestions.length > 0 &&
-    normalizeText(keyword) !== normalizeText(initialQuery);
 
   return (
     <main className="min-h-screen bg-zinc-50 text-zinc-900">
@@ -591,30 +379,18 @@ export default function SearchClient({
               <p className="text-sm font-semibold text-emerald-600">
                 HOMEPICK SEARCH
               </p>
-
               <h1 className="mt-1 text-3xl font-extrabold tracking-tight">
-                {initialQuery
-                  ? `“${initialQuery}” 관련 부동산`
+                {query
+                  ? `“${query}” 관련 부동산`
                   : "전국 부동산 찾기"}
               </h1>
-
               <p className="mt-2 text-sm text-zinc-500">
-                지역, 분양가와 계약조건을 목록과 지도에서 함께 비교하세요.
+                목록과 지도를 함께 보며 분양 단지를 비교하세요.
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() => router.push("/")}
-                className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50"
-              >
-                ← 홈으로
-              </button>
-
-              <div className="rounded-full bg-zinc-100 px-4 py-2 text-sm font-semibold text-zinc-600">
-                검색 결과 {filteredResults.length}개
-              </div>
+            <div className="rounded-full bg-zinc-100 px-4 py-2 text-sm font-semibold text-zinc-600">
+              검색 결과 {filteredResults.length}개
             </div>
           </div>
 
@@ -623,69 +399,82 @@ export default function SearchClient({
               <input
                 value={keyword}
                 onChange={(event) => setKeyword(event.target.value)}
-                onKeyDown={handleSearchKeyDown}
+                onKeyDown={(event) => {
+                  if (
+                    event.key === "ArrowDown" &&
+                    suggestions.length
+                  ) {
+                    event.preventDefault();
+                    setSuggestionIndex((index) =>
+                      index < suggestions.length - 1
+                        ? index + 1
+                        : 0
+                    );
+                  } else if (
+                    event.key === "ArrowUp" &&
+                    suggestions.length
+                  ) {
+                    event.preventDefault();
+                    setSuggestionIndex((index) =>
+                      index > 0
+                        ? index - 1
+                        : suggestions.length - 1
+                    );
+                  } else if (event.key === "Enter") {
+                    event.preventDefault();
+
+                    const suggestion =
+                      suggestionIndex >= 0
+                        ? suggestions[suggestionIndex]
+                        : null;
+
+                    submitSearch(
+                      suggestion?.name ?? keyword,
+                      suggestion?.slug
+                    );
+                  } else if (event.key === "Escape") {
+                    setSuggestionIndex(-1);
+                  }
+                }}
                 placeholder="단지명, 지역, 계약조건을 검색하세요"
                 autoComplete="off"
-                role="combobox"
-                aria-expanded={showSuggestions}
-                aria-autocomplete="list"
-                aria-controls="search-suggestion-list"
                 className="h-12 min-w-0 flex-1 rounded-xl border border-zinc-200 px-4 text-base outline-none focus:border-emerald-400"
               />
 
               <button
                 type="button"
-                onClick={handleSearch}
+                onClick={() => submitSearch()}
                 className="rounded-xl bg-zinc-900 px-6 font-bold text-white transition hover:bg-emerald-600"
               >
                 검색
               </button>
             </div>
 
-            {showSuggestions && (
-              <div
-                id="search-suggestion-list"
-                role="listbox"
-                className="absolute left-0 right-0 top-[72px] z-40 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xl"
-              >
-                {suggestions.map((apartment, index) => {
-                  const active =
-                    index === activeSuggestionIndex;
-
-                  return (
-                    <button
-                      key={apartment.slug}
-                      type="button"
-                      role="option"
-                      aria-selected={active}
-                      onMouseEnter={() =>
-                        setActiveSuggestionIndex(index)
-                      }
-                      onClick={() =>
-                        moveToSearch(
-                          apartment.name,
-                          apartment.slug
-                        )
-                      }
-                      className={[
-                        "flex w-full items-center justify-between gap-4 px-4 py-3 text-left transition",
-                        active
-                          ? "bg-emerald-50"
-                          : "hover:bg-zinc-50",
-                      ].join(" ")}
-                    >
-                      <div className="min-w-0">
-                        <p className="truncate font-semibold">
-                          {apartment.name}
-                        </p>
-                        <p className="mt-1 truncate text-xs text-zinc-500">
-                          {apartment.region} ·{" "}
-                          {apartment.condition || "조건 확인"}
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })}
+            {suggestions.length > 0 && (
+              <div className="absolute left-0 right-0 top-[72px] z-40 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xl">
+                {suggestions.map((apartment, index) => (
+                  <button
+                    key={apartment.slug}
+                    type="button"
+                    onMouseEnter={() => setSuggestionIndex(index)}
+                    onClick={() =>
+                      submitSearch(apartment.name, apartment.slug)
+                    }
+                    className={[
+                      "block w-full px-4 py-3 text-left transition",
+                      suggestionIndex === index
+                        ? "bg-emerald-50"
+                        : "hover:bg-zinc-50",
+                    ].join(" ")}
+                  >
+                    <p className="truncate font-semibold">
+                      {apartment.name}
+                    </p>
+                    <p className="mt-1 truncate text-xs text-zinc-500">
+                      {apartment.region}
+                    </p>
+                  </button>
+                ))}
               </div>
             )}
           </div>
@@ -698,7 +487,7 @@ export default function SearchClient({
             hasUserLocation={Boolean(userLocation)}
             onFiltersChange={setFilters}
             onSortChange={setSort}
-            onRequestLocation={requestUserLocation}
+            onRequestLocation={requestLocation}
             onClear={clearAll}
           />
         </div>
@@ -738,67 +527,54 @@ export default function SearchClient({
             }
           >
             <div className="mb-4 flex items-center justify-between">
-              <div>
-                <p className="text-sm font-semibold text-zinc-500">
-                  SEARCH RESULT
-                </p>
-                <h2 className="mt-1 text-xl font-bold">
-                  부동산 목록
-                </h2>
-              </div>
-
+              <h2 className="text-xl font-bold">부동산 목록</h2>
               <p className="text-sm text-zinc-500">
                 지도 안 {listResults.length}개
-                {filteredResults.length !== listResults.length
-                  ? ` · 전체 ${filteredResults.length}개`
-                  : ""}
               </p>
             </div>
 
             <div className="space-y-4 lg:max-h-[calc(100vh-185px)] lg:overflow-y-auto lg:pr-2">
-              {listResults.length === 0 ? (
+              {listResults.map((apartment) => (
+                <SearchResultCard
+                  ref={(element) => {
+                    if (element) {
+                      cardRefs.current.set(
+                        apartment.slug,
+                        element
+                      );
+                    } else {
+                      cardRefs.current.delete(apartment.slug);
+                    }
+                  }}
+                  key={apartment.slug}
+                  apartment={apartment}
+                  selected={selectedSlug === apartment.slug}
+                  hovered={hoveredSlug === apartment.slug}
+                  distanceKm={distances[apartment.slug]}
+                  onHover={() =>
+                    setHoveredSlug(apartment.slug)
+                  }
+                  onLeave={() => setHoveredSlug(null)}
+                  onSelect={() =>
+                    setSelectedSlug(apartment.slug)
+                  }
+                  onOpen={() =>
+                    router.push(
+                      `/apartments/${apartment.slug}`
+                    )
+                  }
+                />
+              ))}
+
+              {listResults.length === 0 && (
                 <div className="rounded-3xl border border-zinc-200 bg-white p-10 text-center">
                   <h3 className="text-xl font-bold">
                     현재 지도 안에 단지가 없습니다.
                   </h3>
                   <p className="mt-2 text-sm text-zinc-500">
-                    지도를 이동하거나 전체 핀 보기를 눌러보세요.
+                    지도를 이동하거나 필터를 초기화해보세요.
                   </p>
                 </div>
-              ) : (
-                listResults.map((apartment) => (
-                  <SearchResultCard
-                    ref={(element) => {
-                      if (element) {
-                        cardRefs.current.set(
-                          apartment.slug,
-                          element
-                        );
-                      } else {
-                        cardRefs.current.delete(
-                          apartment.slug
-                        );
-                      }
-                    }}
-                    key={apartment.slug}
-                    apartment={apartment}
-                    selected={selectedSlug === apartment.slug}
-                    hovered={hoveredSlug === apartment.slug}
-                    distanceKm={distanceBySlug[apartment.slug]}
-                    onHover={() =>
-                      setHoveredSlug(apartment.slug)
-                    }
-                    onLeave={() => setHoveredSlug(null)}
-                    onSelect={() =>
-                      setSelectedSlug(apartment.slug)
-                    }
-                    onOpen={() =>
-                      router.push(
-                        `/apartments/${apartment.slug}`
-                      )
-                    }
-                  />
-                ))
               )}
             </div>
           </div>
@@ -815,8 +591,8 @@ export default function SearchClient({
               activeApartment={activeApartment}
               selectedApartment={selectedApartment}
               userLocation={userLocation}
-              distanceBySlug={distanceBySlug}
-              onHover={handleMapHover}
+              distanceBySlug={distances}
+              onHover={setHoveredSlug}
               onSelect={handleMapSelect}
               onOpen={(slug) =>
                 router.push(`/apartments/${slug}`)

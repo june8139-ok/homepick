@@ -30,6 +30,7 @@ type LocatedApartment = Apartment & {
 type MarkerEntry = {
   marker: any;
   apartment: LocatedApartment;
+  listeners: any[];
 };
 
 const DEFAULT_CENTER = {
@@ -46,7 +47,7 @@ function escapeHtml(value: unknown) {
     .replace(/'/g, "&#039;");
 }
 
-function getStatusInfo(apartment: Apartment) {
+function statusInfo(apartment: Apartment) {
   if (isSubscriptionApartment(apartment)) {
     return {
       label: apartment.status || "청약",
@@ -73,30 +74,29 @@ function getStatusInfo(apartment: Apartment) {
   };
 }
 
-function getHeroImage(apartment?: Apartment | null) {
+function heroImage(apartment?: Apartment | null) {
   if (!apartment) return "";
 
   const hero = apartment.images?.hero;
   if (Array.isArray(hero)) return hero[0] ?? "";
 
-  if (
-    typeof hero === "string" &&
-    !hero.includes("/images/apartments/default/main.jpg")
-  ) {
-    return hero;
+  if (typeof hero === "string") {
+    return hero.includes("/images/apartments/default/main.jpg")
+      ? ""
+      : hero;
   }
 
   return (
     apartment.images?.gallery?.find(
       (image) =>
-        Boolean(image) &&
+        image &&
         !image.includes("/images/apartments/default/main.jpg")
     ) ?? ""
   );
 }
 
-function getCoordinates(apartment: Apartment) {
-  const source = apartment as Apartment & {
+function coordinatesOf(apartment: Apartment) {
+  const data = apartment as Apartment & {
     data?: {
       latitude?: number | string | null;
       longitude?: number | string | null;
@@ -104,10 +104,10 @@ function getCoordinates(apartment: Apartment) {
   };
 
   const latitude = Number(
-    apartment.latitude ?? source.data?.latitude
+    apartment.latitude ?? data.data?.latitude
   );
   const longitude = Number(
-    apartment.longitude ?? source.data?.longitude
+    apartment.longitude ?? data.data?.longitude
   );
 
   if (
@@ -187,6 +187,7 @@ async function geocodeAddress(
 
   try {
     const cached = sessionStorage.getItem(cacheKey);
+
     if (cached) {
       const parsed = JSON.parse(cached) as UserLocation;
 
@@ -234,11 +235,11 @@ async function geocodeAddress(
   });
 }
 
-function createMarkerHtml(
+function markerHtml(
   apartment: Apartment,
   highlighted: boolean
 ) {
-  const status = getStatusInfo(apartment);
+  const status = statusInfo(apartment);
 
   return `
     <div style="
@@ -293,7 +294,7 @@ function createMarkerHtml(
   `;
 }
 
-function createUserLocationHtml() {
+function userMarkerHtml() {
   return `
     <div style="
       display:flex;
@@ -316,7 +317,7 @@ function createUserLocationHtml() {
   `;
 }
 
-function formatDistance(distanceKm?: number) {
+function displayDistance(distanceKm?: number) {
   if (
     distanceKm === undefined ||
     !Number.isFinite(distanceKm)
@@ -328,11 +329,9 @@ function formatDistance(distanceKm?: number) {
     return `${Math.round(distanceKm * 1000)}m`;
   }
 
-  if (distanceKm < 10) {
-    return `${distanceKm.toFixed(1)}km`;
-  }
-
-  return `${Math.round(distanceKm)}km`;
+  return distanceKm < 10
+    ? `${distanceKm.toFixed(1)}km`
+    : `${Math.round(distanceKm)}km`;
 }
 
 export default function SearchMapPanel({
@@ -358,7 +357,7 @@ export default function SearchMapPanel({
 }) {
   const mapElementRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<any>(null);
-  const markersRef = useRef<Map<string, MarkerEntry>>(
+  const markerEntriesRef = useRef<Map<string, MarkerEntry>>(
     new Map()
   );
   const userMarkerRef = useRef<any>(null);
@@ -419,36 +418,71 @@ export default function SearchMapPanel({
   }, [clientId]);
 
   useEffect(() => {
-    if (
-      !scriptReady ||
-      !mapElementRef.current ||
-      !window.naver?.maps ||
-      mapRef.current
-    ) {
-      return;
-    }
+    if (!scriptReady || !window.naver?.maps) return;
 
-    const element = mapElementRef.current;
+    let cancelled = false;
+    let retryCount = 0;
+    let timer: ReturnType<typeof setTimeout> | null = null;
 
-    mapRef.current = new window.naver.maps.Map(element, {
-      center: new window.naver.maps.LatLng(
-        DEFAULT_CENTER.latitude,
-        DEFAULT_CENTER.longitude
-      ),
-      zoom: 7,
-      minZoom: 6,
-      maxZoom: 19,
-      zoomControl: true,
-      zoomControlOptions: {
-        position: window.naver.maps.Position.TOP_RIGHT,
-      },
-      mapTypeControl: false,
-      scaleControl: false,
-      logoControl: true,
-      mapDataControl: false,
-    });
+    const createMap = () => {
+      if (cancelled || !mapElementRef.current) return;
 
-    setMapReady(true);
+      const element = mapElementRef.current;
+      const rect = element.getBoundingClientRect();
+
+      if (
+        (rect.width < 10 || rect.height < 10) &&
+        retryCount < 40
+      ) {
+        retryCount += 1;
+        timer = setTimeout(createMap, 100);
+        return;
+      }
+
+      if (!mapRef.current) {
+        mapRef.current = new window.naver.maps.Map(element, {
+          center: new window.naver.maps.LatLng(
+            DEFAULT_CENTER.latitude,
+            DEFAULT_CENTER.longitude
+          ),
+          zoom: 7,
+          minZoom: 6,
+          maxZoom: 19,
+          zoomControl: true,
+          zoomControlOptions: {
+            position: window.naver.maps.Position.TOP_RIGHT,
+          },
+          mapTypeControl: false,
+          scaleControl: false,
+          logoControl: true,
+          mapDataControl: false,
+        });
+      }
+
+      const map = mapRef.current;
+
+      map.setSize(
+        new window.naver.maps.Size(
+          Math.max(1, Math.round(rect.width)),
+          Math.max(1, Math.round(rect.height))
+        )
+      );
+
+      window.naver.maps.Event.trigger(map, "resize");
+
+      requestAnimationFrame(() => {
+        if (cancelled) return;
+        window.naver.maps.Event.trigger(map, "resize");
+        setMapReady(true);
+      });
+    };
+
+    requestAnimationFrame(createMap);
+
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
   }, [scriptReady]);
 
   useEffect(() => {
@@ -456,12 +490,12 @@ export default function SearchMapPanel({
 
     let cancelled = false;
 
-    async function locateApartments() {
+    async function locate() {
       setIsLocating(true);
 
-      const located = await Promise.all(
+      const result = await Promise.all(
         apartments.map(async (apartment) => {
-          const saved = getCoordinates(apartment);
+          const saved = coordinatesOf(apartment);
 
           if (saved) {
             return {
@@ -485,7 +519,7 @@ export default function SearchMapPanel({
 
       if (!cancelled) {
         setLocatedApartments(
-          located.filter(
+          result.filter(
             (
               apartment
             ): apartment is LocatedApartment =>
@@ -496,14 +530,14 @@ export default function SearchMapPanel({
       }
     }
 
-    locateApartments();
+    locate();
 
     return () => {
       cancelled = true;
     };
   }, [apartmentSignature, apartments, scriptReady]);
 
-  const updateVisibleApartments = useCallback(() => {
+  const updateViewport = useCallback(() => {
     const map = mapRef.current;
 
     if (
@@ -536,10 +570,14 @@ export default function SearchMapPanel({
 
     if (!mapReady || !map || !window.naver?.maps) return;
 
-    markersRef.current.forEach(({ marker }) => {
-      marker.setMap(null);
+    markerEntriesRef.current.forEach((entry) => {
+      entry.listeners.forEach((listener) =>
+        window.naver.maps.Event.removeListener(listener)
+      );
+      entry.marker.setMap(null);
     });
-    markersRef.current.clear();
+
+    markerEntriesRef.current.clear();
 
     locatedApartments.forEach((apartment) => {
       const marker = new window.naver.maps.Marker({
@@ -550,31 +588,34 @@ export default function SearchMapPanel({
         map,
         title: apartment.name,
         icon: {
-          content: createMarkerHtml(apartment, false),
+          content: markerHtml(apartment, false),
           anchor: new window.naver.maps.Point(34, 46),
         },
         zIndex: 100,
       });
 
-      window.naver.maps.Event.addListener(
-        marker,
-        "mouseover",
-        () => onHover(apartment.slug)
-      );
-      window.naver.maps.Event.addListener(
-        marker,
-        "mouseout",
-        () => onHover(null)
-      );
-      window.naver.maps.Event.addListener(
-        marker,
-        "click",
-        () => onSelect(apartment.slug)
-      );
+      const listeners = [
+        window.naver.maps.Event.addListener(
+          marker,
+          "mouseover",
+          () => onHover(apartment.slug)
+        ),
+        window.naver.maps.Event.addListener(
+          marker,
+          "mouseout",
+          () => onHover(null)
+        ),
+        window.naver.maps.Event.addListener(
+          marker,
+          "click",
+          () => onSelect(apartment.slug)
+        ),
+      ];
 
-      markersRef.current.set(apartment.slug, {
+      markerEntriesRef.current.set(apartment.slug, {
         marker,
         apartment,
+        listeners,
       });
     });
 
@@ -585,11 +626,13 @@ export default function SearchMapPanel({
     }
 
     idleListenerRef.current =
-      window.naver.maps.Event.addListener(map, "idle", () => {
-        updateVisibleApartments();
-      });
+      window.naver.maps.Event.addListener(
+        map,
+        "idle",
+        updateViewport
+      );
 
-    updateVisibleApartments();
+    updateViewport();
 
     return () => {
       if (idleListenerRef.current) {
@@ -604,7 +647,7 @@ export default function SearchMapPanel({
     mapReady,
     onHover,
     onSelect,
-    updateVisibleApartments,
+    updateViewport,
   ]);
 
   const activeSlug =
@@ -616,11 +659,12 @@ export default function SearchMapPanel({
     const previousSlug = previousActiveSlugRef.current;
 
     if (previousSlug && previousSlug !== activeSlug) {
-      const previous = markersRef.current.get(previousSlug);
+      const previous =
+        markerEntriesRef.current.get(previousSlug);
 
       if (previous) {
         previous.marker.setIcon({
-          content: createMarkerHtml(
+          content: markerHtml(
             previous.apartment,
             false
           ),
@@ -631,11 +675,15 @@ export default function SearchMapPanel({
     }
 
     if (activeSlug) {
-      const active = markersRef.current.get(activeSlug);
+      const active =
+        markerEntriesRef.current.get(activeSlug);
 
       if (active) {
         active.marker.setIcon({
-          content: createMarkerHtml(active.apartment, true),
+          content: markerHtml(
+            active.apartment,
+            true
+          ),
           anchor: new window.naver.maps.Point(48, 72),
         });
         active.marker.setZIndex(220);
@@ -670,7 +718,8 @@ export default function SearchMapPanel({
       return;
     }
 
-    const bounds = new window.naver.maps.LatLngBounds();
+    const bounds =
+      new window.naver.maps.LatLngBounds();
 
     locatedApartments.forEach((apartment) => {
       bounds.extend(
@@ -690,25 +739,19 @@ export default function SearchMapPanel({
   }, [apartmentSignature, locatedApartments, mapReady]);
 
   useEffect(() => {
-    const map = mapRef.current;
+    if (!selectedApartment || !mapRef.current) return;
 
-    if (
-      !mapReady ||
-      !map ||
-      !window.naver?.maps ||
-      !selectedApartment
-    ) {
-      return;
+    const entry =
+      markerEntriesRef.current.get(
+        selectedApartment.slug
+      );
+
+    if (entry) {
+      mapRef.current.panTo(
+        entry.marker.getPosition()
+      );
     }
-
-    const located = markersRef.current.get(
-      selectedApartment.slug
-    );
-
-    if (!located) return;
-
-    map.panTo(located.marker.getPosition());
-  }, [mapReady, selectedApartment]);
+  }, [selectedApartment]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -721,25 +764,31 @@ export default function SearchMapPanel({
       return;
     }
 
-    const position = new window.naver.maps.LatLng(
-      userLocation.latitude,
-      userLocation.longitude
-    );
+    const position =
+      new window.naver.maps.LatLng(
+        userLocation.latitude,
+        userLocation.longitude
+      );
 
     if (userMarkerRef.current) {
       userMarkerRef.current.setPosition(position);
       userMarkerRef.current.setMap(map);
     } else {
-      userMarkerRef.current = new window.naver.maps.Marker({
-        position,
-        map,
-        title: "현재 위치",
-        icon: {
-          content: createUserLocationHtml(),
-          anchor: new window.naver.maps.Point(12, 12),
-        },
-        zIndex: 500,
-      });
+      userMarkerRef.current =
+        new window.naver.maps.Marker({
+          position,
+          map,
+          title: "현재 위치",
+          icon: {
+            content: userMarkerHtml(),
+            anchor:
+              new window.naver.maps.Point(
+                12,
+                12
+              ),
+          },
+          zIndex: 500,
+        });
     }
 
     map.morph(position, 13);
@@ -776,8 +825,9 @@ export default function SearchMapPanel({
     };
   }, [mapReady]);
 
-  const fitAllApartments = () => {
+  const fitAll = () => {
     const map = mapRef.current;
+
     if (
       !map ||
       !window.naver?.maps ||
@@ -786,7 +836,8 @@ export default function SearchMapPanel({
       return;
     }
 
-    const bounds = new window.naver.maps.LatLngBounds();
+    const bounds =
+      new window.naver.maps.LatLngBounds();
 
     locatedApartments.forEach((apartment) => {
       bounds.extend(
@@ -807,17 +858,24 @@ export default function SearchMapPanel({
 
   const floatingApartment =
     activeApartment ?? selectedApartment;
-  const floatingImage = getHeroImage(floatingApartment);
-  const floatingStatus = floatingApartment
-    ? getStatusInfo(floatingApartment)
-    : null;
-  const floatingDistance = floatingApartment
-    ? formatDistance(distanceBySlug[floatingApartment.slug])
-    : "";
+  const floatingImage =
+    heroImage(floatingApartment);
+  const floatingStatus =
+    floatingApartment
+      ? statusInfo(floatingApartment)
+      : null;
+  const floatingDistance =
+    floatingApartment
+      ? displayDistance(
+          distanceBySlug[
+            floatingApartment.slug
+          ]
+        )
+      : "";
 
   return (
     <section className="sticky top-4 overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm">
-      <div className="flex items-center justify-between border-b border-zinc-200 bg-white px-5 py-4">
+      <div className="flex items-center justify-between border-b border-zinc-200 px-5 py-4">
         <div>
           <p className="text-xs font-semibold tracking-[0.14em] text-emerald-600">
             NAVER MAP
@@ -830,7 +888,7 @@ export default function SearchMapPanel({
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={fitAllApartments}
+            onClick={fitAll}
             className="rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-600 transition hover:bg-zinc-50"
           >
             전체 핀 보기
@@ -846,6 +904,11 @@ export default function SearchMapPanel({
         <div
           ref={mapElementRef}
           className="absolute inset-0 bg-[#eaf5f8]"
+          style={{
+            width: "100%",
+            height: "100%",
+            minHeight: "680px",
+          }}
         />
 
         {floatingApartment && floatingStatus && (
@@ -869,7 +932,8 @@ export default function SearchMapPanel({
                 <div className="flex items-center justify-between gap-2">
                   <span
                     style={{
-                      backgroundColor: floatingStatus.light,
+                      backgroundColor:
+                        floatingStatus.light,
                       color: floatingStatus.text,
                     }}
                     className="rounded-full px-2.5 py-1 text-[10px] font-extrabold"
@@ -896,12 +960,15 @@ export default function SearchMapPanel({
 
             <div className="border-t border-zinc-100 px-4 py-3">
               <p className="line-clamp-2 text-xs font-bold text-zinc-700">
-                {floatingApartment.condition || "조건 확인 필요"}
+                {floatingApartment.condition ||
+                  "조건 확인 필요"}
               </p>
 
               <button
                 type="button"
-                onClick={() => onOpen(floatingApartment.slug)}
+                onClick={() =>
+                  onOpen(floatingApartment.slug)
+                }
                 className="mt-3 inline-flex min-h-10 w-full items-center justify-center rounded-xl bg-zinc-900 px-4 py-2 text-sm font-bold text-white transition hover:bg-emerald-600"
               >
                 상세정보 확인 →
@@ -913,7 +980,9 @@ export default function SearchMapPanel({
         {(mapError || !scriptReady) && (
           <div className="absolute inset-0 z-40 flex items-center justify-center bg-white/95 p-8 text-center">
             <div>
-              <p className="font-bold">네이버 지도 연결 확인</p>
+              <p className="font-bold">
+                네이버 지도 연결 확인
+              </p>
               <p className="mt-2 max-w-md text-sm leading-6 text-zinc-500">
                 {mapError ||
                   "네이버 지도 스크립트를 불러오는 중입니다."}
