@@ -9,6 +9,8 @@ export type SubscriptionSchedule = {
   winnerDate?: string | null;
   contractStartDate?: string | null;
   contractEndDate?: string | null;
+  noticeUrl?: string | null;
+  applyUrl?: string | null;
   applyHomeUrl?: string | null;
 };
 
@@ -39,64 +41,75 @@ export type LocationInfo = {
   cautions?: string;
 };
 
+export type UnitPriceSource = "applyhome" | "manual" | "mixed";
+
+export type UnitTypePrice = {
+  typeName: string;
+  minPrice?: number | null;
+  maxPrice?: number | null;
+  households?: number | null;
+};
+
+export type UnitPrice = {
+  area: string;
+  minPrice?: number | null;
+  maxPrice?: number | null;
+  households?: number | null;
+  source?: UnitPriceSource;
+  types?: UnitTypePrice[];
+};
+
+export type ApartmentPriceInfo = {
+  minimumPrice?: number | null;
+  maximumPrice?: number | null;
+  averagePricePerPyeong?: number | null;
+  units: UnitPrice[];
+  updatedAt?: string | null;
+  note?: string | null;
+};
+
 export type Apartment = {
   slug: string;
-
   city: string;
   cityName: string;
   district: string;
   districtName: string;
   region: string;
-
   type: string;
   brand: string;
   builder: string;
   name: string;
-
   latitude?: number | null;
   longitude?: number | null;
-
   images: {
     hero: string | null;
     location: string[];
-    floorPlans: {
-      name: string;
-      url: string;
-    }[];
+    floorPlans: { name: string; url: string }[];
     community: string[];
     gallery: string[];
   };
-
   keywords: string[];
-
   status: string;
   price: string;
   condition: string;
-
   source?: "manual" | "applyhome";
-
   applyHomeId?: string | null;
   applyHomeUrl?: string | null;
-
   isAutoCreated?: boolean;
   manualOverride?: boolean;
   syncStatus?: string;
   lastSyncedAt?: string | null;
-
   totalSupply?: number | null;
-
   subscription?: SubscriptionSchedule;
   projectInfo?: ProjectInfo;
   locationInfo?: LocationInfo;
-
   applyHome?: Record<string, unknown>;
-
   conditionHistory: {
     date: string;
     title: string;
     description: string;
   }[];
-
+  priceInfo?: ApartmentPriceInfo;
   priceDetail: {
     salePrice: string;
     pricePerPyeong: string;
@@ -105,7 +118,6 @@ export type Apartment = {
     balance: string;
     options: string[];
   };
-
   score: {
     total: number;
     price: number;
@@ -115,7 +127,6 @@ export type Apartment = {
     future: number;
     risk: number;
   };
-
   aiReview: {
     summary: string;
     liveScore: number;
@@ -123,7 +134,6 @@ export type Apartment = {
     safetyScore: number;
     strengths: string[];
   };
-
   pros: string[];
   cons: string[];
 };
