@@ -28,6 +28,7 @@ type ReservationForm = {
   visitDate: string;
   message: string;
   privacyAgreed: boolean;
+  thirdPartyAgreed: boolean;
 };
 
 const initialForm: ReservationForm = {
@@ -37,6 +38,7 @@ const initialForm: ReservationForm = {
   visitDate: "",
   message: "",
   privacyAgreed: false,
+  thirdPartyAgreed: false,
 };
 
 function getTodayDate() {
@@ -250,6 +252,19 @@ export default function ReservationCard({
       return;
     }
 
+    if (
+      !isSubscription &&
+      !form.thirdPartyAgreed
+    ) {
+      setIsSuccess(false);
+
+      setResultMessage(
+        "분양 상담을 위한 개인정보 제3자 제공에 동의해주세요."
+      );
+
+      return;
+    }
+
     setIsSubmitting(true);
     setResultMessage("");
     setIsSuccess(false);
@@ -287,6 +302,11 @@ export default function ReservationCard({
 
             privacyAgreed:
               form.privacyAgreed,
+
+            thirdPartyAgreed:
+              isSubscription
+                ? false
+                : form.thirdPartyAgreed,
           }),
         }
       );
@@ -636,37 +656,133 @@ export default function ReservationCard({
             />
           </label>
 
-          <label className="flex cursor-pointer items-start gap-2 rounded-xl border border-transparent bg-zinc-50 p-3 transition hover:border-emerald-200 hover:bg-emerald-50/40 sm:gap-3 sm:rounded-2xl sm:p-4">
-            <input
-              type="checkbox"
-              required
-              checked={
-                form.privacyAgreed
-              }
-              onChange={(event) =>
-                updateForm(
-                  "privacyAgreed",
-                  event.target.checked
-                )
-              }
-              className="
-                mt-0.5 h-4 w-4
-                shrink-0 cursor-pointer
-                accent-emerald-600
-                sm:mt-1
-              "
-            />
+          <div className="space-y-2">
+            <label className="flex cursor-pointer items-start gap-2 rounded-xl border border-transparent bg-zinc-50 p-3 transition hover:border-emerald-200 hover:bg-emerald-50/40 sm:gap-3 sm:rounded-2xl sm:p-4">
+              <input
+                type="checkbox"
+                required
+                checked={
+                  form.privacyAgreed
+                }
+                onChange={(event) =>
+                  updateForm(
+                    "privacyAgreed",
+                    event.target.checked
+                  )
+                }
+                className="
+                  mt-0.5 h-4 w-4
+                  shrink-0 cursor-pointer
+                  accent-emerald-600
+                  sm:mt-1
+                "
+              />
 
-            <span className="text-xs leading-5 text-zinc-600 sm:text-sm sm:leading-6">
-              상담 및 정보 안내를 위한
-              개인정보 수집과 이용에
-              동의합니다.
+              <span className="text-xs leading-5 text-zinc-600 sm:text-sm sm:leading-6">
+                개인정보 수집·이용에
+                동의합니다.
 
-              <strong className="ml-1 text-zinc-900">
-                (필수)
-              </strong>
-            </span>
-          </label>
+                <strong className="ml-1 text-zinc-900">
+                  (필수)
+                </strong>
+              </span>
+            </label>
+
+            {!isSubscription && (
+              <label className="flex cursor-pointer items-start gap-2 rounded-xl border border-transparent bg-zinc-50 p-3 transition hover:border-emerald-200 hover:bg-emerald-50/40 sm:gap-3 sm:rounded-2xl sm:p-4">
+                <input
+                  type="checkbox"
+                  required
+                  checked={
+                    form.thirdPartyAgreed
+                  }
+                  onChange={(event) =>
+                    updateForm(
+                      "thirdPartyAgreed",
+                      event.target.checked
+                    )
+                  }
+                  className="
+                    mt-0.5 h-4 w-4
+                    shrink-0 cursor-pointer
+                    accent-emerald-600
+                    sm:mt-1
+                  "
+                />
+
+                <span className="min-w-0 text-xs leading-5 text-zinc-600 sm:text-sm sm:leading-6">
+                  해당 분양 현장의 상담
+                  담당자에게 개인정보
+                  제공에 동의합니다.
+
+                  <strong className="ml-1 text-zinc-900">
+                    (필수)
+                  </strong>
+
+                  <details className="mt-2">
+                    <summary className="w-fit cursor-pointer rounded font-semibold text-emerald-700 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
+                      자세히 보기
+                    </summary>
+
+                    <div className="mt-2 space-y-2 rounded-xl border border-zinc-200 bg-white p-3 text-[11px] leading-5 text-zinc-500 sm:text-xs sm:leading-6">
+                      <p>
+                        <strong className="text-zinc-700">
+                          제공받는 자
+                        </strong>
+                        <br />
+                        이용자가 상담을
+                        신청한 해당 단지의
+                        시행사, 분양대행사,
+                        모델하우스 또는
+                        지정 상담 담당자
+                      </p>
+
+                      <p>
+                        <strong className="text-zinc-700">
+                          제공 목적
+                        </strong>
+                        <br />
+                        모델하우스 방문예약
+                        확인, 분양 상담,
+                        잔여세대·분양가·
+                        계약조건 안내
+                      </p>
+
+                      <p>
+                        <strong className="text-zinc-700">
+                          제공 항목
+                        </strong>
+                        <br />
+                        이름, 휴대전화번호,
+                        관심 평형, 희망
+                        방문일 및 문의내용
+                      </p>
+
+                      <p>
+                        <strong className="text-zinc-700">
+                          보유 및 이용기간
+                        </strong>
+                        <br />
+                        상담 종료 또는 제공
+                        목적 달성 후 파기
+                      </p>
+
+                      <p>
+                        <strong className="text-zinc-700">
+                          동의 거부권
+                        </strong>
+                        <br />
+                        동의를 거부할 수
+                        있으나 방문예약 및
+                        담당자 상담 연결이
+                        제한될 수 있습니다.
+                      </p>
+                    </div>
+                  </details>
+                </span>
+              </label>
+            )}
+          </div>
 
           {resultMessage && (
             <div

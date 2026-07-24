@@ -11,24 +11,25 @@ import {
   sendInquiryNotification,
 } from "../../../lib/sendInquiryNotification";
 
-type SubscriptionAlertRequest = {
+export const dynamic =
+  "force-dynamic";
+
+type InquiryRequest = {
   apartmentSlug?: string;
   apartmentName?: string;
 
-  name?: string;
+  inquiryType?:
+    | "visit"
+    | "subscription-alert";
+
+  customerName?: string;
   phone?: string;
-  birthDate?: string;
-  residence?: string;
+  interestedType?: string;
+  visitDate?: string;
+  message?: string;
 
-  homeless?: boolean | null;
-  subscriptionAccount?: boolean | null;
-  specialSupply?: string | null;
-
-  leadType?:
-    | "consult"
-    | "schedule";
-
-  agree?: boolean;
+  privacyAgreed?: boolean;
+  thirdPartyAgreed?: boolean;
 };
 
 function normalizeText(
@@ -98,7 +99,7 @@ export async function POST(
   try {
     const body =
       (await request.json()) as
-        SubscriptionAlertRequest;
+        InquiryRequest;
 
     const apartmentSlug =
       normalizeText(
@@ -110,9 +111,15 @@ export async function POST(
         body.apartmentName
       );
 
-    const name =
+    const inquiryType =
+      body.inquiryType ===
+      "subscription-alert"
+        ? "subscription-alert"
+        : "visit";
+
+    const customerName =
       normalizeText(
-        body.name
+        body.customerName
       );
 
     const phone =
@@ -120,21 +127,28 @@ export async function POST(
         body.phone
       );
 
-    const birthDate =
+    const interestedType =
       normalizeText(
-        body.birthDate
+        body.interestedType
       );
 
-    const residence =
+    const visitDate =
       normalizeText(
-        body.residence
+        body.visitDate
       );
 
-    const leadType =
-      body.leadType ===
-      "consult"
-        ? "consult"
-        : "schedule";
+    const message =
+      normalizeText(
+        body.message
+      );
+
+    const privacyAgreed =
+      body.privacyAgreed ===
+      true;
+
+    const thirdPartyAgreed =
+      body.thirdPartyAgreed ===
+      true;
 
     if (
       !apartmentSlug ||
@@ -153,7 +167,8 @@ export async function POST(
     }
 
     if (
-      name.length < 2
+      customerName.length <
+      2
     ) {
       return NextResponse.json(
         {
@@ -185,40 +200,7 @@ export async function POST(
     }
 
     if (
-      !isValidIsoDate(
-        birthDate
-      )
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "생년월일을 정확히 입력해주세요.",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
-
-    if (
-      residence.length <
-      2
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "현재 거주지역을 입력해주세요.",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
-
-    if (
-      body.agree !== true
+      !privacyAgreed
     ) {
       return NextResponse.json(
         {
@@ -232,65 +214,54 @@ export async function POST(
       );
     }
 
-    const {
-      data:
-        existingAlert,
-      error:
-        duplicateError,
-    } =
-      await supabaseAdmin
-        .from(
-          "subscription_alerts"
-        )
-        .select("id")
-        .eq(
-          "apartment_slug",
-          apartmentSlug
-        )
-        .eq(
-          "phone",
-          phone
-        )
-        .maybeSingle();
-
     if (
-      duplicateError
+      inquiryType ===
+        "visit" &&
+      !thirdPartyAgreed
     ) {
-      console.error(
-        "청약 알림 중복 확인 오류:",
-        duplicateError
-      );
-
       return NextResponse.json(
         {
           success: false,
           message:
-            duplicateError.message,
+            "분양 상담을 위한 개인정보 제3자 제공 동의가 필요합니다.",
         },
         {
-          status: 500,
+          status: 400,
         }
       );
     }
 
     if (
-      existingAlert
+      inquiryType ===
+        "visit" &&
+      !isValidIsoDate(
+        visitDate
+      )
     ) {
-      return NextResponse.json({
-        success: true,
-        duplicate: true,
-        message:
-          "이미 신청이 완료된 단지입니다.",
-      });
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "희망 방문일을 정확히 선택해주세요.",
+        },
+        {
+          status: 400,
+        }
+      );
     }
 
+    const now =
+      new Date().toISOString();
+
     const {
+      data:
+        createdInquiry,
       error:
         insertError,
     } =
       await supabaseAdmin
         .from(
-          "subscription_alerts"
+          "inquiries"
         )
         .insert({
           apartment_slug:
@@ -299,49 +270,57 @@ export async function POST(
           apartment_name:
             apartmentName,
 
-          name,
+          inquiry_type:
+            inquiryType,
+
+          customer_name:
+            customerName,
+
           phone,
 
-          birth_date:
-            birthDate,
+          interested_type:
+            interestedType ||
+            null,
 
-          province:
-            residence,
-
-          city: null,
-          district: null,
-
-          homeless:
-            typeof body.homeless ===
-            "boolean"
-              ? body.homeless
+          visit_date:
+            inquiryType ===
+            "visit"
+              ? visitDate
               : null,
 
-          subscription_account:
-            typeof body.subscriptionAccount ===
-            "boolean"
-              ? body.subscriptionAccount
-              : null,
-
-          special_supply:
-            normalizeText(
-              body.specialSupply
-            ) || null,
-
-          memo: null,
-          agree: true,
-
-          lead_type:
-            leadType,
+          message:
+            message || null,
 
           status: "new",
-        });
+
+          privacy_agreed:
+            true,
+
+          third_party_agreed:
+            inquiryType ===
+            "visit"
+              ? true
+              : false,
+
+          third_party_agreed_at:
+            inquiryType ===
+              "visit" &&
+            thirdPartyAgreed
+              ? now
+              : null,
+
+          admin_memo: null,
+        })
+        .select(
+          "id, created_at"
+        )
+        .single();
 
     if (
       insertError
     ) {
       console.error(
-        "청약 알림 신청 저장 오류:",
+        "문의 신청 저장 오류:",
         insertError
       );
 
@@ -358,71 +337,80 @@ export async function POST(
     }
 
     try {
-      const requestTypeLabel =
-        leadType ===
-        "consult"
-          ? "청약 상담 신청"
-          : "청약 일정 알림 신청";
-
       const mailMessage = [
-        `신청 구분: ${requestTypeLabel}`,
-        `생년월일: ${birthDate}`,
-        `거주지역: ${residence}`,
-        `무주택 여부: ${
-          body.homeless === true
-            ? "예"
-            : body.homeless === false
-              ? "아니오"
-              : "미선택"
+        `신청 구분: ${
+          inquiryType ===
+          "visit"
+            ? "방문예약"
+            : "청약 일정 알림"
         }`,
-        `청약통장 여부: ${
-          body.subscriptionAccount === true
-            ? "예"
-            : body.subscriptionAccount === false
-              ? "아니오"
-              : "미선택"
+        `관심 평형·타입: ${
+          interestedType ||
+          "미입력"
         }`,
-        `특별공급 유형: ${
-          normalizeText(
-            body.specialSupply
-          ) || "미선택"
+        `희망 방문일: ${
+          inquiryType ===
+          "visit"
+            ? visitDate
+            : "해당 없음"
+        }`,
+        `제3자 제공 동의: ${
+          inquiryType ===
+          "visit"
+            ? "동의"
+            : "해당 없음"
+        }`,
+        `문의내용: ${
+          message ||
+          "없음"
         }`,
       ].join("\n");
 
-      await sendInquiryNotification({
-        apartmentName,
-        inquiryType:
-          "subscription-alert",
-        customerName:
-          name,
-        phone,
-        interestedType:
-          normalizeText(
-            body.specialSupply
-          ),
-        visitDate: "",
-        message:
-          mailMessage,
-      });
+      const mailResult =
+        await sendInquiryNotification({
+          apartmentName,
+          inquiryType,
+          customerName,
+          phone,
+          interestedType,
+          visitDate:
+            inquiryType ===
+            "visit"
+              ? visitDate
+              : "",
+          message:
+            mailMessage,
+        });
+
+      console.log(
+        "문의 이메일 발송 성공:",
+        mailResult
+      );
     } catch (mailError) {
       console.error(
-        "청약 알림 이메일 발송 실패:",
+        "문의 이메일 발송 실패:",
         mailError
       );
     }
 
     return NextResponse.json({
       success: true,
-      duplicate: false,
+
       message:
-        leadType ===
-        "consult"
-          ? "청약 상담 신청이 완료되었습니다."
-          : "청약 일정 알림 신청이 완료되었습니다.",
+        inquiryType ===
+        "visit"
+          ? "방문예약이 접수되었습니다. 담당자가 확인 후 연락드리겠습니다."
+          : "청약일정 알림 신청이 접수되었습니다.",
+
+      inquiryId:
+        createdInquiry.id,
+
+      createdAt:
+        createdInquiry.created_at,
     });
   } catch (error) {
     console.error(
-      "청약 알림 신청 API 오류:",
+      "문의 신청 API 오류:",
       error
     );
 
@@ -432,7 +420,7 @@ export async function POST(
         message:
           error instanceof Error
             ? error.message
-            : "청약 알림 신청 중 오류가 발생했습니다.",
+            : "신청 처리 중 오류가 발생했습니다.",
       },
       {
         status: 500,
