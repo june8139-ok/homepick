@@ -7,6 +7,13 @@ import {
     supabaseAdmin,
   } from "../../../lib/supabaseAdmin";
   
+  import {
+    sendInquiryNotification,
+  } from "../../../lib/sendInquiryNotification";
+  
+  export const dynamic =
+    "force-dynamic";
+  
   type SubscriptionAlertRequest = {
     apartmentSlug?: string;
     apartmentName?: string;
@@ -88,6 +95,24 @@ import {
     );
   }
   
+  function getYesNoLabel(
+    value?: boolean | null
+  ) {
+    if (
+      value === true
+    ) {
+      return "예";
+    }
+  
+    if (
+      value === false
+    ) {
+      return "아니오";
+    }
+  
+    return "미선택";
+  }
+  
   export async function POST(
     request: NextRequest
   ) {
@@ -124,6 +149,11 @@ import {
       const residence =
         normalizeText(
           body.residence
+        );
+  
+      const specialSupply =
+        normalizeText(
+          body.specialSupply
         );
   
       const leadType =
@@ -281,6 +311,8 @@ import {
       }
   
       const {
+        data:
+          createdAlert,
         error:
           insertError,
       } =
@@ -320,9 +352,7 @@ import {
                 : null,
   
             special_supply:
-              normalizeText(
-                body.specialSupply
-              ) || null,
+              specialSupply || null,
   
             memo: null,
             agree: true,
@@ -331,7 +361,11 @@ import {
               leadType,
   
             status: "new",
-          });
+          })
+          .select(
+            "id, created_at"
+          )
+          .single();
   
       if (
         insertError
@@ -353,14 +387,76 @@ import {
         );
       }
   
+      try {
+        const requestTypeLabel =
+          leadType ===
+          "consult"
+            ? "청약 상담 신청"
+            : "청약 일정 알림 신청";
+  
+        const mailMessage = [
+          `신청 구분: ${requestTypeLabel}`,
+          `생년월일: ${birthDate}`,
+          `거주지역: ${residence}`,
+          `무주택 여부: ${getYesNoLabel(
+            body.homeless
+          )}`,
+          `청약통장 여부: ${getYesNoLabel(
+            body.subscriptionAccount
+          )}`,
+          `특별공급 유형: ${
+            specialSupply ||
+            "미선택"
+          }`,
+        ].join("\n");
+  
+        const mailResult =
+          await sendInquiryNotification({
+            apartmentName,
+  
+            inquiryType:
+              "subscription-alert",
+  
+            customerName:
+              name,
+  
+            phone,
+  
+            interestedType:
+              specialSupply,
+  
+            visitDate: "",
+  
+            message:
+              mailMessage,
+          });
+  
+        console.log(
+          "청약 알림 이메일 발송 성공:",
+          mailResult
+        );
+      } catch (mailError) {
+        console.error(
+          "청약 알림 이메일 발송 실패:",
+          mailError
+        );
+      }
+  
       return NextResponse.json({
         success: true,
         duplicate: false,
+  
         message:
           leadType ===
           "consult"
             ? "청약 상담 신청이 완료되었습니다."
             : "청약 일정 알림 신청이 완료되었습니다.",
+  
+        alertId:
+          createdAlert.id,
+  
+        createdAt:
+          createdAlert.created_at,
       });
     } catch (error) {
       console.error(
