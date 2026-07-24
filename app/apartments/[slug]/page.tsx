@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 
 import { conditionHistories } from "../../../data/history";
 
@@ -548,6 +549,116 @@ function JsonLd({
   );
 }
 
+
+function RelatedContentFallback() {
+  return (
+    <div className="mt-7 grid gap-5">
+      <section className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-7">
+        <div className="h-7 w-40 animate-pulse rounded-lg bg-zinc-200" />
+
+        <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({
+            length: 3,
+          }).map((_, index) => (
+            <div
+              key={index}
+              className="h-32 animate-pulse rounded-2xl bg-zinc-100"
+            />
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-7">
+        <div className="h-7 w-36 animate-pulse rounded-lg bg-zinc-200" />
+
+        <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({
+            length: 3,
+          }).map((_, index) => (
+            <div
+              key={index}
+              className="h-40 animate-pulse rounded-2xl bg-zinc-100"
+            />
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+async function RelatedApartmentContent({
+  apartment,
+}: {
+  apartment: Apartment;
+}) {
+  const [
+    apartments,
+    briefings,
+  ] = await Promise.all([
+    getApartments() as Promise<Apartment[]>,
+
+    getBriefings({
+      publishedOnly: true,
+    }),
+  ]);
+
+  const relatedApartments =
+    apartments
+      .filter((item) => {
+        if (
+          item.slug ===
+          apartment.slug
+        ) {
+          return false;
+        }
+
+        if (
+          item.city !==
+          apartment.city
+        ) {
+          return false;
+        }
+
+        if (
+          isCompletedListing(
+            item
+          )
+        ) {
+          return false;
+        }
+
+        return true;
+      })
+      .slice(0, 6);
+
+  const relatedBriefings =
+    briefings
+      .filter(
+        (briefing) =>
+          briefing.relatedApartmentSlugs.includes(
+            apartment.slug
+          )
+      )
+      .slice(0, 3);
+
+  return (
+    <>
+      <RelatedBriefings
+        briefings={
+          relatedBriefings
+        }
+      />
+
+      <RelatedApartments
+        apartment={apartment}
+        relatedApartments={
+          relatedApartments
+        }
+      />
+    </>
+  );
+}
+
 export default async function ApartmentDetailPage({
   params,
 }: PageProps) {
@@ -581,18 +692,6 @@ export default async function ApartmentDetailPage({
       </main>
     );
   }
-
-  const [
-    apartments,
-    briefings,
-  ] = await Promise.all([
-    getApartments() as Promise<Apartment[]>,
-
-    getBriefings({
-      publishedOnly: true,
-    }),
-  ]);
-
   const listingStage =
     getListingStage(apartment);
 
@@ -644,46 +743,6 @@ export default async function ApartmentDetailPage({
       </main>
     );
   }
-
-  const relatedApartments =
-    apartments
-      .filter((item) => {
-        if (
-          item.slug ===
-          apartment.slug
-        ) {
-          return false;
-        }
-
-        if (
-          item.city !==
-          apartment.city
-        ) {
-          return false;
-        }
-
-        if (
-          isCompletedListing(
-            item
-          )
-        ) {
-          return false;
-        }
-
-        return true;
-      })
-      .slice(0, 6);
-
-
-  const relatedBriefings =
-    briefings
-      .filter(
-        (briefing) =>
-          briefing.relatedApartmentSlugs.includes(
-            apartment.slug
-          )
-      )
-      .slice(0, 3);
 
   const conditionHistory =
     conditionHistories.find(
@@ -807,18 +866,15 @@ export default async function ApartmentDetailPage({
             apartment={apartment}
           />
 
-          <RelatedBriefings
-            briefings={
-              relatedBriefings
+          <Suspense
+            fallback={
+              <RelatedContentFallback />
             }
-          />
-
-          <RelatedApartments
-            apartment={apartment}
-            relatedApartments={
-              relatedApartments
-            }
-          />
+          >
+            <RelatedApartmentContent
+              apartment={apartment}
+            />
+          </Suspense>
         </section>
       </main>
     </>
