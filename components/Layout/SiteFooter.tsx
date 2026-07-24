@@ -90,12 +90,15 @@ const popularRegions = [
 
 const legalLinks = [
   {
-    label: "이용약관",
-    href: "/terms",
+    label:
+      "개인정보처리방침",
+    href: "/privacy",
+    emphasized: true,
   },
   {
-    label: "개인정보처리방침",
-    href: "/privacy",
+    label: "이용약관",
+    href: "/terms",
+    emphasized: false,
   },
 ];
 
@@ -106,7 +109,7 @@ export default function SiteFooter() {
   return (
     <footer className="mt-8 border-t border-zinc-200 bg-white sm:mt-10">
       <div className="mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
-      <div className="grid gap-6 md:grid-cols-[1.05fr_0.7fr_1.35fr] md:items-start md:gap-8 lg:gap-10">
+        <div className="grid gap-6 md:grid-cols-[1.05fr_0.7fr_1.35fr] md:items-start md:gap-8 lg:gap-10">
           {/* 브랜드 소개 */}
           <section>
             <Link
@@ -140,10 +143,13 @@ export default function SiteFooter() {
             </Link>
 
             <p className="mt-3 max-w-[470px] break-keep text-[11px] leading-5 text-zinc-500 sm:text-xs sm:leading-6">
-              홈픽(HomePick)은 전국 분양 아파트와
-              청약 일정, 선착순 분양 단지의 분양가,
-              계약조건과 입지 정보를 검색하고 비교할 수
-              있는 부동산 플랫폼입니다.
+              홈픽(HomePick)은 전국
+              분양 아파트와 청약
+              일정, 선착순 분양
+              단지의 분양가,
+              계약조건과 입지 정보를
+              검색하고 비교할 수 있는
+              부동산 플랫폼입니다.
             </p>
           </section>
 
@@ -243,33 +249,58 @@ export default function SiteFooter() {
             <div className="min-w-0">
               <nav
                 aria-label="약관 및 정책"
-                className="flex flex-wrap gap-x-4 gap-y-2"
+                className="flex flex-wrap items-center gap-x-4 gap-y-2"
               >
                 {legalLinks.map(
                   (item) => (
                     <Link
                       key={item.label}
                       href={item.href}
-                      className="
-                        rounded text-[11px] font-semibold text-zinc-500
-                        transition-colors hover:text-emerald-700
-                        focus-visible:outline-none
-                        focus-visible:ring-2
-                        focus-visible:ring-emerald-500
-                        focus-visible:ring-offset-2
-                      "
+                      className={[
+                        "rounded text-[11px] transition-colors",
+                        "focus-visible:outline-none",
+                        "focus-visible:ring-2",
+                        "focus-visible:ring-emerald-500",
+                        "focus-visible:ring-offset-2",
+                        item.emphasized
+                          ? "font-extrabold text-zinc-700 hover:text-emerald-700"
+                          : "font-semibold text-zinc-500 hover:text-emerald-700",
+                      ].join(" ")}
                     >
                       {item.label}
                     </Link>
                   )
                 )}
+
+                <a
+                  href="mailto:june8139@gmail.com"
+                  className="
+                    rounded text-[11px] font-semibold text-zinc-500
+                    transition-colors hover:text-emerald-700
+                    focus-visible:outline-none
+                    focus-visible:ring-2
+                    focus-visible:ring-emerald-500
+                    focus-visible:ring-offset-2
+                  "
+                >
+                  문의하기
+                </a>
               </nav>
 
-              <p className="mt-2 max-w-4xl break-keep text-[10px] leading-5 text-zinc-400">
-                홈픽에서 제공하는 분양가, 계약조건,
-                청약일정 및 단지 정보는 참고용입니다.
-                계약 또는 청약 전 모집공고문, 공급계약서와
-                사업주체의 최신 안내를 반드시 확인해주세요.
+              <p className="mt-2 text-[10px] leading-5 text-zinc-400">
+                운영자 옥광준 · 문의
+                june8139@gmail.com
+              </p>
+
+              <p className="mt-1 max-w-4xl break-keep text-[10px] leading-5 text-zinc-400">
+                홈픽에서 제공하는
+                분양가, 계약조건,
+                청약일정 및 단지 정보는
+                참고용입니다. 계약 또는
+                청약 전 모집공고문,
+                공급계약서와 사업주체의
+                최신 안내를 반드시
+                확인해주세요.
               </p>
             </div>
 
