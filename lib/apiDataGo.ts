@@ -5,6 +5,9 @@
  * 사용 엔드포인트:
  * APT 분양정보 상세조회
  * getAPTLttotPblancDetail
+ *
+ * APT 주택형별 분양정보 조회
+ * getAPTLttotPblancMdl
  */
 
 const DATA_GO_BASE_URL =
@@ -12,6 +15,9 @@ const DATA_GO_BASE_URL =
 
 const APT_LIST_ENDPOINT =
   "getAPTLttotPblancDetail";
+
+const APT_MODEL_ENDPOINT =
+  "getAPTLttotPblancMdl";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_PER_PAGE = 100;
@@ -78,6 +84,27 @@ export type FetchAPTListOptions = {
    * 지역 주소 검색
    */
   address?: string;
+};
+
+export type FetchAPTModelListOptions = {
+  page?: number;
+  perPage?: number;
+
+  /**
+   * 주택관리번호
+   */
+  houseManageNo: string;
+
+  /**
+   * 공고번호
+   */
+  pblancNo: string;
+
+  /**
+   * 특정 주택형 검색
+   * 예: 084.9900A, 84A
+   */
+  houseType?: string;
 };
 
 type ApiErrorPayload = {
@@ -278,6 +305,88 @@ function buildAPTListUrl(
   return (
     `${DATA_GO_BASE_URL}/` +
     `${APT_LIST_ENDPOINT}?` +
+    params.toString()
+  );
+}
+
+function buildAPTModelListUrl(
+  options: FetchAPTModelListOptions
+) {
+  const serviceKey =
+    getServiceKey();
+
+  const page =
+    normalizePositiveInteger(
+      options.page,
+      DEFAULT_PAGE
+    );
+
+  const perPage =
+    normalizePositiveInteger(
+      options.perPage,
+      DEFAULT_PER_PAGE,
+      MAX_PER_PAGE
+    );
+
+  const houseManageNo =
+    options.houseManageNo.trim();
+
+  const pblancNo =
+    options.pblancNo.trim();
+
+  if (!houseManageNo || !pblancNo) {
+    throw new Error(
+      "houseManageNo와 pblancNo가 필요합니다."
+    );
+  }
+
+  const params =
+    new URLSearchParams();
+
+  params.set(
+    "serviceKey",
+    serviceKey
+  );
+
+  params.set(
+    "page",
+    String(page)
+  );
+
+  params.set(
+    "perPage",
+    String(perPage)
+  );
+
+  params.set(
+    "returnType",
+    "JSON"
+  );
+
+  appendCondition(
+    params,
+    "HOUSE_MANAGE_NO",
+    "EQ",
+    houseManageNo
+  );
+
+  appendCondition(
+    params,
+    "PBLANC_NO",
+    "EQ",
+    pblancNo
+  );
+
+  appendCondition(
+    params,
+    "HOUSE_TY",
+    "LIKE",
+    options.houseType
+  );
+
+  return (
+    `${DATA_GO_BASE_URL}/` +
+    `${APT_MODEL_ENDPOINT}?` +
     params.toString()
   );
 }
@@ -609,6 +718,76 @@ export async function fetchAPTList<
     page,
     perPage
   );
+}
+
+/**
+ * 주택관리번호와 공고번호로
+ * APT 주택형별 분양정보 조회
+ */
+export async function fetchAPTModelList<
+  T extends DataGoRow = DataGoRow,
+>(
+  options: FetchAPTModelListOptions
+): Promise<DataGoResponse<T>> {
+  const page =
+    normalizePositiveInteger(
+      options.page,
+      DEFAULT_PAGE
+    );
+
+  const perPage =
+    normalizePositiveInteger(
+      options.perPage,
+      DEFAULT_PER_PAGE,
+      MAX_PER_PAGE
+    );
+
+  const url =
+    buildAPTModelListUrl({
+      ...options,
+      page,
+      perPage,
+    });
+
+  const payload =
+    await fetchJsonWithRetry<
+      unknown
+    >(url);
+
+  const result =
+    normalizeResponse<T>(
+      payload,
+      page,
+      perPage
+    );
+
+  if (
+    process.env.NODE_ENV !==
+    "production"
+  ) {
+    console.log(
+      "[청약홈 주택형 API 조회]",
+      {
+        houseManageNo:
+          options.houseManageNo,
+
+        pblancNo:
+          options.pblancNo,
+
+        currentCount:
+          result.currentCount,
+
+        totalCount:
+          result.totalCount,
+
+        firstRow:
+          result.data[0] ??
+          null,
+      }
+    );
+  }
+
+  return result;
 }
 
 /**

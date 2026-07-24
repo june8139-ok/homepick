@@ -1,3 +1,12 @@
+import Image from "next/image";
+import { formatMoveInDate } from "../../lib/apartmentDisplay";
+
+type ListingStage =
+  | "subscription"
+  | "firstCome"
+  | "completed"
+  | "existing";
+
 type SubscriptionScheduleLike = {
   announcementDate?: string | null;
   winnerDate?: string | null;
@@ -13,26 +22,42 @@ type ProjectInfoLike = {
 type ApartmentLike = {
   slug: string;
   name: string;
+
   region?: string;
   status?: string;
   price?: string;
   condition?: string;
 
-  source?: "manual" | "applyhome";
+  listingStage?: ListingStage;
+
+  source?:
+    | "manual"
+    | "applyhome";
+
   isAutoCreated?: boolean;
 
-  totalSupply?: number | null;
+  totalSupply?:
+    | number
+    | null;
 
-  subscription?: SubscriptionScheduleLike;
-  projectInfo?: ProjectInfoLike;
+  subscription?:
+    SubscriptionScheduleLike;
+
+  projectInfo?:
+    ProjectInfoLike;
 
   images?: {
-    hero?: string | null;
+    hero?:
+      | string
+      | null;
+
     location?: string[];
+
     floorPlans?: {
       name: string;
       url: string;
     }[];
+
     community?: string[];
     gallery?: string[];
   };
@@ -42,9 +67,12 @@ type Props = {
   apartment: ApartmentLike;
 };
 
-function getValidImageUrl(url?: string | null) {
-  if (!url) return null;
-  if (url.trim() === "") return null;
+function getValidImageUrl(
+  url?: string | null
+) {
+  if (!url?.trim()) {
+    return null;
+  }
 
   if (
     url.includes(
@@ -60,7 +88,16 @@ function getValidImageUrl(url?: string | null) {
 function isSubscriptionApartment(
   apartment: ApartmentLike
 ) {
-  const subscriptionStatuses = [
+  if (
+    apartment.listingStage
+  ) {
+    return (
+      apartment.listingStage ===
+      "subscription"
+    );
+  }
+
+  const statuses = [
     "청약예정",
     "특별공급",
     "1순위",
@@ -72,16 +109,57 @@ function isSubscriptionApartment(
   ];
 
   return (
-    apartment.source === "applyhome" ||
-    apartment.isAutoCreated === true ||
-    subscriptionStatuses.includes(
+    apartment.source ===
+      "applyhome" ||
+    apartment.isAutoCreated ===
+      true ||
+    statuses.includes(
       apartment.status ?? ""
     )
   );
 }
 
-function formatDate(value?: string | null) {
-  if (!value) return "확인 중";
+function isFirstComeApartment(
+  apartment: ApartmentLike
+) {
+  if (
+    apartment.listingStage
+  ) {
+    return (
+      apartment.listingStage ===
+      "firstCome"
+    );
+  }
+
+  const status =
+    apartment.status?.trim() ??
+    "";
+
+  const condition =
+    apartment.condition?.trim() ??
+    "";
+
+  return (
+    status.includes("선착순") ||
+    status.includes("분양중") ||
+    condition.includes(
+      "동호지정"
+    ) ||
+    condition.includes(
+      "잔여세대"
+    ) ||
+    condition.includes(
+      "회사보유분"
+    )
+  );
+}
+
+function formatDate(
+  value?: string | null
+) {
+  if (!value) {
+    return "확인 중";
+  }
 
   return value
     .replace(/\./g, "-")
@@ -99,8 +177,11 @@ function getSubscriptionDescription(
     case "청약예정":
       return "청약 접수를 앞두고 있는 단지입니다.";
 
+    case "특별공급":
+    case "1순위":
+    case "2순위":
     case "청약중":
-      return "현재 청약 접수가 진행 중입니다.";
+      return "현재 청약 접수가 진행 중인 단지입니다.";
 
     case "당첨자발표":
       return "당첨자 발표와 서류 일정을 확인할 단계입니다.";
@@ -122,36 +203,57 @@ function getSaleBadges(
   const badges: string[] = [];
 
   if (
-    apartment.status?.includes("선착순")
+    isFirstComeApartment(
+      apartment
+    )
   ) {
     badges.push("선착순 분양");
   }
 
   if (
-    apartment.condition?.includes("500만원")
+    apartment.condition?.includes(
+      "500만원"
+    )
   ) {
-    badges.push("계약금 500만원");
+    badges.push(
+      "계약금 500만원"
+    );
   }
 
   if (
-    apartment.condition?.includes("무이자")
+    apartment.condition?.includes(
+      "무이자"
+    )
   ) {
-    badges.push("중도금 무이자");
+    badges.push(
+      "중도금 무이자"
+    );
   }
 
   if (
-    apartment.condition?.includes("발코니")
+    apartment.condition?.includes(
+      "발코니"
+    )
   ) {
-    badges.push("발코니 혜택");
+    badges.push(
+      "발코니 혜택"
+    );
   }
 
   if (
-    apartment.condition?.includes("축하금")
+    apartment.condition?.includes(
+      "축하금"
+    ) ||
+    apartment.condition?.includes(
+      "페이백"
+    )
   ) {
     badges.push("계약 혜택");
   }
 
-  return [...new Set(badges)].slice(0, 5);
+  return [
+    ...new Set(badges),
+  ].slice(0, 4);
 }
 
 function getSubscriptionBadge(
@@ -160,6 +262,15 @@ function getSubscriptionBadge(
   switch (status) {
     case "청약예정":
       return "청약 예정";
+
+    case "특별공급":
+      return "특별공급";
+
+    case "1순위":
+      return "1순위 청약";
+
+    case "2순위":
+      return "2순위 청약";
 
     case "청약중":
       return "청약 진행 중";
@@ -174,8 +285,42 @@ function getSubscriptionBadge(
       return "청약 마감";
 
     default:
-      return status || "청약 정보";
+      return (
+        status ||
+        "청약 정보"
+      );
   }
+}
+
+function getSaleStatusLabel(
+  apartment: ApartmentLike
+) {
+  if (
+    isFirstComeApartment(
+      apartment
+    )
+  ) {
+    return "선착순 분양";
+  }
+
+  if (
+    apartment.listingStage ===
+    "completed"
+  ) {
+    return "노출 종료";
+  }
+
+  if (
+    apartment.listingStage ===
+    "existing"
+  ) {
+    return "기존 아파트";
+  }
+
+  return (
+    apartment.status ||
+    "분양 정보"
+  );
 }
 
 function ImagePlaceholder({
@@ -184,7 +329,7 @@ function ImagePlaceholder({
   label: string;
 }) {
   return (
-    <div className="flex h-full min-h-[120px] w-full items-center justify-center rounded-3xl border-2 border-dashed border-zinc-300 bg-zinc-100 text-sm font-medium text-zinc-500">
+    <div className="flex h-full min-h-[220px] w-full items-center justify-center rounded-2xl border-2 border-dashed border-zinc-300 bg-zinc-100 px-6 text-center text-sm font-medium text-zinc-500 sm:min-h-[360px] sm:rounded-3xl">
       {label}
     </div>
   );
@@ -197,28 +342,31 @@ function SummaryInfoCard({
 }: {
   label: string;
   value: string;
-  accent?: "emerald" | "blue";
+  accent?:
+    | "emerald"
+    | "blue";
 }) {
   const accentClass =
     accent === "blue"
-      ? "hover:border-blue-300 hover:bg-blue-50/50"
-      : "hover:border-emerald-300 hover:bg-emerald-50/50";
+      ? "sm:hover:border-blue-300 sm:hover:bg-blue-50/50"
+      : "sm:hover:border-emerald-300 sm:hover:bg-emerald-50/50";
 
   return (
     <article
       className={[
-        "rounded-2xl border border-zinc-200 bg-zinc-50 p-4",
-        "transition-all duration-200",
-        "hover:-translate-y-0.5 hover:shadow-md",
+        "min-w-0 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-3",
+        "transition-all duration-200 sm:rounded-2xl sm:p-4",
+        "sm:hover:-translate-y-0.5 sm:hover:shadow-md",
         accentClass,
       ].join(" ")}
     >
-      <p className="text-xs font-bold text-zinc-500">
+      <p className="text-[10px] font-bold text-zinc-500 sm:text-xs">
         {label}
       </p>
 
-      <p className="mt-2 break-keep text-sm font-extrabold leading-6 text-[#132238]">
-        {value || "정보 확인 중"}
+      <p className="mt-1.5 break-keep text-xs font-extrabold leading-5 text-[#132238] sm:mt-2 sm:text-sm sm:leading-6">
+        {value ||
+          "정보 확인 중"}
       </p>
     </article>
   );
@@ -228,22 +376,32 @@ export default function ApartmentHero({
   apartment,
 }: Props) {
   const isSubscription =
-    isSubscriptionApartment(apartment);
+    isSubscriptionApartment(
+      apartment
+    );
 
-  const heroImage = getValidImageUrl(
-    apartment.images?.hero
-  );
+  const isFirstCome =
+    isFirstComeApartment(
+      apartment
+    );
 
-  const gallery = (
-    apartment.images?.gallery ?? []
-  )
-    .map(getValidImageUrl)
-    .filter(Boolean) as string[];
+  const heroImage =
+    getValidImageUrl(
+      apartment.images?.hero
+    );
 
   const floorPlanNames =
-    apartment.images?.floorPlans
-      ?.map((item) => item.name)
-      .filter(Boolean) ?? [];
+    apartment.images
+      ?.floorPlans
+      ?.map((item) =>
+        item.name?.trim()
+      )
+      .filter(
+        (
+          name
+        ): name is string =>
+          Boolean(name)
+      ) ?? [];
 
   const saleBadges =
     getSaleBadges(apartment);
@@ -252,107 +410,119 @@ export default function ApartmentHero({
     apartment.totalSupply &&
     apartment.totalSupply > 0
       ? `${apartment.totalSupply.toLocaleString()}세대`
-      : apartment.projectInfo?.saleHouseholds ||
-        apartment.projectInfo?.totalHouseholds ||
+      : apartment.projectInfo
+          ?.saleHouseholds ||
+        apartment.projectInfo
+          ?.totalHouseholds ||
         "정보 확인 중";
 
+  const moveInDateText =
+    formatMoveInDate(
+      apartment.projectInfo
+        ?.moveInDate
+    ) ||
+    "정보 확인 중";
+
   return (
-    <section className="mt-5 grid gap-6 lg:grid-cols-[1.4fr_0.8fr]">
-      {/* 이미지 영역 */}
-      <div>
+    <section className="mt-4 grid gap-3 sm:mt-5 sm:gap-6 lg:grid-cols-[1.4fr_0.8fr]">
+      <div className="min-w-0">
         {heroImage ? (
-          <div className="overflow-hidden rounded-3xl">
-            <img
+          <div className="group relative h-[230px] overflow-hidden rounded-2xl bg-zinc-100 shadow-sm min-[420px]:h-[270px] sm:h-[360px] sm:rounded-3xl lg:h-full lg:min-h-[470px]">
+            <Image
               src={heroImage}
-              alt={apartment.name}
-              className="h-[360px] w-full object-cover transition-transform duration-300 hover:scale-[1.02]"
+              alt={`${apartment.name} 대표 이미지`}
+              fill
+              priority
+              fetchPriority="high"
+              sizes="
+                (max-width: 419px) 100vw,
+                (max-width: 639px) 100vw,
+                (max-width: 1023px) 100vw,
+                64vw
+              "
+              className="object-cover transition-transform duration-500 sm:group-hover:scale-[1.02]"
             />
+
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-24 bg-gradient-to-t from-black/45 to-transparent sm:h-28" />
+
+            <div className="pointer-events-none absolute bottom-3 left-3 z-20 rounded-full border border-white/30 bg-black/45 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur sm:bottom-5 sm:left-5 sm:px-3 sm:py-1.5 sm:text-xs">
+              {isSubscription
+                ? `${apartment.name} 청약`
+                : isFirstCome
+                  ? `${apartment.name} 선착순 분양`
+                  : `${apartment.name} 대표 이미지`}
+            </div>
           </div>
         ) : (
-          <div className="h-[360px]">
-            <ImagePlaceholder label="대표 이미지 준비 중" />
+          <div className="h-[230px] min-[420px]:h-[270px] sm:h-[360px] lg:h-full lg:min-h-[470px]">
+            <ImagePlaceholder
+              label={`${apartment.name} 대표 이미지 준비 중`}
+            />
           </div>
         )}
-
-        <div className="mt-4 grid grid-cols-4 gap-3">
-          {gallery.length > 0
-            ? gallery
-                .slice(0, 4)
-                .map((image, index) => (
-                  <div
-                    key={`${image}-${index}`}
-                    className="overflow-hidden rounded-2xl"
-                  >
-                    <img
-                      src={image}
-                      alt={`${apartment.name} 이미지 ${
-                        index + 1
-                      }`}
-                      className="h-24 w-full object-cover transition-transform duration-200 hover:scale-105"
-                    />
-                  </div>
-                ))
-            : [1, 2, 3, 4].map(
-                (item) => (
-                  <div
-                    key={item}
-                    className="h-24"
-                  >
-                    <ImagePlaceholder
-                      label={`이미지 ${item}`}
-                    />
-                  </div>
-                )
-              )}
-        </div>
       </div>
 
-      {/* 핵심정보 영역 */}
-      <div className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <p className="text-sm leading-6 text-zinc-500">
+      <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-7">
+        <div className="flex flex-wrap items-center gap-2">
+          <span
+            className={[
+              "inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold text-white sm:px-3 sm:text-sm",
+              isSubscription
+                ? "bg-blue-600"
+                : isFirstCome
+                  ? "bg-emerald-600"
+                  : apartment.listingStage ===
+                      "completed"
+                    ? "bg-zinc-500"
+                    : "bg-[#132238]",
+            ].join(" ")}
+          >
+            {isSubscription
+              ? getSubscriptionBadge(
+                  apartment.status
+                )
+              : getSaleStatusLabel(
+                  apartment
+                )}
+          </span>
+
+          <p className="min-w-0 truncate text-xs leading-5 text-zinc-500 sm:hidden">
+            {apartment.region ||
+              "지역 정보 준비 중"}
+          </p>
+        </div>
+
+        <p className="mt-3 hidden break-keep text-sm leading-6 text-zinc-500 sm:block">
           {apartment.region ||
             "지역 정보 준비 중"}
         </p>
 
-        <span
-          className={[
-            "mt-4 inline-flex rounded-full px-3 py-1 text-sm font-bold text-white",
-            isSubscription
-              ? "bg-blue-600"
-              : "bg-[#132238]",
-          ].join(" ")}
-        >
-          {isSubscription
-            ? getSubscriptionBadge(
-                apartment.status
-              )
-            : apartment.status ||
-              "등록 예정"}
-        </span>
-
-        <h1 className="mt-4 break-keep text-3xl font-extrabold leading-tight text-[#132238]">
+        <h1 className="mt-3 break-keep text-[25px] font-black leading-[1.25] tracking-[-0.035em] text-[#132238] sm:mt-4 sm:text-3xl">
           {apartment.name}
         </h1>
 
         {isSubscription ? (
           <>
-            <p className="mt-4 text-sm leading-6 text-zinc-600">
+            <p className="mt-3 text-xs leading-5 text-zinc-600 sm:mt-4 sm:text-sm sm:leading-6">
               {getSubscriptionDescription(
                 apartment.status
               )}
             </p>
 
-            <div className="mt-6 grid grid-cols-2 gap-3">
+            <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-6 sm:gap-3">
               <SummaryInfoCard
                 label="공급 세대수"
-                value={totalSupplyText}
+                value={
+                  totalSupplyText
+                }
                 accent="blue"
               />
 
               <SummaryInfoCard
                 label="모집공고일"
                 value={formatDate(
-                  apartment.subscription
+                  apartment
+                    .subscription
                     ?.announcementDate
                 )}
                 accent="blue"
@@ -361,7 +531,8 @@ export default function ApartmentHero({
               <SummaryInfoCard
                 label="당첨자 발표"
                 value={formatDate(
-                  apartment.subscription
+                  apartment
+                    .subscription
                     ?.winnerDate
                 )}
                 accent="blue"
@@ -370,9 +541,7 @@ export default function ApartmentHero({
               <SummaryInfoCard
                 label="입주 예정"
                 value={
-                  apartment.projectInfo
-                    ?.moveInDate ||
-                  "정보 확인 중"
+                  moveInDateText
                 }
                 accent="blue"
               />
@@ -380,64 +549,71 @@ export default function ApartmentHero({
           </>
         ) : (
           <>
-            {saleBadges.length > 0 && (
-              <div className="mt-4 flex flex-wrap gap-2">
-                {saleBadges.map((badge) => (
-                  <span
-                    key={badge}
-                    className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700"
-                  >
-                    {badge}
-                  </span>
-                ))}
+            {saleBadges.length >
+              0 && (
+              <div className="mt-3 flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mt-4 sm:flex-wrap sm:gap-2 sm:overflow-visible sm:pb-0">
+                {saleBadges.map(
+                  (badge) => (
+                    <span
+                      key={badge}
+                      className="shrink-0 rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700 sm:px-3 sm:text-xs"
+                    >
+                      {badge}
+                    </span>
+                  )
+                )}
               </div>
             )}
 
-            <div className="mt-5 rounded-2xl bg-[#F8FAF7] p-5">
-              <p className="text-xs font-bold text-zinc-500">
-                분양가
-              </p>
+            <div className="mt-4 rounded-xl bg-[#F8FAF7] p-4 sm:mt-5 sm:rounded-2xl sm:p-5">
+              <div className="grid gap-3 min-[420px]:grid-cols-[0.72fr_1.28fr] min-[420px]:items-start">
+                <div>
+                  <p className="text-[10px] font-bold text-zinc-500 sm:text-xs">
+                    분양가
+                  </p>
 
-              <p className="mt-2 text-xl font-extrabold text-[#132238]">
-                {apartment.price ||
-                  "분양가 확인 중"}
-              </p>
+                  <p className="mt-1.5 break-keep text-lg font-black text-[#132238] sm:mt-2 sm:text-xl">
+                    {apartment.price ||
+                      "분양가 확인 중"}
+                  </p>
+                </div>
 
-              <div className="mt-4 border-t border-zinc-200 pt-4">
-                <p className="text-xs font-bold text-zinc-500">
-                  핵심 계약조건
-                </p>
+                <div className="border-t border-zinc-200 pt-3 min-[420px]:border-l min-[420px]:border-t-0 min-[420px]:pl-4 min-[420px]:pt-0">
+                  <p className="text-[10px] font-bold text-zinc-500 sm:text-xs">
+                    핵심 계약조건
+                  </p>
 
-                <p className="mt-2 text-sm font-bold leading-6 text-zinc-700">
-                  {apartment.condition ||
-                    "계약조건 확인 중"}
-                </p>
+                  <p className="mt-1.5 break-keep text-xs font-bold leading-5 text-zinc-700 sm:mt-2 sm:text-sm sm:leading-6">
+                    {apartment.condition ||
+                      "계약조건 확인 중"}
+                  </p>
+                </div>
               </div>
             </div>
 
-            <div className="mt-4 grid grid-cols-2 gap-3">
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:mt-4 sm:gap-3">
               <SummaryInfoCard
                 label="총 세대수"
                 value={
-                  apartment.projectInfo
+                  apartment
+                    .projectInfo
                     ?.totalHouseholds ||
-                  "정보 확인 중"
+                  totalSupplyText
                 }
               />
 
               <SummaryInfoCard
                 label="입주 예정"
                 value={
-                  apartment.projectInfo
-                    ?.moveInDate ||
-                  "정보 확인 중"
+                  moveInDateText
                 }
               />
 
               <SummaryInfoCard
                 label="주차대수"
                 value={
-                  apartment.projectInfo
+                  apartment
+                    .projectInfo
                     ?.parking ||
                   "정보 확인 중"
                 }
@@ -446,8 +622,11 @@ export default function ApartmentHero({
               <SummaryInfoCard
                 label="평형·타입"
                 value={
-                  floorPlanNames.length > 0
-                    ? floorPlanNames.join(", ")
+                  floorPlanNames.length >
+                  0
+                    ? floorPlanNames.join(
+                        ", "
+                      )
                     : "정보 확인 중"
                 }
               />

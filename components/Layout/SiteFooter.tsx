@@ -54,75 +54,38 @@ function HomePickSymbol({
   );
 }
 
-const footerGroups = [
+const serviceLinks = [
   {
-    title: "부동산정보",
-    items: [
-      {
-        label: "전체 부동산 검색",
-        href: "/search",
-      },
-      {
-        label: "선착순 분양",
-        href: "/search?q=선착순",
-      },
-      {
-        label: "최근 등록 단지",
-        href: "/search",
-      },
-    ],
+    label: "분양정보",
+    href: "/search",
   },
   {
-    title: "청약정보",
-    items: [
-      {
-        label: "청약 일정",
-        href: "/search?q=청약",
-      },
-      {
-        label: "진행 중인 청약",
-        href: "/search?q=청약중",
-      },
-      {
-        label: "청약 단지 검색",
-        href: "/search?q=청약",
-      },
-    ],
+    label: "청약일정",
+    href: "/search?q=청약",
   },
   {
-    title: "지역별 보기",
-    items: [
-      {
-        label: "전국 지역",
-        href: "/region",
-      },
-      {
-        label: "지역 분양 현황",
-        href: "/region",
-      },
-      {
-        label: "지도에서 찾기",
-        href: "/region",
-      },
-    ],
+    label: "선착순 분양",
+    href: "/search?q=선착순",
   },
   {
-    title: "서비스",
-    items: [
-      {
-        label: "단지 비교",
-        href: "/compare",
-      },
-      {
-        label: "방문예약",
-        href: "/search",
-      },
-      {
-        label: "관리자",
-        href: "/admin",
-      },
-    ],
+    label: "지역별 보기",
+    href: "/region",
   },
+  {
+    label: "단지 비교",
+    href: "/compare",
+  },
+];
+
+const popularRegions = [
+  "대전",
+  "청주",
+  "천안",
+  "평택",
+  "대구",
+  "울산",
+  "부산",
+  "양주",
 ];
 
 const legalLinks = [
@@ -137,91 +100,159 @@ const legalLinks = [
 ];
 
 export default function SiteFooter() {
+  const currentYear =
+    new Date().getFullYear();
+
   return (
-    <footer className="mt-12 border-t border-zinc-200 bg-white">
-      <div className="mx-auto w-full max-w-[1600px] px-4 py-8 sm:px-6 lg:px-8">
-        <div className="grid gap-8 lg:grid-cols-[0.9fr_2.1fr] lg:items-start lg:gap-12">
-          {/* 브랜드 영역 */}
-          <div>
+    <footer className="mt-8 border-t border-zinc-200 bg-white sm:mt-10">
+      <div className="mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
+      <div className="grid gap-6 md:grid-cols-[1.05fr_0.7fr_1.35fr] md:items-start md:gap-8 lg:gap-10">
+          {/* 브랜드 소개 */}
+          <section>
             <Link
               href="/"
-              aria-label="HomePick 홈으로 이동"
+              aria-label="홈픽 홈페이지로 이동"
               className="
-                group inline-flex items-center gap-2.5
-                rounded-lg
+                group inline-flex items-center gap-2.5 rounded-lg
                 focus-visible:outline-none
                 focus-visible:ring-2
                 focus-visible:ring-emerald-500
                 focus-visible:ring-offset-2
               "
             >
-              <HomePickSymbol className="h-11 w-11 text-[#0F766E] transition-transform duration-200 group-hover:-translate-y-0.5" />
+              <HomePickSymbol className="h-10 w-10 text-[#0F766E] transition-transform duration-200 group-hover:-translate-y-0.5" />
 
-              <div>
-                <p className="text-2xl font-black tracking-[-0.04em] text-[#0F766E]">
-                  HomePick
-                </p>
+              <div className="min-w-0">
+                <div className="flex items-baseline gap-1.5">
+                  <p className="text-xl font-black tracking-[-0.04em] text-[#0F766E]">
+                    홈픽
+                  </p>
+
+                  <p className="text-[11px] font-extrabold text-zinc-500">
+                    HomePick
+                  </p>
+                </div>
 
                 <p className="text-[9px] font-bold tracking-tight text-zinc-400">
-                  전국 부동산 정보 플랫폼
+                  전국 분양 아파트 플랫폼
                 </p>
               </div>
             </Link>
 
-            <p className="mt-4 text-base font-extrabold leading-6 text-[#111827]">
-              전국 부동산을 한눈에.
-              <br />
-              내 집은 내가{" "}
-              <span className="text-emerald-500">
-                Pick.
-              </span>
+            <p className="mt-3 max-w-[470px] break-keep text-[11px] leading-5 text-zinc-500 sm:text-xs sm:leading-6">
+              홈픽(HomePick)은 전국 분양 아파트와
+              청약 일정, 선착순 분양 단지의 분양가,
+              계약조건과 입지 정보를 검색하고 비교할 수
+              있는 부동산 플랫폼입니다.
             </p>
+          </section>
 
-            <p className="mt-2 max-w-[310px] break-keep text-xs leading-6 text-zinc-500">
-              분양, 청약, 선착순 단지와 지역별
-              부동산 정보를 쉽고 빠르게 확인하세요.
-            </p>
+          {/* 주요 서비스 */}
+          <section>
+            <h2 className="text-sm font-extrabold text-[#111827]">
+              주요 서비스
+            </h2>
 
-            <Link
-              href="/search"
-              className="
-                mt-4 inline-flex min-h-9
-                items-center justify-center
-                rounded-lg bg-[#0F766E]
-                px-4 py-2 text-xs font-extrabold
-                text-white
-                transition-all duration-200
-                hover:-translate-y-0.5
-                hover:bg-emerald-600
-                hover:shadow-md
-                focus-visible:outline-none
-                focus-visible:ring-2
-                focus-visible:ring-emerald-500
-                focus-visible:ring-offset-2
-              "
+            <nav
+              aria-label="푸터 주요 서비스"
+              className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2"
             >
-              전체 부동산 보기 →
-            </Link>
-          </div>
+              {serviceLinks.map(
+                (item) => (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    className="
+                      w-fit rounded text-xs font-medium text-zinc-500
+                      transition-all duration-200
+                      hover:translate-x-0.5
+                      hover:text-emerald-700
+                      focus-visible:outline-none
+                      focus-visible:ring-2
+                      focus-visible:ring-emerald-500
+                      focus-visible:ring-offset-2
+                    "
+                  >
+                    {item.label}
+                  </Link>
+                )
+              )}
+            </nav>
+          </section>
 
-          {/* 메뉴 링크 */}
-          <div className="grid grid-cols-2 gap-x-6 gap-y-7 sm:grid-cols-4">
-            {footerGroups.map((group) => (
-              <div key={group.title}>
-                <p className="text-sm font-extrabold text-[#111827]">
-                  {group.title}
-                </p>
+          {/* 인기 지역 */}
+          <section>
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-sm font-extrabold text-[#111827]">
+                인기 지역 분양정보
+              </h2>
 
-                <nav className="mt-3 grid gap-2.5">
-                  {group.items.map((item) => (
+              <Link
+                href="/region"
+                className="
+                  shrink-0 rounded text-[11px] font-bold text-emerald-700
+                  transition hover:translate-x-0.5
+                  focus-visible:outline-none
+                  focus-visible:ring-2
+                  focus-visible:ring-emerald-500
+                  focus-visible:ring-offset-2
+                "
+              >
+                전체 지역 →
+              </Link>
+            </div>
+
+            <nav
+              aria-label="인기 지역 분양정보"
+              className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4"
+            >
+              {popularRegions.map(
+                (region) => (
+                  <Link
+                    key={region}
+                    href={`/region/${encodeURIComponent(
+                      region
+                    )}`}
+                    className="
+                      inline-flex min-h-9 items-center justify-center
+                      rounded-lg border border-zinc-200 bg-zinc-50
+                      px-2.5 py-2 text-[11px] font-bold text-zinc-600
+                      transition-all duration-200
+                      hover:-translate-y-0.5
+                      hover:border-emerald-300
+                      hover:bg-emerald-50
+                      hover:text-emerald-700
+                      hover:shadow-sm
+                      focus-visible:outline-none
+                      focus-visible:ring-2
+                      focus-visible:ring-emerald-500
+                      focus-visible:ring-offset-2
+                    "
+                  >
+                    {region} 분양
+                  </Link>
+                )
+              )}
+            </nav>
+          </section>
+        </div>
+
+        {/* 하단 안내 */}
+        <div className="mt-6 border-t border-zinc-100 pt-5">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+            <div className="min-w-0">
+              <nav
+                aria-label="약관 및 정책"
+                className="flex flex-wrap gap-x-4 gap-y-2"
+              >
+                {legalLinks.map(
+                  (item) => (
                     <Link
                       key={item.label}
                       href={item.href}
                       className="
-                        w-fit rounded text-xs
-                        font-medium text-zinc-500
-                        transition-colors duration-200
-                        hover:text-emerald-700
+                        rounded text-[11px] font-semibold text-zinc-500
+                        transition-colors hover:text-emerald-700
                         focus-visible:outline-none
                         focus-visible:ring-2
                         focus-visible:ring-emerald-500
@@ -230,38 +261,23 @@ export default function SiteFooter() {
                     >
                       {item.label}
                     </Link>
-                  ))}
-                </nav>
-              </div>
-            ))}
-          </div>
-        </div>
+                  )
+                )}
+              </nav>
 
-        {/* 하단 영역 */}
-        <div className="mt-7 flex flex-col gap-3 border-t border-zinc-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <div className="flex flex-wrap gap-x-4 gap-y-2">
-              {legalLinks.map((item) => (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className="text-[11px] font-semibold text-zinc-500 transition-colors hover:text-emerald-700"
-                >
-                  {item.label}
-                </Link>
-              ))}
+              <p className="mt-2 max-w-4xl break-keep text-[10px] leading-5 text-zinc-400">
+                홈픽에서 제공하는 분양가, 계약조건,
+                청약일정 및 단지 정보는 참고용입니다.
+                계약 또는 청약 전 모집공고문, 공급계약서와
+                사업주체의 최신 안내를 반드시 확인해주세요.
+              </p>
             </div>
 
-            <p className="mt-2 break-keep text-[10px] leading-5 text-zinc-400">
-              HomePick의 정보는 참고용이며, 계약 전 모집공고와
-              공급계약서를 최종 확인하시기 바랍니다.
+            <p className="shrink-0 text-[10px] font-medium text-zinc-400 sm:text-[11px]">
+              © {currentYear} HomePick.
+              All rights reserved.
             </p>
           </div>
-
-          <p className="shrink-0 text-[11px] font-medium text-zinc-400">
-            © {new Date().getFullYear()} HomePick. All rights
-            reserved.
-          </p>
         </div>
       </div>
     </footer>

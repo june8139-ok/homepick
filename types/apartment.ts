@@ -68,6 +68,12 @@ export type ApartmentPriceInfo = {
   note?: string | null;
 };
 
+export type ListingStage =
+  | "subscription"
+  | "firstCome"
+  | "completed"
+  | "existing";
+
 export type Apartment = {
   slug: string;
   city: string;
@@ -79,6 +85,7 @@ export type Apartment = {
   brand: string;
   builder: string;
   name: string;
+  leadType?: "consult" | "schedule" | "closed";
   latitude?: number | null;
   longitude?: number | null;
   images: {
@@ -90,6 +97,7 @@ export type Apartment = {
   };
   keywords: string[];
   status: string;
+  listingStage?: ListingStage;
   price: string;
   condition: string;
   source?: "manual" | "applyhome";

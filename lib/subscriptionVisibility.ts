@@ -1,5 +1,12 @@
 import type { Apartment } from "../types/apartment";
 
+import {
+  isCompletedListing,
+  isFirstComeListing,
+  isPublicListing,
+  isSubscriptionListing,
+} from "./listingStage";
+
 export const subscriptionStatuses = [
   "청약예정",
   "특별공급",
@@ -10,9 +17,6 @@ export const subscriptionStatuses = [
   "계약중",
   "청약마감",
 ] as const;
-
-type SubscriptionStatus =
-  (typeof subscriptionStatuses)[number];
 
 const ONE_DAY_MS =
   24 * 60 * 60 * 1000;
@@ -25,16 +29,28 @@ function startOfDay(date: Date) {
   );
 }
 
-function isSubscriptionStatus(
-  status?: string | null
-): status is SubscriptionStatus {
-  if (!status?.trim()) {
-    return false;
-  }
+/**
+ * 기존 파일을 사용하는 홈·검색 코드와의
+ * 호환성을 유지하는 함수입니다.
+ *
+ * 실제 판정은 listingStage.ts에서 처리합니다.
+ */
+export function isSubscriptionApartment(
+  apartment: Apartment
+) {
+  return isSubscriptionListing(apartment);
+}
 
-  return subscriptionStatuses.includes(
-    status.trim() as SubscriptionStatus
-  );
+/**
+ * 기존 홈·검색 코드가 사용하는 함수입니다.
+ *
+ * 관리자가 listingStage를 firstCome으로 저장하면
+ * 선착순 단지로 판정됩니다.
+ */
+export function isFirstComeApartment(
+  apartment: Apartment
+) {
+  return isFirstComeListing(apartment);
 }
 
 export function parseSubscriptionDate(
@@ -125,8 +141,7 @@ export function parseSubscriptionDate(
       : startOfDay(date);
   }
 
-  const parsed =
-    new Date(normalized);
+  const parsed = new Date(normalized);
 
   return Number.isNaN(
     parsed.getTime()
@@ -135,45 +150,26 @@ export function parseSubscriptionDate(
     : startOfDay(parsed);
 }
 
-export function isSubscriptionApartment(
-  apartment: Apartment
-) {
-  return (
-    apartment.source === "applyhome" ||
-    apartment.isAutoCreated === true ||
-    isSubscriptionStatus(
-      apartment.status
-    )
-  );
-}
-
-export function isFirstComeApartment(
-  apartment: Apartment
-) {
-  const status =
-    apartment.status
-      ?.trim()
-      .toLowerCase() ?? "";
-
-  const condition =
-    apartment.condition
-      ?.trim()
-      .toLowerCase() ?? "";
-
-  return (
-    status.includes("선착순") ||
-    condition.includes("동호지정") ||
-    condition.includes("잔여세대") ||
-    condition.includes("회사보유분")
-  );
-}
-
+/**
+ * 청약 단계 단지가 홈의 청약 영역에
+ * 노출 가능한지를 확인합니다.
+ *
+ * listingStage가 firstCome이면 이 함수는
+ * false가 되어 청약 영역에서 빠지고,
+ * 선착순 영역으로 이동합니다.
+ */
 export function isVisibleHomeSubscription(
   apartment: Apartment,
   referenceDate = new Date()
 ) {
   if (
-    !isSubscriptionApartment(apartment)
+    !isSubscriptionListing(apartment)
+  ) {
+    return false;
+  }
+
+  if (
+    isCompletedListing(apartment)
   ) {
     return false;
   }
@@ -196,8 +192,11 @@ export function isVisibleHomeSubscription(
     );
 
   /*
-   * 계약 종료일이 지났으면
-   * 즉시 홈에서 제외한다.
+   * 계약 종료일이 지난 청약 단지는
+   * 홈의 청약 영역에서 제외합니다.
+   *
+   * 관리자가 선착순으로 전환하면
+   * listingStage가 우선되어 선착순 영역에 표시됩니다.
    */
   if (
     contractEndDate &&
@@ -210,13 +209,14 @@ export function isVisibleHomeSubscription(
   }
 
   /*
-   * 당첨자 발표일로부터 15일이
-   * 지났으면 계약 종료일이 남아 있어도
-   * 홈에서는 제외한다.
+   * 당첨자 발표일로부터 15일이 지나면
+   * 청약 영역에서는 제외합니다.
    */
   if (winnerDate) {
     const visibleUntil =
-      startOfDay(winnerDate).getTime() +
+      startOfDay(
+        winnerDate
+      ).getTime() +
       15 * ONE_DAY_MS;
 
     if (today > visibleUntil) {
@@ -224,32 +224,44 @@ export function isVisibleHomeSubscription(
     }
   }
 
-  /*
-   * 계약 종료일이나 당첨자 발표일 중
-   * 하나라도 아직 유효하면 노출한다.
-   *
-   * 신규 자동등록 자료처럼 일정이
-   * 아직 비어 있는 경우에도 유지한다.
-   */
   return true;
 }
 
+/**
+ * 홈과 검색에 표시할 공개 단지 목록입니다.
+ *
+ * - 노출 종료: 제외
+ * - 청약: 일정 유효 여부 확인
+ * - 선착순: 공개 목록에 유지
+ * - 기존 아파트: 공개 목록에 유지
+ */
 export function getHomeVisibleApartments(
   apartments: Apartment[],
   referenceDate = new Date()
 ) {
   return apartments.filter(
-    (apartment) =>
-      !isSubscriptionApartment(
-        apartment
-      ) ||
-      isVisibleHomeSubscription(
-        apartment,
-        referenceDate
-      )
+    (apartment) => {
+      if (!isPublicListing(apartment)) {
+        return false;
+      }
+
+      if (
+        isSubscriptionListing(apartment)
+      ) {
+        return isVisibleHomeSubscription(
+          apartment,
+          referenceDate
+        );
+      }
+
+      return true;
+    }
   );
 }
 
+/**
+ * 홈의 청약 영역에서 사용할 목록입니다.
+ */
 export function getVisibleSubscriptions(
   apartments: Apartment[],
   referenceDate = new Date()
@@ -260,6 +272,19 @@ export function getVisibleSubscriptions(
         apartment,
         referenceDate
       )
+  );
+}
+
+/**
+ * 홈의 선착순 영역에서 사용할 목록입니다.
+ */
+export function getVisibleFirstComeApartments(
+  apartments: Apartment[]
+) {
+  return apartments.filter(
+    (apartment) =>
+      isPublicListing(apartment) &&
+      isFirstComeListing(apartment)
   );
 }
 

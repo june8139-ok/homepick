@@ -104,6 +104,31 @@ export default async function AdminApartmentEditPage({
       data.condition ??
       "",
 
+    listingStage:
+      apartmentData.listingStage,
+
+    source:
+      apartmentData.source ??
+      data.source ??
+      "manual",
+
+    isAutoCreated:
+      apartmentData.isAutoCreated ??
+      data.source === "applyhome",
+      
+    priceInfo:
+      apartmentData.priceInfo ??
+      apartmentData.price_info ??
+      apartmentData.applyHome?.priceInfo ??
+      apartmentData.applyHome?.price_info ?? {
+        minimumPrice: null,
+        maximumPrice: null,
+        averagePricePerPyeong: null,
+        units: [],
+        updatedAt: null,
+        note: null,
+      },
+
     priceDetail:
       apartmentData.priceDetail ?? {
         salePrice:

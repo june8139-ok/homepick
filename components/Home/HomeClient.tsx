@@ -2,12 +2,18 @@
 
 import Link from "next/link";
 import {
+  useEffect,
   useMemo,
+  useRef,
+  useState,
+  type PointerEvent,
   type ReactNode,
 } from "react";
+
 import { useRouter } from "next/navigation";
 
 import type { Apartment } from "../../types/apartment";
+import type { Briefing } from "../../types/briefing";
 
 import {
   getHomeVisibleApartments,
@@ -19,6 +25,7 @@ import {
 
 import SearchHero from "./SearchHero";
 import RegionMapSection from "./RegionMapSection";
+import HomeBriefingSection from "./HomeBriefingSection";
 
 const regionNames = [
   "서울",
@@ -40,28 +47,30 @@ const regionNames = [
   "제주",
 ];
 
-type MapRegion = {
-  city: string;
-  cityName: string;
-  count: number;
-  saleCount: number;
-  subscriptionCount: number;
-  firstComeCount: number;
-  representativeApartment: string;
-};
-
 function getHeroImage(
   apartment: Apartment
 ) {
   const hero = apartment.images?.hero;
 
-  if (Array.isArray(hero)) {
-    return hero[0] ?? "";
+  if (
+    typeof hero === "string" &&
+    hero.trim() &&
+    !hero.includes(
+      "/images/apartments/default/main.jpg"
+    )
+  ) {
+    return hero;
   }
 
-  return typeof hero === "string"
-    ? hero
-    : "";
+  return (
+    apartment.images?.gallery?.find(
+      (image) =>
+        Boolean(image) &&
+        !image.includes(
+          "/images/apartments/default/main.jpg"
+        )
+    ) ?? ""
+  );
 }
 
 function isManualApartment(
@@ -75,8 +84,10 @@ function isManualApartment(
 
 export default function HomeClient({
   apartments,
+  briefings,
 }: {
   apartments: Apartment[];
+  briefings: Briefing[];
 }) {
   const router = useRouter();
 
@@ -88,140 +99,85 @@ export default function HomeClient({
     [apartments]
   );
 
-  /*
-   * 홈에 노출할 수 있는 전체 청약.
-   * 숫자 카드에서는 전체 개수를 사용하고,
-   * 대시보드에는 앞의 3개만 표시한다.
-   */
   const allSubscriptions = useMemo(
     () =>
       getVisibleSubscriptions(
         apartments
       ).sort(
-        (a, b) =>
-          getSubscriptionSortDate(a) -
-          getSubscriptionSortDate(b)
+        (first, second) =>
+          getSubscriptionSortDate(first) -
+          getSubscriptionSortDate(second)
       ),
     [apartments]
   );
 
   const subscriptions = useMemo(
-    () => allSubscriptions.slice(0, 3),
+    () =>
+      allSubscriptions.slice(0, 6),
     [allSubscriptions]
   );
 
-  const manualApartments = useMemo(
-    () =>
-      visibleApartments.filter(
-        (apartment) =>
-          !isSubscriptionApartment(
-            apartment
-          ) &&
-          isManualApartment(apartment)
-      ),
-    [visibleApartments]
-  );
+  const nonSubscriptionApartments =
+    useMemo(
+      () =>
+        visibleApartments.filter(
+          (apartment) =>
+            !isSubscriptionApartment(
+              apartment
+            )
+        ),
+      [visibleApartments]
+    );
 
   const allFirstComeApartments =
     useMemo(
       () =>
-        manualApartments.filter(
+        nonSubscriptionApartments.filter(
           isFirstComeApartment
         ),
-      [manualApartments]
+      [nonSubscriptionApartments]
     );
 
   const firstComeApartments = useMemo(
     () =>
-      allFirstComeApartments.slice(0, 3),
+      allFirstComeApartments.slice(
+        0,
+        6
+      ),
     [allFirstComeApartments]
   );
 
   const recentApartments = useMemo(
-    () => manualApartments.slice(0, 4),
-    [manualApartments]
+    () =>
+      nonSubscriptionApartments
+        .filter(isManualApartment)
+        .slice(0, 4),
+    [nonSubscriptionApartments]
   );
-
-  const mapRegions =
-    useMemo<MapRegion[]>(() => {
-      const accumulator: Record<
-        string,
-        MapRegion
-      > = {};
-
-      visibleApartments.forEach(
-        (apartment) => {
-          if (!apartment.city) {
-            return;
-          }
-
-          if (
-            !accumulator[apartment.city]
-          ) {
-            accumulator[apartment.city] =
-              {
-                city: apartment.city,
-
-                cityName:
-                  apartment.cityName ||
-                  apartment.city,
-
-                count: 0,
-                saleCount: 0,
-                subscriptionCount: 0,
-                firstComeCount: 0,
-
-                representativeApartment:
-                  apartment.name,
-              };
-          }
-
-          const region =
-            accumulator[apartment.city];
-
-          region.count += 1;
-
-          if (
-            isSubscriptionApartment(
-              apartment
-            )
-          ) {
-            region.subscriptionCount += 1;
-          } else if (
-            isFirstComeApartment(
-              apartment
-            )
-          ) {
-            region.firstComeCount += 1;
-          } else {
-            region.saleCount += 1;
-          }
-        }
-      );
-
-      return Object.values(
-        accumulator
-      ).sort((a, b) => b.count - a.count);
-    }, [visibleApartments]);
 
   const openApartment = (
     slug: string
   ) => {
-    router.push(`/apartments/${slug}`);
+    router.push(
+      `/apartments/${slug}`
+    );
   };
 
   return (
-    <main className="min-h-screen bg-[#F7F8FA] py-5 text-[#111827]">
-      <section className="mx-auto w-full max-w-[1600px] px-4 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-[#F7F8FA] py-3 text-[#111827] sm:py-5">
+      <section className="mx-auto w-full max-w-[1600px] px-3 sm:px-6 lg:px-8">
         <SearchHero
           apartments={visibleApartments}
         />
 
         {/* 핵심 현황 */}
-        <section className="mt-4 grid gap-3 sm:grid-cols-3">
+        <section className="mt-3 grid grid-cols-3 gap-2 sm:mt-4 sm:gap-3">
           <SummaryCard
             label="진행 중 청약"
-            value={allSubscriptions.length}
+            mobileLabel="청약"
+            value={
+              allSubscriptions.length
+            }
             icon="▣"
             accent="blue"
             onClick={() =>
@@ -233,6 +189,7 @@ export default function HomeClient({
 
           <SummaryCard
             label="선착순 분양"
+            mobileLabel="선착순"
             value={
               allFirstComeApartments.length
             }
@@ -247,7 +204,10 @@ export default function HomeClient({
 
           <SummaryCard
             label="최근 등록"
-            value={recentApartments.length}
+            mobileLabel="최근등록"
+            value={
+              recentApartments.length
+            }
             icon="+"
             accent="amber"
             onClick={() =>
@@ -256,20 +216,77 @@ export default function HomeClient({
           />
         </section>
 
-        {/* 청약·선착순·최근 등록 */}
-        <section className="mt-4 grid gap-4 xl:grid-cols-[1fr_1fr_0.78fr]">
-          <DashboardPanel
+        {/* 모바일 청약 */}
+        <div className="mt-3 sm:hidden">
+          <MobileDashboardPanel
             title="진행 중 청약"
             href="/search?q=청약"
           >
-            {subscriptions.length > 0 ? (
-              <div className="grid gap-3 sm:grid-cols-3">
-                {subscriptions.map(
+            {subscriptions.length >
+            0 ? (
+              <MobileApartmentCarousel
+                apartments={
+                  subscriptions
+                }
+                type="subscription"
+                onOpen={
+                  openApartment
+                }
+              />
+            ) : (
+              <EmptyMessage
+                text="현재 진행 중인 청약이 없습니다."
+                compact
+              />
+            )}
+          </MobileDashboardPanel>
+        </div>
+
+        {/* 모바일 선착순 */}
+        <div className="mt-3 sm:hidden">
+          <MobileDashboardPanel
+            title="선착순 분양"
+            href="/search?q=선착순"
+          >
+            {firstComeApartments.length >
+            0 ? (
+              <MobileApartmentCarousel
+                apartments={
+                  firstComeApartments
+                }
+                type="sale"
+                onOpen={
+                  openApartment
+                }
+              />
+            ) : (
+              <EmptyMessage
+                text="현재 확인된 선착순 단지가 없습니다."
+                compact
+              />
+            )}
+          </MobileDashboardPanel>
+        </div>
+
+        {/* 모바일 최근 등록 */}
+        <div className="mt-3 sm:hidden">
+          <MobileDashboardPanel
+            title="최근 등록"
+            href="/search"
+          >
+            {recentApartments.length >
+            0 ? (
+              <div className="grid gap-1">
+                {recentApartments.map(
                   (apartment) => (
-                    <CompactApartmentCard
-                      key={apartment.slug}
-                      apartment={apartment}
-                      type="subscription"
+                    <RecentApartmentRow
+                      key={
+                        apartment.slug
+                      }
+                      apartment={
+                        apartment
+                      }
+                      compact
                       onClick={() =>
                         openApartment(
                           apartment.slug
@@ -278,6 +295,45 @@ export default function HomeClient({
                     />
                   )
                 )}
+              </div>
+            ) : (
+              <EmptyMessage
+                text="최근 등록 단지가 없습니다."
+                compact
+              />
+            )}
+          </MobileDashboardPanel>
+        </div>
+
+        {/* PC·태블릿 대시보드 */}
+        <section className="mt-4 hidden gap-4 sm:grid xl:grid-cols-[1fr_1fr_0.78fr]">
+          <DashboardPanel
+            title="진행 중 청약"
+            href="/search?q=청약"
+          >
+            {subscriptions.length >
+            0 ? (
+              <div className="grid gap-3 sm:grid-cols-3">
+                {subscriptions
+                  .slice(0, 3)
+                  .map(
+                    (apartment) => (
+                      <CompactApartmentCard
+                        key={
+                          apartment.slug
+                        }
+                        apartment={
+                          apartment
+                        }
+                        type="subscription"
+                        onClick={() =>
+                          openApartment(
+                            apartment.slug
+                          )
+                        }
+                      />
+                    )
+                  )}
               </div>
             ) : (
               <EmptyMessage text="현재 진행 중인 청약이 없습니다." />
@@ -291,20 +347,26 @@ export default function HomeClient({
             {firstComeApartments.length >
             0 ? (
               <div className="grid gap-3 sm:grid-cols-3">
-                {firstComeApartments.map(
-                  (apartment) => (
-                    <CompactApartmentCard
-                      key={apartment.slug}
-                      apartment={apartment}
-                      type="sale"
-                      onClick={() =>
-                        openApartment(
+                {firstComeApartments
+                  .slice(0, 3)
+                  .map(
+                    (apartment) => (
+                      <CompactApartmentCard
+                        key={
                           apartment.slug
-                        )
-                      }
-                    />
-                  )
-                )}
+                        }
+                        apartment={
+                          apartment
+                        }
+                        type="sale"
+                        onClick={() =>
+                          openApartment(
+                            apartment.slug
+                          )
+                        }
+                      />
+                    )
+                  )}
               </div>
             ) : (
               <EmptyMessage text="현재 확인된 선착순 단지가 없습니다." />
@@ -315,13 +377,18 @@ export default function HomeClient({
             title="최근 등록"
             href="/search"
           >
-            {recentApartments.length > 0 ? (
+            {recentApartments.length >
+            0 ? (
               <div className="grid gap-1">
                 {recentApartments.map(
                   (apartment) => (
                     <RecentApartmentRow
-                      key={apartment.slug}
-                      apartment={apartment}
+                      key={
+                        apartment.slug
+                      }
+                      apartment={
+                        apartment
+                      }
                       onClick={() =>
                         openApartment(
                           apartment.slug
@@ -337,22 +404,61 @@ export default function HomeClient({
           </DashboardPanel>
         </section>
 
-        {/* 대한민국 부동산지도 */}
         <RegionMapSection
-          apartments={visibleApartments}
+          apartments={
+            visibleApartments
+          }
         />
 
         {/* 지역 바로가기 */}
-        <section className="mt-4 rounded-3xl border border-zinc-200 bg-white px-5 py-5 shadow-sm sm:px-7">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
-            <div className="shrink-0">
-              <h2 className="text-lg font-black text-[#111827]">
-                지역 바로가기
-              </h2>
-            </div>
+        <section className="mt-3 rounded-2xl border border-zinc-200 bg-white px-3 py-4 shadow-sm sm:mt-4 sm:rounded-3xl sm:px-7 sm:py-5">
+          <div className="flex items-center justify-between gap-3 sm:block lg:flex lg:items-center">
+            <h2 className="text-base font-black text-[#111827] sm:text-lg">
+              지역 바로가기
+            </h2>
 
-            <div className="flex flex-1 flex-wrap gap-2 lg:justify-center">
-              {regionNames.map((region) => (
+            <Link
+              href="/region"
+              className="shrink-0 text-xs font-bold text-emerald-700 transition hover:translate-x-0.5 sm:text-sm"
+            >
+              전체보기 →
+            </Link>
+          </div>
+
+          {/* 모바일 3열 */}
+          <div className="mt-3 grid grid-cols-3 gap-2 sm:hidden">
+            {regionNames.map(
+              (region) => (
+                <Link
+                  key={region}
+                  href={`/search?q=${encodeURIComponent(
+                    region
+                  )}`}
+                  className="
+                    inline-flex min-h-10
+                    cursor-pointer items-center
+                    justify-center rounded-xl
+                    border border-zinc-100
+                    bg-zinc-50 px-2 py-2
+                    text-xs font-bold
+                    text-zinc-600
+                    transition-all
+                    active:scale-[0.98]
+                    focus-visible:outline-none
+                    focus-visible:ring-2
+                    focus-visible:ring-emerald-500
+                  "
+                >
+                  {region}
+                </Link>
+              )
+            )}
+          </div>
+
+          {/* PC·태블릿 */}
+          <div className="mt-3 hidden flex-wrap gap-2 sm:flex lg:justify-center">
+            {regionNames.map(
+              (region) => (
                 <Link
                   key={region}
                   href={`/search?q=${encodeURIComponent(
@@ -361,10 +467,11 @@ export default function HomeClient({
                   className="
                     inline-flex min-h-9
                     min-w-[60px]
-                    items-center justify-center
-                    rounded-full bg-zinc-50
-                    px-3 py-2 text-xs
-                    font-bold text-zinc-600
+                    cursor-pointer items-center
+                    justify-center rounded-full
+                    bg-zinc-50 px-3 py-2
+                    text-xs font-bold
+                    text-zinc-600
                     transition-all duration-200
                     hover:-translate-y-0.5
                     hover:bg-emerald-50
@@ -377,17 +484,14 @@ export default function HomeClient({
                 >
                   {region}
                 </Link>
-              ))}
-            </div>
-
-            <Link
-              href="/region"
-              className="shrink-0 text-sm font-bold text-emerald-700 transition hover:translate-x-0.5"
-            >
-              전체 지역 보기 →
-            </Link>
+              )
+            )}
           </div>
         </section>
+
+        <HomeBriefingSection
+          briefings={briefings}
+        />
       </section>
     </main>
   );
@@ -395,12 +499,14 @@ export default function HomeClient({
 
 function SummaryCard({
   label,
+  mobileLabel,
   value,
   icon,
   accent,
   onClick,
 }: {
   label: string;
+  mobileLabel: string;
   value: number;
   icon: string;
   accent:
@@ -411,23 +517,30 @@ function SummaryCard({
 }) {
   const style = {
     blue: {
-      icon: "bg-blue-50 text-blue-600",
-      value: "text-blue-700",
-      border: "hover:border-blue-300",
+      icon:
+        "bg-blue-50 text-blue-600",
+      value:
+        "text-blue-700",
+      border:
+        "hover:border-blue-300",
     },
 
     emerald: {
       icon:
         "bg-emerald-50 text-emerald-600",
-      value: "text-emerald-700",
+      value:
+        "text-emerald-700",
       border:
         "hover:border-emerald-300",
     },
 
     amber: {
-      icon: "bg-amber-50 text-amber-600",
-      value: "text-amber-700",
-      border: "hover:border-amber-300",
+      icon:
+        "bg-amber-50 text-amber-600",
+      value:
+        "text-amber-700",
+      border:
+        "hover:border-amber-300",
     },
   }[accent];
 
@@ -436,45 +549,81 @@ function SummaryCard({
       type="button"
       onClick={onClick}
       className={[
-        "group flex min-h-[84px] w-full cursor-pointer items-center gap-4 rounded-2xl border border-zinc-200 bg-white px-5 py-4 text-left shadow-sm",
-        "transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md",
-        "active:translate-y-0 active:scale-[0.99]",
+        "group flex min-w-0 cursor-pointer flex-col items-center justify-center rounded-xl border border-zinc-200 bg-white px-1.5 py-3 text-center shadow-sm",
+        "transition-all duration-200 active:scale-[0.98]",
+        "sm:min-h-[84px] sm:flex-row sm:justify-start sm:gap-4 sm:rounded-2xl sm:px-5 sm:py-4 sm:text-left",
+        "sm:hover:-translate-y-0.5 sm:hover:shadow-md",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2",
         style.border,
       ].join(" ")}
     >
       <span
         className={[
-          "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-xl font-black",
+          "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-sm font-black sm:h-12 sm:w-12 sm:rounded-2xl sm:text-xl",
           style.icon,
         ].join(" ")}
       >
         {icon}
       </span>
 
-      <div>
-        <p className="text-xs font-bold text-zinc-500">
+      <div className="mt-1 min-w-0 sm:mt-0">
+        <p className="text-[10px] font-bold text-zinc-500 sm:hidden">
+          {mobileLabel}
+        </p>
+
+        <p className="hidden text-xs font-bold text-zinc-500 sm:block">
           {label}
         </p>
 
         <p
           className={[
-            "mt-1 text-2xl font-black",
+            "mt-0.5 text-xl font-black sm:mt-1 sm:text-2xl",
             style.value,
           ].join(" ")}
         >
           {value}
 
-          <span className="ml-1 text-sm font-bold text-zinc-500">
+          <span className="ml-1 hidden text-sm font-bold text-zinc-500 sm:inline">
             개 단지
           </span>
         </p>
       </div>
 
-      <span className="ml-auto text-zinc-300 transition-transform duration-200 group-hover:translate-x-1">
+      <span className="ml-auto hidden text-zinc-300 transition-transform duration-200 group-hover:translate-x-1 sm:block">
         →
       </span>
     </button>
+  );
+}
+
+function MobileDashboardPanel({
+  title,
+  href,
+  children,
+}: {
+  title: string;
+  href: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="overflow-hidden rounded-2xl border border-zinc-200 bg-white py-3 shadow-sm">
+      <div className="flex items-center justify-between gap-3 px-3">
+        <h2 className="text-base font-black text-[#111827]">
+          {title}
+        </h2>
+
+        <Link
+          href={href}
+          className="text-xs font-bold text-emerald-700"
+        >
+          전체보기 →
+        </Link>
+      </div>
+
+      <div className="mt-3">
+        {children}
+      </div>
+    </section>
   );
 }
 
@@ -507,13 +656,329 @@ function DashboardPanel({
   );
 }
 
+function MobileApartmentCarousel({
+  apartments,
+  type,
+  onOpen,
+}: {
+  apartments: Apartment[];
+  type:
+    | "subscription"
+    | "sale";
+  onOpen: (slug: string) => void;
+}) {
+  const scrollRef =
+    useRef<HTMLDivElement | null>(
+      null
+    );
+
+  const pointerStartX =
+    useRef(0);
+
+  const initialScrollLeft =
+    useRef(0);
+
+  const isPointerDragging =
+    useRef(false);
+
+  const movedDistance =
+    useRef(0);
+
+  const [dragging, setDragging] =
+    useState(false);
+
+  const move = (
+    direction: "prev" | "next"
+  ) => {
+    const container =
+      scrollRef.current;
+
+    if (!container) {
+      return;
+    }
+
+    const card =
+      container.querySelector<HTMLElement>(
+        "[data-home-card]"
+      );
+
+    const amount =
+      (card?.offsetWidth ??
+        container.clientWidth * 0.78) +
+      12;
+
+    container.scrollBy({
+      left:
+        direction === "next"
+          ? amount
+          : -amount,
+
+      behavior: "smooth",
+    });
+  };
+
+  const onPointerDown = (
+    event: PointerEvent<HTMLDivElement>
+  ) => {
+    if (
+      event.pointerType !== "mouse" ||
+      event.button !== 0
+    ) {
+      return;
+    }
+
+    const container =
+      scrollRef.current;
+
+    if (!container) {
+      return;
+    }
+
+    isPointerDragging.current =
+      true;
+
+    movedDistance.current = 0;
+
+    pointerStartX.current =
+      event.clientX;
+
+    initialScrollLeft.current =
+      container.scrollLeft;
+
+    setDragging(true);
+
+    container.setPointerCapture(
+      event.pointerId
+    );
+  };
+
+  const onPointerMove = (
+    event: PointerEvent<HTMLDivElement>
+  ) => {
+    if (
+      !isPointerDragging.current ||
+      event.pointerType !== "mouse"
+    ) {
+      return;
+    }
+
+    const container =
+      scrollRef.current;
+
+    if (!container) {
+      return;
+    }
+
+    const distance =
+      event.clientX -
+      pointerStartX.current;
+
+    movedDistance.current =
+      Math.max(
+        movedDistance.current,
+        Math.abs(distance)
+      );
+
+    container.scrollLeft =
+      initialScrollLeft.current -
+      distance;
+  };
+
+  const finishPointer = (
+    event: PointerEvent<HTMLDivElement>
+  ) => {
+    if (
+      event.pointerType !== "mouse"
+    ) {
+      return;
+    }
+
+    isPointerDragging.current =
+      false;
+
+    setDragging(false);
+
+    const container =
+      scrollRef.current;
+
+    if (
+      container?.hasPointerCapture(
+        event.pointerId
+      )
+    ) {
+      container.releasePointerCapture(
+        event.pointerId
+      );
+    }
+  };
+
+  return (
+    <div className="relative">
+      {apartments.length > 1 && (
+        <>
+          <button
+            type="button"
+            onClick={() =>
+              move("prev")
+            }
+            aria-label="이전 단지 보기"
+            className="absolute left-1 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/80 bg-white/95 text-xl font-black text-zinc-700 shadow-lg"
+          >
+            ‹
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              move("next")
+            }
+            aria-label="다음 단지 보기"
+            className="absolute right-1 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/80 bg-white/95 text-xl font-black text-zinc-700 shadow-lg"
+          >
+            ›
+          </button>
+        </>
+      )}
+
+      <div
+        ref={scrollRef}
+        onPointerDown={
+          onPointerDown
+        }
+        onPointerMove={
+          onPointerMove
+        }
+        onPointerUp={
+          finishPointer
+        }
+        onPointerCancel={
+          finishPointer
+        }
+        className={[
+          "overflow-x-auto px-8 pb-2",
+          "snap-x snap-mandatory scroll-smooth",
+          "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+          dragging
+            ? "cursor-grabbing scroll-auto"
+            : "cursor-grab",
+        ].join(" ")}
+      >
+        <div className="flex w-max gap-3">
+          {apartments.map(
+            (apartment) => {
+              const image =
+                getHeroImage(
+                  apartment
+                );
+
+              return (
+                <button
+                  data-home-card
+                  key={apartment.slug}
+                  type="button"
+                  onClick={() => {
+                    if (
+                      movedDistance.current >
+                      6
+                    ) {
+                      movedDistance.current =
+                        0;
+
+                      return;
+                    }
+
+                    onOpen(
+                      apartment.slug
+                    );
+                  }}
+                  className="
+                    group w-[72vw]
+                    max-w-[280px]
+                    shrink-0 snap-center
+                    overflow-hidden rounded-2xl
+                    border border-zinc-200
+                    bg-white text-left
+                    shadow-sm transition
+                    active:scale-[0.99]
+                  "
+                >
+                  <div className="relative h-28 overflow-hidden bg-zinc-100">
+                    {image ? (
+                      <img
+                        src={image}
+                        alt={
+                          apartment.name
+                        }
+                        loading="lazy"
+                        draggable={false}
+                        className="pointer-events-none h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-xs text-zinc-400">
+                        이미지 준비 중
+                      </div>
+                    )}
+
+                    <span
+                      className={[
+                        "absolute left-2 top-2 rounded-full px-2 py-1 text-[10px] font-bold shadow-sm",
+                        type ===
+                        "subscription"
+                          ? "bg-blue-600 text-white"
+                          : "bg-emerald-600 text-white",
+                      ].join(" ")}
+                    >
+                      {type ===
+                      "subscription"
+                        ? apartment.status ||
+                          "청약"
+                        : "선착순"}
+                    </span>
+                  </div>
+
+                  <div className="p-3">
+                    <p className="text-[10px] font-bold text-emerald-600">
+                      {apartment.cityName ||
+                        apartment.city}
+                    </p>
+
+                    <h3 className="mt-1 line-clamp-2 min-h-10 break-keep text-sm font-black leading-5">
+                      {apartment.name}
+                    </h3>
+
+                    <p className="mt-2 truncate text-xs font-bold text-emerald-700">
+                      {apartment
+                        .priceDetail
+                        ?.salePrice ||
+                        apartment.price ||
+                        apartment.condition ||
+                        "상세정보 확인"}
+                    </p>
+                  </div>
+                </button>
+              );
+            }
+          )}
+        </div>
+      </div>
+
+      <p className="px-4 text-center text-[10px] text-zinc-400">
+        버튼을 누르거나 좌우로
+        밀어서 확인하세요.
+      </p>
+    </div>
+  );
+}
+
 function CompactApartmentCard({
   apartment,
   type,
   onClick,
 }: {
   apartment: Apartment;
-  type: "subscription" | "sale";
+  type:
+    | "subscription"
+    | "sale";
   onClick: () => void;
 }) {
   const image =
@@ -543,6 +1008,7 @@ function CompactApartmentCard({
           <img
             src={image}
             alt={apartment.name}
+            loading="lazy"
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
@@ -554,15 +1020,17 @@ function CompactApartmentCard({
         <span
           className={[
             "absolute left-2 top-2 rounded-full px-2 py-1 text-[10px] font-bold shadow-sm",
-            type === "subscription"
+            type ===
+            "subscription"
               ? "bg-blue-600 text-white"
               : "bg-emerald-600 text-white",
           ].join(" ")}
         >
-          {apartment.status ||
-            (type === "subscription"
-              ? "청약"
-              : "선착순")}
+          {type ===
+          "subscription"
+            ? apartment.status ||
+              "청약"
+            : "선착순"}
         </span>
       </div>
 
@@ -577,7 +1045,9 @@ function CompactApartmentCard({
         </p>
 
         <p className="mt-2 truncate text-xs font-bold text-emerald-700">
-          {apartment.price ||
+          {apartment.priceDetail
+            ?.salePrice ||
+            apartment.price ||
             apartment.condition ||
             "상세정보 확인"}
         </p>
@@ -589,9 +1059,11 @@ function CompactApartmentCard({
 function RecentApartmentRow({
   apartment,
   onClick,
+  compact = false,
 }: {
   apartment: Apartment;
   onClick: () => void;
+  compact?: boolean;
 }) {
   const image =
     getHeroImage(apartment);
@@ -600,26 +1072,27 @@ function RecentApartmentRow({
     <button
       type="button"
       onClick={onClick}
-      className="
-        group flex w-full
-        cursor-pointer items-center
-        gap-3 rounded-2xl
-        border border-transparent
-        p-2 text-left
-        transition-all duration-200
-        hover:border-emerald-200
-        hover:bg-emerald-50/50
-        focus-visible:outline-none
-        focus-visible:ring-2
-        focus-visible:ring-emerald-500
-        focus-visible:ring-offset-2
-      "
+      className={[
+        "group flex w-full cursor-pointer items-center text-left transition-all duration-200",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500",
+        compact
+          ? "gap-2 rounded-xl px-3 py-2"
+          : "gap-3 rounded-2xl border border-transparent p-2 hover:border-emerald-200 hover:bg-emerald-50/50 focus-visible:ring-offset-2",
+      ].join(" ")}
     >
-      <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-zinc-100">
+      <div
+        className={[
+          "shrink-0 overflow-hidden bg-zinc-100",
+          compact
+            ? "h-14 w-14 rounded-xl"
+            : "h-16 w-16 rounded-xl",
+        ].join(" ")}
+      >
         {image ? (
           <img
             src={image}
             alt={apartment.name}
+            loading="lazy"
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
@@ -629,33 +1102,50 @@ function RecentApartmentRow({
         )}
       </div>
 
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-extrabold text-[#111827] transition-colors group-hover:text-emerald-700">
           {apartment.name}
         </p>
 
-        <p className="mt-1 truncate text-xs text-zinc-500">
+        <p className="mt-0.5 truncate text-[11px] text-zinc-500 sm:mt-1 sm:text-xs">
           {apartment.cityName ||
             apartment.region}
         </p>
 
-        <p className="mt-1 truncate text-xs font-bold text-zinc-700">
-          {apartment.price ||
+        <p className="mt-0.5 truncate text-[11px] font-bold text-zinc-700 sm:mt-1 sm:text-xs">
+          {apartment.priceDetail
+            ?.salePrice ||
+            apartment.price ||
             apartment.condition ||
             "정보 확인"}
         </p>
       </div>
+
+      {compact && (
+        <span className="shrink-0 text-xs font-bold text-emerald-700">
+          →
+        </span>
+      )}
     </button>
   );
 }
 
 function EmptyMessage({
   text,
+  compact = false,
 }: {
   text: string;
+  compact?: boolean;
 }) {
   return (
-    <div className="flex min-h-[180px] items-center justify-center rounded-2xl bg-zinc-50 px-4 text-center text-sm text-zinc-500">
+    <div
+      className={[
+        "flex items-center justify-center bg-zinc-50 px-4 text-center text-zinc-500",
+        compact
+          ? "mx-3 min-h-[100px] rounded-xl text-xs"
+          : "min-h-[180px] rounded-2xl text-sm",
+      ].join(" ")}
+    >
       {text}
     </div>
   );

@@ -4,9 +4,18 @@ import {
   createContext,
   useContext,
   useState,
+  type ReactNode,
 } from "react";
 
-import type { EvaluationInput } from "../../data/scoring";
+import type {
+  EvaluationInput,
+} from "../../data/scoring";
+
+import type {
+  ApartmentPriceInfo,
+  ListingStage,
+  UnitPrice,
+} from "../../types/apartment";
 
 type Score = {
   total: number;
@@ -33,7 +42,17 @@ export type BasicInfo = {
   saleHouseholds: string;
 
   moveInDate: string;
+
+  /*
+   * 검색카드나 가격 데이터가 없는 단지에서
+   * 대표 문구로 사용하는 가격입니다.
+   */
   salePrice: string;
+
+  /*
+   * 숫자형 평균 평당가는 priceInfo에 저장하고,
+   * 이 값은 기존 문자열 데이터 호환용입니다.
+   */
   pricePerPyeong: string;
 
   parking: string;
@@ -52,7 +71,7 @@ export type LocationInfo = {
   cautions: string;
 };
 
-type ApartmentImages = {
+export type ApartmentImages = {
   hero: string[];
   location: string[];
 
@@ -67,6 +86,7 @@ type ApartmentImages = {
 
 type InitialApartment = {
   slug?: string;
+
   name?: string;
   brand?: string;
   builder?: string;
@@ -77,10 +97,31 @@ type InitialApartment = {
   latitude?: number | null;
   longitude?: number | null;
 
+  status?: string;
+  condition?: string;
+  listingStage?: ListingStage;
+
+  source?:
+    | "manual"
+    | "applyhome";
+
+  isAutoCreated?: boolean;
+
   price?: string;
 
+  /*
+   * 청약홈 또는 관리자가 입력한
+   * 구조화된 평형별 분양가입니다.
+   */
+  priceInfo?: ApartmentPriceInfo;
+
   priceDetail?: {
+    salePrice?: string;
     pricePerPyeong?: string;
+    contractPrice?: string;
+    middlePayment?: string;
+    balance?: string;
+    options?: string[];
   };
 
   projectInfo?: {
@@ -114,8 +155,23 @@ type InitialApartment = {
 type AdminContextType = {
   editingSlug?: string;
 
+  listingStage: ListingStage;
+  setListingStage: (
+    listingStage: ListingStage
+  ) => void;
+
   basicInfo: BasicInfo;
-  setBasicInfo: (basicInfo: BasicInfo) => void;
+  setBasicInfo: (
+    basicInfo: BasicInfo
+  ) => void;
+
+  /*
+   * 평형별 가격 상태
+   */
+  priceInfo: ApartmentPriceInfo;
+  setPriceInfo: (
+    priceInfo: ApartmentPriceInfo
+  ) => void;
 
   locationInfo: LocationInfo;
   setLocationInfo: (
@@ -127,10 +183,17 @@ type AdminContextType = {
     images: ApartmentImages
   ) => void;
 
+  /*
+   * 현재는 계약조건 입력값이 EvaluationInput에
+   * 포함되어 있으므로 그대로 유지합니다.
+   * 점수 구조는 이후 계약조건 타입 분리 때 제거합니다.
+   */
   evaluation: EvaluationInput;
+
   updateEvaluation: (
     evaluation: EvaluationInput
   ) => void;
+
   setEvaluation: (
     evaluation: EvaluationInput
   ) => void;
@@ -138,8 +201,13 @@ type AdminContextType = {
   savedScore?: Score;
 
   isDirty: boolean;
-  setIsDirty: (value: boolean) => void;
+  setIsDirty: (
+    value: boolean
+  ) => void;
 };
+
+const defaultListingStage: ListingStage =
+  "subscription";
 
 const defaultBasicInfo: BasicInfo = {
   name: "",
@@ -156,6 +224,7 @@ const defaultBasicInfo: BasicInfo = {
   saleHouseholds: "",
 
   moveInDate: "",
+
   salePrice: "",
   pricePerPyeong: "",
 
@@ -163,6 +232,17 @@ const defaultBasicInfo: BasicInfo = {
   scale: "",
   usage: "아파트",
   developer: "",
+};
+
+const defaultPriceInfo: ApartmentPriceInfo = {
+  minimumPrice: null,
+  maximumPrice: null,
+  averagePricePerPyeong: null,
+
+  units: [],
+
+  updatedAt: null,
+  note: null,
 };
 
 const defaultLocationInfo: LocationInfo = {
@@ -187,17 +267,36 @@ const defaultEvaluation: EvaluationInput = {
   priceLevel: "normal",
 
   contractType: "ratio-10",
-  middlePaymentType: "interest-deferred",
-  optionBenefitType: "paid",
-  cashBenefitType: "none",
-  balanceSupport: "no",
 
-  schoolLevel: "unknown",
-  transportLevel: "unknown",
-  infraLevel: "unknown",
-  jobLevel: "unknown",
-  natureLevel: "unknown",
-  roadLevel: "unknown",
+  middlePaymentType:
+    "interest-deferred",
+
+  optionBenefitType:
+    "paid",
+
+  cashBenefitType:
+    "none",
+
+  balanceSupport:
+    "no",
+
+  schoolLevel:
+    "unknown",
+
+  transportLevel:
+    "unknown",
+
+  infraLevel:
+    "unknown",
+
+  jobLevel:
+    "unknown",
+
+  natureLevel:
+    "unknown",
+
+  roadLevel:
+    "unknown",
 
   brandGrade: 2,
   communityGrade: 2,
@@ -210,39 +309,130 @@ const defaultEvaluation: EvaluationInput = {
   developmentGrade: 1,
   scarcityGrade: 1,
 
-  riskLevel: "normal",
+  riskLevel:
+    "normal",
 };
 
 const AdminContext =
-  createContext<AdminContextType | null>(null);
+  createContext<
+    AdminContextType | null
+  >(null);
 
 function toArray(
   value?: string | string[]
 ) {
-  if (!value) return [];
+  if (!value) {
+    return [];
+  }
 
   return Array.isArray(value)
-    ? value
+    ? [...value]
     : [value];
+}
+
+function cloneUnits(
+  units?: UnitPrice[]
+): UnitPrice[] {
+  return (
+    units?.map((unit) => ({
+      ...unit,
+
+      types:
+        unit.types?.map(
+          (type) => ({
+            ...type,
+          })
+        ) ?? [],
+    })) ?? []
+  );
+}
+
+/*
+ * 기존 데이터에는 listingStage가 없을 수 있으므로
+ * 상태와 계약조건을 이용해 초기값을 추론합니다.
+ */
+function createInitialListingStage(
+  apartment?: InitialApartment
+): ListingStage {
+  if (!apartment) {
+    return defaultListingStage;
+  }
+
+  if (apartment.listingStage) {
+    return apartment.listingStage;
+  }
+
+  const status =
+    apartment.status
+      ?.trim()
+      .toLowerCase() ?? "";
+
+  const condition =
+    apartment.condition
+      ?.trim()
+      .toLowerCase() ?? "";
+
+  const isFirstCome =
+    status.includes("선착순") ||
+    condition.includes("동호지정") ||
+    condition.includes("잔여세대") ||
+    condition.includes("회사보유분");
+
+  if (isFirstCome) {
+    return "firstCome";
+  }
+
+  const isCompleted =
+    status.includes("분양완료") ||
+    status.includes("공급완료") ||
+    status.includes("노출종료") ||
+    status.includes("노출 종료");
+
+  if (isCompleted) {
+    return "completed";
+  }
+
+  const isExisting =
+    status.includes("기존 아파트") ||
+    status.includes("입주완료");
+
+  if (isExisting) {
+    return "existing";
+  }
+
+  return "subscription";
 }
 
 function createInitialBasicInfo(
   apartment?: InitialApartment
 ): BasicInfo {
   if (!apartment) {
-    return defaultBasicInfo;
+    return {
+      ...defaultBasicInfo,
+    };
   }
 
   return {
-    name: apartment.name ?? "",
-    brand: apartment.brand ?? "",
-    builder: apartment.builder ?? "",
+    name:
+      apartment.name ?? "",
 
-    cityName: apartment.cityName ?? "",
-    region: apartment.region ?? "",
+    brand:
+      apartment.brand ?? "",
 
-    latitude: apartment.latitude ?? null,
-    longitude: apartment.longitude ?? null,
+    builder:
+      apartment.builder ?? "",
+
+    cityName:
+      apartment.cityName ?? "",
+
+    region:
+      apartment.region ?? "",
+
+    latitude:
+      apartment.latitude ?? null,
+
+    longitude:
+      apartment.longitude ?? null,
 
     totalHouseholds:
       apartment.projectInfo
@@ -257,7 +447,10 @@ function createInitialBasicInfo(
         ?.moveInDate ?? "",
 
     salePrice:
-      apartment.price ?? "",
+      apartment.priceDetail
+        ?.salePrice ||
+      apartment.price ||
+      "",
 
     pricePerPyeong:
       apartment.priceDetail
@@ -281,41 +474,80 @@ function createInitialBasicInfo(
   };
 }
 
+function createInitialPriceInfo(
+  apartment?: InitialApartment
+): ApartmentPriceInfo {
+  const existing =
+    apartment?.priceInfo;
+
+  if (!existing) {
+    return {
+      ...defaultPriceInfo,
+      units: [],
+    };
+  }
+
+  return {
+    minimumPrice:
+      existing.minimumPrice ?? null,
+
+    maximumPrice:
+      existing.maximumPrice ?? null,
+
+    averagePricePerPyeong:
+      existing.averagePricePerPyeong ??
+      null,
+
+    units:
+      cloneUnits(
+        existing.units
+      ),
+
+    updatedAt:
+      existing.updatedAt ?? null,
+
+    note:
+      existing.note ?? null,
+  };
+}
+
 function createInitialLocationInfo(
   apartment?: InitialApartment
 ): LocationInfo {
   if (!apartment?.locationInfo) {
-    return defaultLocationInfo;
+    return {
+      ...defaultLocationInfo,
+    };
   }
 
   return {
     transport:
-      apartment.locationInfo.transport ??
-      "",
+      apartment.locationInfo
+        .transport ?? "",
 
     education:
-      apartment.locationInfo.education ??
-      "",
+      apartment.locationInfo
+        .education ?? "",
 
     living:
-      apartment.locationInfo.living ??
-      "",
+      apartment.locationInfo
+        .living ?? "",
 
     jobAccess:
-      apartment.locationInfo.jobAccess ??
-      "",
+      apartment.locationInfo
+        .jobAccess ?? "",
 
     nature:
-      apartment.locationInfo.nature ??
-      "",
+      apartment.locationInfo
+        .nature ?? "",
 
     futureValue:
-      apartment.locationInfo.futureValue ??
-      "",
+      apartment.locationInfo
+        .futureValue ?? "",
 
     cautions:
-      apartment.locationInfo.cautions ??
-      "",
+      apartment.locationInfo
+        .cautions ?? "",
   };
 }
 
@@ -323,18 +555,30 @@ function createInitialImages(
   apartment?: InitialApartment
 ): ApartmentImages {
   if (!apartment?.images) {
-    return defaultImages;
+    return {
+      ...defaultImages,
+
+      floorPlans: [],
+    };
   }
 
   return {
     hero:
-      toArray(apartment.images.hero),
+      toArray(
+        apartment.images.hero
+      ),
 
     location:
-      toArray(apartment.images.location),
+      toArray(
+        apartment.images.location
+      ),
 
     floorPlans:
-      apartment.images.floorPlans ?? [],
+      apartment.images.floorPlans?.map(
+        (item) => ({
+          ...item,
+        })
+      ) ?? [],
 
     community:
       toArray(
@@ -342,7 +586,9 @@ function createInitialImages(
       ),
 
     gallery:
-      toArray(apartment.images.gallery),
+      toArray(
+        apartment.images.gallery
+      ),
   };
 }
 
@@ -350,15 +596,35 @@ export function AdminProvider({
   children,
   initialApartment,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   initialApartment?: InitialApartment;
 }) {
-  const [basicInfo, setBasicInfoState] =
-    useState<BasicInfo>(
-      createInitialBasicInfo(
-        initialApartment
-      )
-    );
+  const [
+    listingStage,
+    setListingStageState,
+  ] = useState<ListingStage>(
+    createInitialListingStage(
+      initialApartment
+    )
+  );
+
+  const [
+    basicInfo,
+    setBasicInfoState,
+  ] = useState<BasicInfo>(
+    createInitialBasicInfo(
+      initialApartment
+    )
+  );
+
+  const [
+    priceInfo,
+    setPriceInfoState,
+  ] = useState<ApartmentPriceInfo>(
+    createInitialPriceInfo(
+      initialApartment
+    )
+  );
 
   const [
     locationInfo,
@@ -369,12 +635,14 @@ export function AdminProvider({
     )
   );
 
-  const [images, setImagesState] =
-    useState<ApartmentImages>(
-      createInitialImages(
-        initialApartment
-      )
-    );
+  const [
+    images,
+    setImagesState,
+  ] = useState<ApartmentImages>(
+    createInitialImages(
+      initialApartment
+    )
+  );
 
   const [
     evaluation,
@@ -383,13 +651,43 @@ export function AdminProvider({
     defaultEvaluation
   );
 
-  const [isDirty, setIsDirty] =
-    useState(false);
+  const [
+    isDirty,
+    setIsDirty,
+  ] = useState(false);
+
+  const setListingStage = (
+    nextListingStage: ListingStage
+  ) => {
+    setListingStageState(
+      nextListingStage
+    );
+
+    setIsDirty(true);
+  };
 
   const setBasicInfo = (
     nextBasicInfo: BasicInfo
   ) => {
-    setBasicInfoState(nextBasicInfo);
+    setBasicInfoState(
+      nextBasicInfo
+    );
+
+    setIsDirty(true);
+  };
+
+  const setPriceInfo = (
+    nextPriceInfo: ApartmentPriceInfo
+  ) => {
+    setPriceInfoState({
+      ...nextPriceInfo,
+
+      units:
+        cloneUnits(
+          nextPriceInfo.units
+        ),
+    });
+
     setIsDirty(true);
   };
 
@@ -406,7 +704,10 @@ export function AdminProvider({
   const setImages = (
     nextImages: ApartmentImages
   ) => {
-    setImagesState(nextImages);
+    setImagesState(
+      nextImages
+    );
+
     setIsDirty(true);
   };
 
@@ -426,8 +727,14 @@ export function AdminProvider({
         editingSlug:
           initialApartment?.slug,
 
+        listingStage,
+        setListingStage,
+
         basicInfo,
         setBasicInfo,
+
+        priceInfo,
+        setPriceInfo,
 
         locationInfo,
         setLocationInfo,
@@ -436,7 +743,9 @@ export function AdminProvider({
         setImages,
 
         evaluation,
+
         updateEvaluation,
+
         setEvaluation:
           updateEvaluation,
 
@@ -454,7 +763,9 @@ export function AdminProvider({
 
 export function useAdmin() {
   const context =
-    useContext(AdminContext);
+    useContext(
+      AdminContext
+    );
 
   if (!context) {
     throw new Error(
