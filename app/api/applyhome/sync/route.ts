@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { syncApplyHomeApartments } from "../../../../lib/applyHomeSync";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 function isAuthorized(request: NextRequest) {
   const expectedSecret = process.env.APPLYHOME_SYNC_SECRET?.trim();
