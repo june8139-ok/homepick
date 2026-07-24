@@ -9,8 +9,6 @@ import {
   useState,
 } from "react";
 
-import { supabase } from "../../lib/supabase";
-
 type LeadType =
   | "consult"
   | "schedule"
@@ -516,39 +514,6 @@ export default function SubscriptionAlertForm({
     );
   }
 
-  async function checkDuplicate(
-    phone: string
-  ) {
-    const {
-      data,
-      error,
-    } = await supabase
-      .from(
-        "subscription_alerts"
-      )
-      .select("id")
-      .eq(
-        "apartment_slug",
-        apartmentSlug
-      )
-      .eq("phone", phone)
-      .limit(1);
-
-    if (error) {
-      console.warn(
-        "중복 신청 확인 실패:",
-        error.message
-      );
-
-      return false;
-    }
-
-    return Boolean(
-      data &&
-        data.length > 0
-    );
-  }
-
   async function handleSubmit(
     event: FormEvent<HTMLFormElement>
   ) {
@@ -593,78 +558,93 @@ export default function SubscriptionAlertForm({
         return;
       }
 
-      const duplicate =
-        await checkDuplicate(
-          phone
-        );
+      const response =
+        await fetch(
+          "/api/subscription-alerts",
+          {
+            method: "POST",
 
-      if (duplicate) {
-        setIsDuplicate(true);
-        setIsCompleted(true);
-        return;
-      }
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
 
-      const { error } =
-        await supabase
-          .from(
-            "subscription_alerts"
-          )
-          .insert({
-            apartment_slug:
+            body: JSON.stringify({
               apartmentSlug,
-
-            apartment_name:
               apartmentName,
 
-            name:
-              form.name.trim(),
+              name:
+                form.name.trim(),
 
-            phone,
-
-            birth_date:
+              phone,
               birthDate,
 
-            province:
-              form.residence.trim(),
+              residence:
+                form.residence.trim(),
 
-            city: null,
-            district: null,
+              homeless:
+                form.homeless === ""
+                  ? null
+                  : form.homeless ===
+                      "yes",
 
-            homeless:
-              form.homeless === ""
-                ? null
-                : form.homeless ===
-                    "yes",
+              subscriptionAccount:
+                form.subscriptionAccount ===
+                ""
+                  ? null
+                  : form.subscriptionAccount ===
+                      "yes",
 
-            subscription_account:
-              form.subscriptionAccount ===
-              ""
-                ? null
-                : form.subscriptionAccount ===
-                    "yes",
+              specialSupply:
+                form.specialSupply ===
+                "선택하지 않음"
+                  ? null
+                  : form.specialSupply,
 
-            special_supply:
-              form.specialSupply ===
-              "선택하지 않음"
-                ? null
-                : form.specialSupply,
+              leadType:
+                isConsult
+                  ? "consult"
+                  : "schedule",
 
-            memo: null,
-            agree: true,
+              agree: true,
+            }),
+          }
+        );
 
-            lead_type:
-              isConsult
-                ? "consult"
-                : "schedule",
+      const responseText =
+        await response.text();
 
-            status: "new",
-          });
+      let result: {
+        success?: boolean;
+        duplicate?: boolean;
+        message?: string;
+      } = {};
 
-      if (error) {
-        throw error;
+      if (responseText) {
+        try {
+          result =
+            JSON.parse(
+              responseText
+            ) as typeof result;
+        } catch {
+          throw new Error(
+            "서버 응답 형식이 올바르지 않습니다."
+          );
+        }
       }
 
-      setIsDuplicate(false);
+      if (!response.ok) {
+        throw new Error(
+          result.message ||
+            "신청 정보를 저장하지 못했습니다."
+        );
+      }
+
+      setIsDuplicate(
+        Boolean(
+          result.duplicate
+        )
+      );
       setIsCompleted(true);
       setForm(INITIAL_FORM);
       setErrors({});
