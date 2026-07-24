@@ -32,6 +32,7 @@ import {
       | "schedule";
   
     agree?: boolean;
+    thirdPartyAgreed?: boolean;
   };
   
   function normalizeText(
@@ -258,6 +259,22 @@ import {
         );
       }
   
+      if (
+        body.thirdPartyAgreed !==
+        true
+      ) {
+        return NextResponse.json(
+          {
+            success: false,
+            message:
+              "개인정보 제3자 제공 동의가 필요합니다.",
+          },
+          {
+            status: 400,
+          }
+        );
+      }
+  
       const {
         data:
           existingAlert,
@@ -310,6 +327,9 @@ import {
         });
       }
   
+      const now =
+        new Date().toISOString();
+  
       const {
         data:
           createdAlert,
@@ -356,6 +376,12 @@ import {
   
             memo: null,
             agree: true,
+  
+            third_party_agreed:
+              true,
+  
+            third_party_agreed_at:
+              now,
   
             lead_type:
               leadType,
@@ -408,6 +434,7 @@ import {
             specialSupply ||
             "미선택"
           }`,
+          "제3자 제공 동의: 동의",
         ].join("\n");
   
         const mailResult =

@@ -191,24 +191,99 @@ import type {
       content: (
         <>
           <p>
-            홈픽은 원칙적으로 이용자의
-            개인정보를 제3자에게
-            제공하지 않습니다.
+            홈픽은 이용자가 방문예약,
+            청약 일정 알림 또는 분양
+            상담을 신청하면서 개인정보
+            제3자 제공에 동의한 경우,
+            신청한 해당 단지의 상담
+            업무를 위해 필요한 최소한의
+            개인정보를 제공할 수
+            있습니다.
           </p>
   
+          <div className="overflow-x-auto">
+            <table className="mt-4 w-full min-w-[640px] border-collapse text-left text-sm">
+              <thead>
+                <tr className="bg-zinc-100 text-zinc-700">
+                  <th className="border border-zinc-200 px-4 py-3">
+                    구분
+                  </th>
+  
+                  <th className="border border-zinc-200 px-4 py-3">
+                    내용
+                  </th>
+                </tr>
+              </thead>
+  
+              <tbody>
+                <tr>
+                  <td className="border border-zinc-200 px-4 py-3 font-semibold">
+                    제공받는 자
+                  </td>
+  
+                  <td className="border border-zinc-200 px-4 py-3">
+                    이용자가 신청한 해당
+                    단지의 시행사,
+                    분양대행사,
+                    모델하우스 또는 지정
+                    상담 담당자
+                  </td>
+                </tr>
+  
+                <tr>
+                  <td className="border border-zinc-200 px-4 py-3 font-semibold">
+                    제공 목적
+                  </td>
+  
+                  <td className="border border-zinc-200 px-4 py-3">
+                    청약 일정 및 자격
+                    안내, 모델하우스
+                    방문예약 확인, 분양
+                    상담, 잔여세대·분양가·
+                    계약조건 안내
+                  </td>
+                </tr>
+  
+                <tr>
+                  <td className="border border-zinc-200 px-4 py-3 font-semibold">
+                    제공 항목
+                  </td>
+  
+                  <td className="border border-zinc-200 px-4 py-3">
+                    이름, 휴대전화번호,
+                    생년월일, 거주지역,
+                    관심 평형, 희망
+                    방문일, 문의내용,
+                    무주택 여부,
+                    청약통장 여부,
+                    특별공급 유형
+                  </td>
+                </tr>
+  
+                <tr>
+                  <td className="border border-zinc-200 px-4 py-3 font-semibold">
+                    보유 및 이용기간
+                  </td>
+  
+                  <td className="border border-zinc-200 px-4 py-3">
+                    상담 또는 안내 목적
+                    달성 후 파기. 다만
+                    관계 법령에 따른
+                    보관 의무가 있는
+                    경우에는 해당 기간
+                    동안 보관
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+  
           <p>
-            다만 이용자가 특정 단지의
-            모델하우스 방문예약 또는
-            분양 상담 연결을 명시적으로
-            요청하고 별도로 동의한
-            경우, 해당 단지의 시행사,
-            분양대행사 또는 상담
-            담당자에게 상담에 필요한
-            최소한의 정보를 제공할 수
-            있습니다. 이 경우 제공받는
-            자, 제공 목적, 제공 항목과
-            보유기간을 동의 화면에서
-            별도로 안내합니다.
+            이용자는 제3자 제공 동의를
+            거부할 수 있으나, 이 경우
+            방문예약, 청약 일정 안내
+            또는 담당자 연결이 제한될
+            수 있습니다.
           </p>
         </>
       ),

@@ -34,6 +34,7 @@ type FormState = {
   subscriptionAccount: YesNoValue;
   specialSupply: string;
   agree: boolean;
+  thirdPartyAgreed: boolean;
 };
 
 type FieldErrors = Partial<
@@ -42,7 +43,8 @@ type FieldErrors = Partial<
     | "phone"
     | "birthDate"
     | "residence"
-    | "agree",
+    | "agree"
+    | "thirdPartyAgreed",
     string
   >
 >;
@@ -57,6 +59,7 @@ const INITIAL_FORM: FormState = {
   specialSupply:
     "선택하지 않음",
   agree: false,
+  thirdPartyAgreed: false,
 };
 
 const SPECIAL_SUPPLY_OPTIONS = [
@@ -506,6 +509,13 @@ export default function SubscriptionAlertForm({
         "개인정보 수집 및 이용 동의가 필요합니다.";
     }
 
+    if (
+      !form.thirdPartyAgreed
+    ) {
+      nextErrors.thirdPartyAgreed =
+        "개인정보 제3자 제공 동의가 필요합니다.";
+    }
+
     setErrors(nextErrors);
 
     return (
@@ -607,6 +617,9 @@ export default function SubscriptionAlertForm({
                   : "schedule",
 
               agree: true,
+
+              thirdPartyAgreed:
+                form.thirdPartyAgreed,
             }),
           }
         );
@@ -1034,46 +1047,137 @@ export default function SubscriptionAlertForm({
             </div>
           </div>
 
-          <div>
-            <label
-              className={[
-                "flex cursor-pointer items-start gap-2 rounded-xl border bg-zinc-50 p-3 transition",
-                "hover:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-500 focus-within:ring-offset-2",
-                "sm:gap-3 sm:rounded-2xl sm:p-4",
-                errors.agree
-                  ? "border-red-300"
-                  : "border-zinc-200",
-              ].join(" ")}
-            >
-              <input
-                type="checkbox"
-                checked={form.agree}
-                onChange={(
-                  event
-                ) =>
-                  updateField(
-                    "agree",
-                    event.target.checked
-                  )
-                }
-                className="mt-0.5 h-4 w-4 shrink-0 accent-emerald-600 sm:mt-1"
-              />
+          <div className="space-y-2">
+            <div>
+              <label
+                className={[
+                  "flex cursor-pointer items-start gap-2 rounded-xl border bg-zinc-50 p-3 transition",
+                  "hover:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-500 focus-within:ring-offset-2",
+                  "sm:gap-3 sm:rounded-2xl sm:p-4",
+                  errors.agree
+                    ? "border-red-300"
+                    : "border-zinc-200",
+                ].join(" ")}
+              >
+                <input
+                  type="checkbox"
+                  checked={form.agree}
+                  onChange={(
+                    event
+                  ) =>
+                    updateField(
+                      "agree",
+                      event.target.checked
+                    )
+                  }
+                  className="mt-0.5 h-4 w-4 shrink-0 accent-emerald-600 sm:mt-1"
+                />
 
-              <span className="text-[11px] leading-5 text-zinc-600 sm:text-sm sm:leading-6">
-                <strong className="font-extrabold text-zinc-900">
-                  개인정보 수집 및 이용에 동의합니다.
-                </strong>
+                <span className="text-[11px] leading-5 text-zinc-600 sm:text-sm sm:leading-6">
+                  <strong className="font-extrabold text-zinc-900">
+                    개인정보 수집 및 이용에 동의합니다. (필수)
+                  </strong>
 
-                <span className="hidden sm:inline">
-                  <br />
-                  청약 일정 또는 상담 안내를 위해 이름, 휴대폰번호, 생년월일과 거주지역 정보를 수집합니다.
+                  <span className="hidden sm:inline">
+                    <br />
+                    청약 일정 또는 상담 안내를 위해 이름, 휴대폰번호, 생년월일과 거주지역 정보를 수집합니다.
+                  </span>
                 </span>
-              </span>
-            </label>
+              </label>
 
-            <FieldError
-              message={errors.agree}
-            />
+              <FieldError
+                message={errors.agree}
+              />
+            </div>
+
+            <div>
+              <label
+                className={[
+                  "flex cursor-pointer items-start gap-2 rounded-xl border bg-zinc-50 p-3 transition",
+                  "hover:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-500 focus-within:ring-offset-2",
+                  "sm:gap-3 sm:rounded-2xl sm:p-4",
+                  errors.thirdPartyAgreed
+                    ? "border-red-300"
+                    : "border-zinc-200",
+                ].join(" ")}
+              >
+                <input
+                  type="checkbox"
+                  checked={
+                    form.thirdPartyAgreed
+                  }
+                  onChange={(
+                    event
+                  ) =>
+                    updateField(
+                      "thirdPartyAgreed",
+                      event.target.checked
+                    )
+                  }
+                  className="mt-0.5 h-4 w-4 shrink-0 accent-emerald-600 sm:mt-1"
+                />
+
+                <span className="min-w-0 text-[11px] leading-5 text-zinc-600 sm:text-sm sm:leading-6">
+                  <strong className="font-extrabold text-zinc-900">
+                    필요 시 해당 분양 현장의 상담 담당자에게 개인정보를 제공하는 데 동의합니다. (필수)
+                  </strong>
+
+                  <details className="mt-2">
+                    <summary className="w-fit cursor-pointer rounded font-bold text-emerald-700 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
+                      자세히 보기
+                    </summary>
+
+                    <div className="mt-2 space-y-2 rounded-xl border border-zinc-200 bg-white p-3 text-[10px] leading-5 text-zinc-500 sm:text-xs sm:leading-6">
+                      <p>
+                        <strong className="text-zinc-700">
+                          제공받는 자
+                        </strong>
+                        <br />
+                        이용자가 신청한 해당 단지의 시행사, 분양대행사, 모델하우스 또는 지정 상담 담당자
+                      </p>
+
+                      <p>
+                        <strong className="text-zinc-700">
+                          제공 목적
+                        </strong>
+                        <br />
+                        청약 일정 및 자격 안내, 분양 상담, 모델하우스 운영 및 방문 안내
+                      </p>
+
+                      <p>
+                        <strong className="text-zinc-700">
+                          제공 항목
+                        </strong>
+                        <br />
+                        이름, 휴대폰번호, 생년월일, 거주지역, 무주택 여부, 청약통장 여부, 특별공급 유형
+                      </p>
+
+                      <p>
+                        <strong className="text-zinc-700">
+                          보유 및 이용기간
+                        </strong>
+                        <br />
+                        상담 또는 안내 목적 달성 후 파기
+                      </p>
+
+                      <p>
+                        <strong className="text-zinc-700">
+                          동의 거부권
+                        </strong>
+                        <br />
+                        동의를 거부할 수 있으나 청약 일정 안내와 담당자 연결이 제한될 수 있습니다.
+                      </p>
+                    </div>
+                  </details>
+                </span>
+              </label>
+
+              <FieldError
+                message={
+                  errors.thirdPartyAgreed
+                }
+              />
+            </div>
           </div>
 
           {submitError && (
