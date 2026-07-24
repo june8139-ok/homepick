@@ -146,7 +146,7 @@ export default function ApplyHomeSyncCard() {
       try {
         const response =
           await fetch(
-            "/api/admin/applyhome/sync",
+            "/api/admin/applyhome-sync",
             {
               method:
                 "POST",
