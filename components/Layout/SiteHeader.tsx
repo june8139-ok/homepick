@@ -43,14 +43,14 @@ function HomePickSymbol({
 }) {
   return (
     <svg
-      viewBox="0 0 64 64"
+      viewBox="0 0 72 64"
       aria-hidden="true"
       className={className}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
       <path
-        d="M13 29.5L31.5 12L50 29.5"
+        d="M8 28.5L31.5 8L54.5 28.5"
         stroke="currentColor"
         strokeWidth="5"
         strokeLinecap="round"
@@ -58,7 +58,7 @@ function HomePickSymbol({
       />
 
       <path
-        d="M16 29V49H37"
+        d="M12 26.5V51H42"
         stroke="currentColor"
         strokeWidth="5"
         strokeLinecap="round"
@@ -66,39 +66,54 @@ function HomePickSymbol({
       />
 
       <path
-        d="M24 28V43"
+        d="M22 27V45"
         stroke="currentColor"
-        strokeWidth="4.5"
+        strokeWidth="5"
         strokeLinecap="round"
       />
 
       <path
-        d="M24 35H35"
+        d="M37 27V45"
         stroke="currentColor"
-        strokeWidth="4.5"
+        strokeWidth="5"
         strokeLinecap="round"
       />
 
       <path
-        d="M35 28V43"
+        d="M22 36H37"
         stroke="currentColor"
-        strokeWidth="4.5"
+        strokeWidth="5"
         strokeLinecap="round"
       />
 
       <circle
-        cx="44"
-        cy="45"
-        r="7"
+        cx="50"
+        cy="46"
+        r="10"
         stroke="currentColor"
-        strokeWidth="4"
+        strokeWidth="4.5"
       />
 
       <path
-        d="M49 50L55 56"
+        d="M57.5 53.5L66 62"
         stroke="currentColor"
-        strokeWidth="4"
+        strokeWidth="4.5"
         strokeLinecap="round"
+      />
+
+      <path
+        d="M47 40.5V51.5"
+        stroke="currentColor"
+        strokeWidth="2.8"
+        strokeLinecap="round"
+      />
+
+      <path
+        d="M47 41H51C53.2 41 54.5 42.2 54.5 44.2C54.5 46.2 53.2 47.4 51 47.4H47"
+        stroke="currentColor"
+        strokeWidth="2.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );
@@ -199,7 +214,7 @@ export default function SiteHeader() {
           "
           aria-label="홈픽 홈페이지로 이동"
         >
-          <HomePickSymbol className="h-9 w-9 text-[#0F766E] transition-transform duration-200 group-hover:-translate-y-0.5 sm:h-10 sm:w-10" />
+          <HomePickSymbol className="h-9 w-10 text-[#0F766E] transition-transform duration-200 group-hover:-translate-y-0.5 sm:h-10 sm:w-11" />
 
           <div className="min-w-0">
             <div className="flex items-baseline gap-1.5">
