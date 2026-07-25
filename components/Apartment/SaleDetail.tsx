@@ -749,10 +749,7 @@ export default function SaleDetail({
           apartment.name
         }
         mode="sale"
-        phoneNumber={
-          apartment
-            .projectInfo?.phone
-        }
+        kakaoUrl="https://pf.kakao.com/_RxfsxnX/chat"
         floorPlanNames={
           floorPlanNames
         }
