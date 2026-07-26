@@ -11,7 +11,7 @@ const SITE_URL =
     /\/$/,
     ""
   ) ||
-  "https://homepick.co.kr";
+  "https://homepick.kr";
 
 function escapeXml(
   value: unknown

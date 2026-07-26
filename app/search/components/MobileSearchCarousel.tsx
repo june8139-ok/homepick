@@ -336,7 +336,7 @@ export default function MobileSearchCarousel({
   }
 
   return (
-    <div className="relative mt-3">
+    <div className="relative mt-3 w-full min-w-0 overflow-hidden">
       {apartments.length >
         1 && (
         <button
@@ -388,16 +388,22 @@ export default function MobileSearchCarousel({
           }
         }}
         className={[
-          "-mx-3 overflow-x-auto px-3 pb-3",
+          "w-full min-w-0 overflow-x-auto overflow-y-hidden pb-2",
           "snap-x snap-mandatory scroll-smooth",
           "touch-pan-y select-none",
-          "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+          "[scrollbar-width:none] [-ms-overflow-style:none]",
+          "[&::-webkit-scrollbar]:hidden",
           isDragging
             ? "cursor-grabbing scroll-auto"
             : "cursor-grab",
         ].join(" ")}
+        style={{
+          scrollbarWidth: "none",
+          msOverflowStyle: "none",
+          WebkitOverflowScrolling: "touch",
+        }}
       >
-        <div className="flex w-max gap-3 px-7">
+        <div className="flex w-max min-w-full gap-3 px-8">
           {apartments.map(
             (apartment) => {
               const image =
@@ -493,7 +499,7 @@ export default function MobileSearchCarousel({
                     }
                   }}
                   className={[
-                    "w-[84vw] max-w-[370px] shrink-0 snap-center",
+                    "w-[82vw] max-w-[360px] shrink-0 snap-center",
                     "overflow-hidden rounded-2xl border bg-white shadow-sm",
                     "transition-all duration-200",
                     "focus-visible:outline-none focus-visible:ring-2",
@@ -672,7 +678,7 @@ export default function MobileSearchCarousel({
         </button>
       )}
 
-      <p className="mt-1 text-center text-[10px] text-zinc-400">
+      <p className="mt-2 pb-1 text-center text-[10px] text-zinc-400">
         버튼을 누르거나 좌우로
         밀어서 단지를 확인하세요.
       </p>

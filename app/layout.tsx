@@ -28,7 +28,7 @@ const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(
     /\/$/,
     ""
-  ) || "https://homepick.co.kr";
+  ) || "https://homepick.kr";
 
 const SITE_NAME = "HomePick";
 const KOREAN_SITE_NAME = "홈픽";

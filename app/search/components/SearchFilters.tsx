@@ -49,19 +49,14 @@ function locationLabel(status: LocationStatus) {
   switch (status) {
     case "loading":
       return "위치 확인 중";
-
     case "granted":
-      return "내 주변 적용됨";
-
+      return "내 주변 적용";
     case "denied":
-      return "위치 권한 재요청";
-
+      return "권한 재요청";
     case "error":
       return "위치 다시 찾기";
-
     case "unsupported":
       return "위치 미지원";
-
     default:
       return "내 주변";
   }
@@ -120,10 +115,11 @@ export default function SearchFilters({
   };
 
   return (
-    <section className="mt-5 rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
-      <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="mr-1 text-xs font-bold text-zinc-500">
+    <section className="mt-4 w-full min-w-0 rounded-2xl border border-zinc-200 bg-zinc-50 p-3 sm:mt-5 sm:p-4">
+      <div className="space-y-3">
+        {/* 모바일에서도 한 줄 유지 */}
+        <div className="flex min-w-0 items-center gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-2">
+          <span className="mr-0.5 shrink-0 text-[11px] font-bold text-zinc-500 sm:mr-1 sm:text-xs">
             단지 구분
           </span>
 
@@ -143,8 +139,8 @@ export default function SearchFilters({
                 }
                 aria-pressed={active}
                 className={[
-                  "cursor-pointer rounded-full border px-4 py-2",
-                  "text-sm font-semibold transition-all",
+                  "h-9 shrink-0 cursor-pointer rounded-full border px-3",
+                  "text-xs font-bold transition-all sm:h-10 sm:px-4 sm:text-sm",
                   "focus:outline-none focus:ring-2",
                   "focus:ring-emerald-500 focus:ring-offset-2",
                   active
@@ -156,7 +152,10 @@ export default function SearchFilters({
               </button>
             );
           })}
+        </div>
 
+        {/* 보조 필터 */}
+        <div className="flex min-w-0 items-center gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-wrap sm:gap-2 sm:overflow-visible">
           <button
             type="button"
             onClick={() =>
@@ -166,8 +165,8 @@ export default function SearchFilters({
             }
             aria-expanded={detailOpen}
             className={[
-              "cursor-pointer rounded-full border px-4 py-2",
-              "text-sm font-semibold transition-all",
+              "inline-flex h-9 shrink-0 cursor-pointer items-center rounded-full border px-3",
+              "text-xs font-bold transition-all sm:h-10 sm:px-4 sm:text-sm",
               "focus:outline-none focus:ring-2",
               "focus:ring-zinc-500 focus:ring-offset-2",
               filters.benefits.length > 0
@@ -193,9 +192,8 @@ export default function SearchFilters({
             }
             onClick={onRequestLocation}
             className={[
-              "inline-flex cursor-pointer items-center gap-1.5",
-              "rounded-full border px-4 py-2",
-              "text-sm font-semibold transition-all",
+              "inline-flex h-9 shrink-0 cursor-pointer items-center gap-1 rounded-full border px-3",
+              "text-xs font-bold transition-all sm:h-10 sm:px-4 sm:text-sm",
               "focus:outline-none focus:ring-2",
               "focus:ring-emerald-500 focus:ring-offset-2",
               "disabled:cursor-not-allowed disabled:opacity-50",
@@ -210,9 +208,7 @@ export default function SearchFilters({
 
             {locationLabel(locationStatus)}
           </button>
-        </div>
 
-        <div className="flex flex-wrap items-center gap-2">
           <select
             value={sort}
             onChange={(event) =>
@@ -220,7 +216,8 @@ export default function SearchFilters({
                 event.target.value as SortOption
               )
             }
-            className="h-10 cursor-pointer rounded-xl border border-zinc-200 bg-white px-3 text-sm font-semibold outline-none transition hover:border-emerald-300 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+            aria-label="정렬 방식"
+            className="h-9 shrink-0 cursor-pointer rounded-full border border-zinc-200 bg-white px-3 text-xs font-bold outline-none transition hover:border-emerald-300 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 sm:h-10 sm:rounded-xl sm:text-sm"
           >
             <option value="default">
               기본순
@@ -242,7 +239,7 @@ export default function SearchFilters({
           <button
             type="button"
             onClick={onClear}
-            className="h-10 cursor-pointer rounded-xl border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-500 transition hover:border-zinc-400 hover:text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-400 focus:ring-offset-2"
+            className="h-9 shrink-0 cursor-pointer rounded-full border border-zinc-200 bg-white px-3 text-xs font-bold text-zinc-500 transition hover:border-zinc-400 hover:text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-400 focus:ring-offset-2 sm:h-10 sm:rounded-xl sm:px-4 sm:text-sm"
           >
             초기화
           </button>
@@ -250,14 +247,14 @@ export default function SearchFilters({
       </div>
 
       {locationMessage && (
-        <p className="mt-3 text-xs font-medium text-zinc-500">
+        <p className="mt-2 text-[11px] font-medium leading-5 text-zinc-500 sm:mt-3 sm:text-xs">
           {locationMessage}
         </p>
       )}
 
       {detailOpen && (
-        <div className="mt-4 border-t border-zinc-200 pt-4">
-          <div className="flex flex-wrap gap-2">
+        <div className="mt-3 border-t border-zinc-200 pt-3 sm:mt-4 sm:pt-4">
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
             {benefitOptions.map((benefit) => {
               const active =
                 filters.benefits.includes(
@@ -273,8 +270,8 @@ export default function SearchFilters({
                   }
                   aria-pressed={active}
                   className={[
-                    "cursor-pointer rounded-full border px-3 py-2",
-                    "text-sm font-medium transition-all",
+                    "cursor-pointer rounded-full border px-2.5 py-1.5",
+                    "text-[11px] font-semibold transition-all sm:px-3 sm:py-2 sm:text-sm",
                     "focus:outline-none focus:ring-2",
                     "focus:ring-zinc-500 focus:ring-offset-2",
                     active

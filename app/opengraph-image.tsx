@@ -201,7 +201,7 @@ export default function OpenGraphImage() {
                 color: "#059669",
               }}
             >
-              homepick.co.kr
+              homepick.kr
             </div>
           </div>
         </div>

@@ -435,10 +435,10 @@ function SearchHero({
     suggestions.length > 0;
 
   return (
-    <section className="relative z-30 overflow-visible rounded-2xl border border-emerald-100 bg-white shadow-[0_12px_35px_rgba(15,118,110,0.08)] sm:rounded-[38px] sm:shadow-[0_18px_55px_rgba(15,118,110,0.08)]">
+    <section className="relative z-30 w-full max-w-full overflow-x-hidden overflow-y-visible rounded-2xl border border-emerald-100 bg-white shadow-[0_12px_35px_rgba(15,118,110,0.08)] sm:rounded-[38px] sm:shadow-[0_18px_55px_rgba(15,118,110,0.08)]">
       <div className="grid lg:min-h-[430px] lg:grid-cols-[0.78fr_1.22fr] xl:min-h-[470px]">
         {/* 왼쪽 검색 영역 */}
-        <div className="relative z-20 flex flex-col justify-center px-4 pb-7 pt-6 sm:px-10 sm:py-10 lg:px-12 xl:px-16">
+        <div className="relative z-20 flex min-w-0 flex-col justify-center px-4 pb-6 pt-5 sm:px-10 sm:py-10 lg:px-12 xl:px-16">
           <div className="inline-flex w-fit items-center rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-[10px] font-extrabold text-[#0F766E] sm:px-4 sm:py-2 sm:text-xs">
             전국 분양 아파트 플랫폼
           </div>
@@ -464,99 +464,52 @@ function SearchHero({
             </span>
           </p>
 
-          <p className="mt-3 line-clamp-2 max-w-lg break-keep text-xs leading-5 text-zinc-500 sm:mt-4 sm:text-base sm:leading-7">
+          <p className="mt-2.5 line-clamp-2 max-w-lg break-keep text-xs leading-5 text-zinc-500 sm:mt-4 sm:text-base sm:leading-7">
             청약과 선착순 분양,
             지역별 단지를 빠르게
             찾아보세요.
           </p>
 
           {/* 검색창 */}
-          <div className="relative mt-4 max-w-2xl sm:mt-7">
-            <div className="flex overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-[0_8px_25px_rgba(17,24,39,0.08)] transition-all focus-within:border-emerald-400 focus-within:ring-4 focus-within:ring-emerald-500/10 sm:rounded-2xl sm:shadow-[0_12px_35px_rgba(17,24,39,0.09)]">
-              <div className="relative min-w-0 flex-1">
-                <svg
-                  aria-hidden="true"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 sm:left-5 sm:h-5 sm:w-5"
-                >
-                  <circle
-                    cx="11"
-                    cy="11"
-                    r="6.5"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                  />
+          <div className="relative mt-4 w-full min-w-0 max-w-2xl sm:mt-7">
+            <div className="relative w-full min-w-0 rounded-2xl border border-emerald-100 bg-gradient-to-r from-white via-white to-emerald-50/60 p-1.5 shadow-[0_10px_30px_rgba(17,24,39,0.09)] transition-all focus-within:border-emerald-400 focus-within:ring-4 focus-within:ring-emerald-500/10 sm:p-2 sm:shadow-[0_12px_35px_rgba(17,24,39,0.09)]">
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                fill="none"
+                className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 sm:left-5 sm:h-5 sm:w-5"
+              >
+                <circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="1.8" />
+                <path d="M16 16L21 21" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              </svg>
 
-                  <path
-                    d="M16 16L21 21"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                  />
-                </svg>
-
-                <input
-                  ref={inputRef}
-                  value={keyword}
-                  onChange={(event) =>
-                    setKeyword(
-                      event.target.value
-                    )
-                  }
-                  onFocus={() =>
-                    setIsFocused(true)
-                  }
-                  onBlur={() => {
-                    window.setTimeout(
-                      () =>
-                        setIsFocused(
-                          false
-                        ),
-                      150
-                    );
-                  }}
-                  onKeyDown={
-                    handleKeyDown
-                  }
-                  placeholder="지역, 단지명, 계약조건 검색"
-                  autoComplete="off"
-                  role="combobox"
-                  aria-expanded={
-                    showSuggestions
-                  }
-                  aria-controls="home-search-results"
-                  aria-autocomplete="list"
-                  className="h-[54px] w-full bg-white pl-10 pr-2 text-xs font-semibold text-[#111827] outline-none placeholder:font-medium placeholder:text-zinc-400 sm:h-[64px] sm:pl-14 sm:pr-4 sm:text-base"
-                />
-              </div>
+              <input
+                ref={inputRef}
+                value={keyword}
+                onChange={(event) => setKeyword(event.target.value)}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => {
+                  window.setTimeout(() => setIsFocused(false), 150);
+                }}
+                onKeyDown={handleKeyDown}
+                placeholder="지역, 단지명, 계약조건 검색"
+                autoComplete="off"
+                role="combobox"
+                aria-expanded={showSuggestions}
+                aria-controls="home-search-results"
+                aria-autocomplete="list"
+                className="h-[50px] w-full min-w-0 rounded-xl bg-white pl-10 pr-[58px] text-xs font-semibold text-[#111827] outline-none placeholder:font-medium placeholder:text-zinc-400 sm:h-[60px] sm:pl-14 sm:pr-20 sm:text-base"
+              />
 
               <button
                 type="button"
                 onClick={handleSubmit}
                 aria-label="검색하기"
-                className="m-1.5 flex h-[42px] w-12 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-[#10B981] text-white transition-all hover:-translate-y-0.5 hover:bg-[#0F766E] hover:shadow-lg active:translate-y-0 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 sm:m-2 sm:h-12 sm:w-16 sm:rounded-xl"
+                className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-xl bg-[#10B981] text-white shadow-sm transition-all hover:-translate-y-[55%] hover:bg-[#0F766E] hover:shadow-lg active:translate-y-[-50%] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 sm:right-3 sm:h-12 sm:w-14"
               >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  className="h-4 w-4 sm:h-5 sm:w-5"
-                  aria-hidden="true"
-                >
-                  <circle
-                    cx="11"
-                    cy="11"
-                    r="6.5"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  />
-
-                  <path
-                    d="M16 16L21 21"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
+                <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true">
+                  <circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="2" />
+                  <path d="M16 16L21 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                 </svg>
               </button>
             </div>
@@ -566,104 +519,67 @@ function SearchHero({
               <div
                 id="home-search-results"
                 role="listbox"
-                className="absolute left-0 right-0 top-[62px] z-[100] max-h-[300px] overflow-y-auto rounded-xl border border-zinc-200 bg-white p-1.5 shadow-2xl sm:top-[74px] sm:max-h-[320px] sm:rounded-2xl sm:p-2"
+                className="absolute left-0 right-0 top-[62px] z-[100] max-h-[300px] overflow-y-auto rounded-xl border border-zinc-200 bg-white p-1.5 shadow-2xl sm:top-[76px] sm:max-h-[320px] sm:rounded-2xl sm:p-2"
               >
-                {suggestions.map(
-                  (
-                    apartment,
-                    index
-                  ) => {
-                    const active =
-                      index ===
-                      activeIndex;
+                {suggestions.map((apartment, index) => {
+                  const active = index === activeIndex;
 
-                    return (
-                      <button
-                        key={
-                          apartment.slug
-                        }
-                        type="button"
-                        role="option"
-                        aria-selected={
-                          active
-                        }
-                        onMouseEnter={() =>
-                          setActiveIndex(
-                            index
-                          )
-                        }
-                        onMouseDown={(
-                          event
-                        ) =>
-                          event.preventDefault()
-                        }
-                        onClick={() =>
-                          openApartment(
-                            apartment
-                          )
-                        }
-                        className={[
-                          "flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left transition sm:rounded-xl sm:px-4 sm:py-3",
-                          active
-                            ? "bg-emerald-50"
-                            : "hover:bg-zinc-50",
-                        ].join(" ")}
-                      >
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className="truncate text-sm font-extrabold text-[#111827] sm:text-base">
-                              {
-                                apartment.name
-                              }
-                            </p>
-
-                            <span
-                              className={[
-                                "shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold sm:text-[10px]",
-                                getStatusStyle(
-                                  apartment
-                                ),
-                              ].join(" ")}
-                            >
-                              {apartment.status ||
-                                "정보 확인"}
-                            </span>
-                          </div>
-
-                          <p className="mt-1 truncate text-[10px] text-zinc-500 sm:text-xs">
-                            {apartment.region ||
-                              apartment.cityName ||
-                              apartment.city}
+                  return (
+                    <button
+                      key={apartment.slug}
+                      type="button"
+                      role="option"
+                      aria-selected={active}
+                      onMouseEnter={() => setActiveIndex(index)}
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={() => openApartment(apartment)}
+                      className={[
+                        "flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left transition sm:rounded-xl sm:px-4 sm:py-3",
+                        active ? "bg-emerald-50" : "hover:bg-zinc-50",
+                      ].join(" ")}
+                    >
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="truncate text-sm font-extrabold text-[#111827] sm:text-base">
+                            {apartment.name}
                           </p>
+
+                          <span
+                            className={[
+                              "shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold sm:text-[10px]",
+                              getStatusStyle(apartment),
+                            ].join(" ")}
+                          >
+                            {apartment.status || "정보 확인"}
+                          </span>
                         </div>
 
-                        <span className="hidden shrink-0 text-sm font-bold text-emerald-700 sm:block">
-                          상세보기 →
-                        </span>
-                      </button>
-                    );
-                  }
-                )}
+                        <p className="mt-1 truncate text-[10px] text-zinc-500 sm:text-xs">
+                          {apartment.region || apartment.cityName || apartment.city}
+                        </p>
+                      </div>
+
+                      <span className="hidden shrink-0 text-sm font-bold text-emerald-700 sm:block">
+                        상세보기 →
+                      </span>
+                    </button>
+                  );
+                })}
 
                 <button
                   type="button"
-                  onMouseDown={(event) =>
-                    event.preventDefault()
-                  }
-                  onClick={() =>
-                    openSearch(keyword)
-                  }
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => openSearch(keyword)}
                   className="mt-1 w-full cursor-pointer rounded-lg bg-zinc-50 px-3 py-2.5 text-xs font-bold text-zinc-600 transition hover:bg-emerald-50 hover:text-emerald-700 sm:rounded-xl sm:px-4 sm:py-3 sm:text-sm"
                 >
-                  ‘{keyword.trim()}’ 전체
-                  검색결과 보기 →
+                  ‘{keyword.trim()}’ 전체 검색결과 보기 →
                 </button>
               </div>
             )}
           </div>
 
           {/* 빠른 검색 */}
-          <div className="-mx-4 mt-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:mt-4 sm:overflow-visible sm:px-0 sm:pb-0">
+          <div className="mt-3 w-full min-w-0 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mt-4 sm:overflow-visible sm:pb-0">
             <div className="flex w-max gap-2 sm:w-auto sm:flex-wrap">
               {quickKeywords.map(
                 (item) => (
@@ -673,7 +589,7 @@ function SearchHero({
                     onClick={() =>
                       openSearch(item)
                     }
-                    className="shrink-0 cursor-pointer rounded-full bg-zinc-100 px-3 py-1.5 text-[10px] font-bold text-zinc-600 transition-all hover:-translate-y-0.5 hover:bg-emerald-50 hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 sm:py-2 sm:text-xs"
+                    className="shrink-0 cursor-pointer rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1.5 text-[10px] font-bold text-zinc-600 transition-all hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 sm:px-3 sm:py-2 sm:text-xs"
                   >
                     # {item}
                   </button>

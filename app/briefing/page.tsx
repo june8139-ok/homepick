@@ -10,7 +10,7 @@ const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(
     /\/$/,
     ""
-  ) || "https://homepick.co.kr";
+  ) || "https://homepick.kr";
 
 const TITLE =
   "홈픽 브리핑 | 청약·선착순·계약조건 변경 소식";

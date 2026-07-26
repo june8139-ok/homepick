@@ -936,7 +936,7 @@ export default function SearchClient({
   };
 
   return (
-    <main className="min-h-screen bg-zinc-50 text-zinc-900">
+    <main className="min-h-0 overflow-x-hidden bg-zinc-50 text-zinc-900">
       <section className="border-b border-zinc-200 bg-white">
         <div className="mx-auto max-w-[1760px] px-4 py-5 sm:px-5 sm:py-6 lg:px-8">
           <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
@@ -1124,9 +1124,9 @@ export default function SearchClient({
         </div>
       </section>
 
-      <section className="mx-auto max-w-[1760px] px-3 py-4 sm:px-5 sm:py-5 lg:px-8">
+      <section className="mx-auto w-full max-w-[1760px] px-3 pb-6 pt-4 sm:px-5 sm:pb-8 sm:pt-5 lg:px-8">
         {/* 모바일: 지도와 카드 목록 동시 노출 */}
-        <div className="lg:hidden">
+        <div className="min-w-0 overflow-hidden lg:hidden">
           <SearchMapPanel
             apartments={
               filteredResults

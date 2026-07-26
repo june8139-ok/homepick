@@ -35,7 +35,7 @@ const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(
     /\/$/,
     ""
-  ) || "https://homepick.co.kr";
+  ) || "https://homepick.kr";
 
 function getHeroImage(
   apartment?: Apartment | null

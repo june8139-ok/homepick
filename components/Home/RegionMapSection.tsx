@@ -341,8 +341,8 @@ export default function RegionMapSection({
       </div>
 
       {/* 지도 + 선택 지역 */}
-      <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="min-w-0">
+      <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-start">
+        <div className="flex min-w-0 justify-center">
           <KoreaMap
             regions={regions}
             selectedCity={
@@ -357,9 +357,9 @@ export default function RegionMapSection({
         <aside
           key={selectedRegion?.city}
           className="
-            flex min-h-[520px]
+            hidden min-h-[520px]
             min-w-0 animate-[fadeIn_220ms_ease-out]
-            flex-col overflow-hidden
+            flex-col overflow-hidden xl:flex
             rounded-3xl border
             border-zinc-200 bg-white
             shadow-sm

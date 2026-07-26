@@ -18,7 +18,7 @@ const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(
     /\/$/,
     ""
-  ) || "https://homepick.co.kr";
+  ) || "https://homepick.kr";
 
 const PAGE_TITLE =
   "전국 지역별 분양 아파트·청약·선착순 정보";
