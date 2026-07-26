@@ -459,7 +459,7 @@ function SearchHero({
 
           <p className="mt-0.5 text-xl font-black tracking-[-0.04em] text-[#111827] sm:mt-2 sm:text-3xl xl:text-[36px]">
             내 집은 내가{" "}
-            <span className="text-[#10B981]">
+            <span className="text-[#FF5A5F]">
               Pick
             </span>
           </p>

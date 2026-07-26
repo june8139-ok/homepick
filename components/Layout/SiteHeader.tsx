@@ -49,68 +49,73 @@ function HomePickSymbol({
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
+      {/* 빨간 지붕 */}
       <path
         d="M8 28.5L31.5 8L54.5 28.5"
-        stroke="currentColor"
+        stroke="#FF5A5F"
         strokeWidth="5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
 
+      {/* 연한 청록색 집 뼈대 */}
       <path
         d="M12 26.5V51H42"
-        stroke="currentColor"
+        stroke="#A8D8D5"
         strokeWidth="5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
 
+      {/* HomePick의 H */}
       <path
         d="M22 27V45"
-        stroke="currentColor"
+        stroke="#0F9D98"
         strokeWidth="5"
         strokeLinecap="round"
       />
 
       <path
         d="M37 27V45"
-        stroke="currentColor"
+        stroke="#0F9D98"
         strokeWidth="5"
         strokeLinecap="round"
       />
 
       <path
         d="M22 36H37"
-        stroke="currentColor"
+        stroke="#0F9D98"
         strokeWidth="5"
         strokeLinecap="round"
       />
 
+      {/* 청록색 돋보기 */}
       <circle
         cx="50"
         cy="46"
         r="10"
-        stroke="currentColor"
+        stroke="#0F9D98"
         strokeWidth="4.5"
       />
 
       <path
         d="M57.5 53.5L66 62"
-        stroke="currentColor"
+        stroke="#0F9D98"
         strokeWidth="4.5"
         strokeLinecap="round"
       />
 
+      {/* 돋보기 안 P */}
       <path
         d="M47 40.5V51.5"
-        stroke="currentColor"
+        stroke="#0F9D98"
         strokeWidth="2.8"
         strokeLinecap="round"
       />
 
       <path
         d="M47 41H51C53.2 41 54.5 42.2 54.5 44.2C54.5 46.2 53.2 47.4 51 47.4H47"
-        stroke="currentColor"
+        stroke="#0F9D98"
         strokeWidth="2.8"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -214,11 +219,11 @@ export default function SiteHeader() {
           "
           aria-label="홈픽 홈페이지로 이동"
         >
-          <HomePickSymbol className="h-9 w-10 text-[#0F766E] transition-transform duration-200 group-hover:-translate-y-0.5 sm:h-10 sm:w-11" />
+          <HomePickSymbol className="h-9 w-10 transition-transform duration-200 group-hover:-translate-y-0.5 sm:h-10 sm:w-11" />
 
           <div className="min-w-0">
             <div className="flex items-baseline gap-1.5">
-              <p className="text-xl font-black tracking-[-0.04em] text-[#0F766E] sm:text-[22px]">
+              <p className="text-xl font-black tracking-[-0.04em] text-[#0F8F88] sm:text-[22px]">
                 홈픽
               </p>
 
