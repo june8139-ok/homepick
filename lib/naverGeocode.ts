@@ -1,8 +1,40 @@
 "use client";
 
+type NaverGeocodeAddress = {
+  x: string;
+  y: string;
+};
+
+type NaverGeocodeResponse = {
+  v2?: {
+    addresses?: NaverGeocodeAddress[];
+  };
+};
+
+type NaverMapsService = {
+  Status: {
+    OK: unknown;
+  };
+  geocode: (
+    options: { query: string },
+    callback: (
+      status: unknown,
+      response: NaverGeocodeResponse
+    ) => void
+  ) => void;
+};
+
+type NaverMaps = {
+  Service?: NaverMapsService;
+};
+
+type NaverGlobal = {
+  maps?: NaverMaps;
+};
+
 declare global {
   interface Window {
-    naver?: any;
+    naver?: NaverGlobal;
     __homepickNaverGeocodePromise?: Promise<void>;
   }
 }
@@ -12,14 +44,18 @@ export type Coordinates = {
   longitude: number;
 };
 
-function loadNaverGeocoder(clientId: string) {
+function getNaverService(): NaverMapsService | null {
+  return window.naver?.maps?.Service ?? null;
+}
+
+function loadNaverGeocoder(clientId: string): Promise<void> {
   if (typeof window === "undefined") {
     return Promise.reject(
       new Error("브라우저에서만 위치를 찾을 수 있습니다.")
     );
   }
 
-  if (window.naver?.maps?.Service) {
+  if (getNaverService()) {
     return Promise.resolve();
   }
 
@@ -35,14 +71,27 @@ function loadNaverGeocoder(clientId: string) {
         );
 
       if (existing) {
-        if (window.naver?.maps?.Service) {
+        if (getNaverService()) {
           resolve();
           return;
         }
 
-        existing.addEventListener("load", () => resolve(), {
-          once: true,
-        });
+        existing.addEventListener(
+          "load",
+          () => {
+            if (getNaverService()) {
+              resolve();
+            } else {
+              reject(
+                new Error(
+                  "네이버 Geocoder 모듈을 불러오지 못했습니다."
+                )
+              );
+            }
+          },
+          { once: true }
+        );
+
         existing.addEventListener(
           "error",
           () =>
@@ -53,6 +102,7 @@ function loadNaverGeocoder(clientId: string) {
             ),
           { once: true }
         );
+
         return;
       }
 
@@ -65,7 +115,7 @@ function loadNaverGeocoder(clientId: string) {
         "&submodules=geocoder";
 
       script.onload = () => {
-        if (window.naver?.maps?.Service) {
+        if (getNaverService()) {
           resolve();
         } else {
           reject(
@@ -111,13 +161,28 @@ export async function geocodeAddress(
   await loadNaverGeocoder(clientId);
 
   return new Promise<Coordinates>((resolve, reject) => {
-    window.naver.maps.Service.geocode(
+    const service = getNaverService();
+
+    if (!service) {
+      reject(
+        new Error(
+          "네이버 Geocoder 모듈이 준비되지 않았습니다."
+        )
+      );
+      return;
+    }
+
+    service.geocode(
       { query: trimmedAddress },
-      (status: unknown, response: any) => {
+      (
+        status: unknown,
+        response: NaverGeocodeResponse
+      ) => {
+        const addresses = response.v2?.addresses;
+
         if (
-          status !==
-            window.naver.maps.Service.Status.OK ||
-          !response?.v2?.addresses?.length
+          status !== service.Status.OK ||
+          !addresses?.length
         ) {
           reject(
             new Error(
@@ -127,7 +192,7 @@ export async function geocodeAddress(
           return;
         }
 
-        const first = response.v2.addresses[0];
+        const first = addresses[0];
         const latitude = Number(first.y);
         const longitude = Number(first.x);
 

@@ -3,9 +3,66 @@ import type {
   ListingStage,
 } from "../types/apartment";
 
+type UnknownRecord = Record<string, unknown>;
+
+function asRecord(value: unknown): UnknownRecord {
+  return value !== null &&
+    typeof value === "object" &&
+    !Array.isArray(value)
+    ? (value as UnknownRecord)
+    : {};
+}
+
+function firstDefined(
+  ...values: unknown[]
+): unknown {
+  return values.find(
+    (value) =>
+      value !== undefined &&
+      value !== null
+  );
+}
+
+function toStringValue(
+  value: unknown,
+  fallback = ""
+): string {
+  if (
+    typeof value === "string" ||
+    typeof value === "number"
+  ) {
+    return String(value);
+  }
+
+  return fallback;
+}
+
+function toNullableString(
+  value: unknown
+): string | null {
+  if (
+    value === null ||
+    value === undefined ||
+    value === ""
+  ) {
+    return null;
+  }
+
+  return String(value);
+}
+
+function toBooleanValue(
+  value: unknown,
+  fallback = false
+): boolean {
+  return typeof value === "boolean"
+    ? value
+    : fallback;
+}
+
 function normalizeLeadType(
-  row: any,
-  data: any
+  row: UnknownRecord,
+  data: UnknownRecord
 ): Apartment["leadType"] {
   const value =
     row.lead_type ?? data.leadType;
@@ -22,8 +79,8 @@ function normalizeLeadType(
 }
 
 function normalizeListingStage(
-  row: any,
-  data: any
+  row: UnknownRecord,
+  data: UnknownRecord
 ): ListingStage {
   const value =
     row.listing_stage ??
@@ -38,12 +95,18 @@ function normalizeListingStage(
     return value;
   }
 
-  const status = String(
-    row.status ?? data.status ?? ""
+  const status = toStringValue(
+    firstDefined(
+      row.status,
+      data.status
+    )
   ).trim();
 
-  const condition = String(
-    row.condition ?? data.condition ?? ""
+  const condition = toStringValue(
+    firstDefined(
+      row.condition,
+      data.condition
+    )
   ).trim();
 
   if (
@@ -68,8 +131,8 @@ function normalizeListingStage(
 }
 
 function normalizeSource(
-  row: any,
-  data: any
+  row: UnknownRecord,
+  data: UnknownRecord
 ): Apartment["source"] {
   const value =
     row.source ?? data.source;
@@ -109,35 +172,45 @@ function normalizeHeroImage(
   return null;
 }
 
+function toNullableNumber(
+  value: unknown
+): number | null {
+  if (
+    value === null ||
+    value === undefined ||
+    value === ""
+  ) {
+    return null;
+  }
+
+  const numberValue = Number(value);
+
+  return Number.isFinite(numberValue)
+    ? numberValue
+    : null;
+}
+
 export function normalizeApartment(
-  row: any
+  rawRow: unknown
 ): Apartment {
-  const data = row.data ?? {};
-  const applyHome = data.applyHome ?? {};
+  const row = asRecord(rawRow);
+  const data = asRecord(row.data);
+  const applyHome = asRecord(data.applyHome);
+  const images = asRecord(data.images);
 
-  const latitudeValue =
-    row.latitude ??
-    data.latitude ??
-    null;
+  const latitude = toNullableNumber(
+    firstDefined(
+      row.latitude,
+      data.latitude
+    )
+  );
 
-  const longitudeValue =
-    row.longitude ??
-    data.longitude ??
-    null;
-
-  const latitude =
-    latitudeValue === null ||
-    latitudeValue === undefined ||
-    latitudeValue === ""
-      ? null
-      : Number(latitudeValue);
-
-  const longitude =
-    longitudeValue === null ||
-    longitudeValue === undefined ||
-    longitudeValue === ""
-      ? null
-      : Number(longitudeValue);
+  const longitude = toNullableNumber(
+    firstDefined(
+      row.longitude,
+      data.longitude
+    )
+  );
 
   const source = normalizeSource(
     row,
@@ -145,112 +218,112 @@ export function normalizeApartment(
   );
 
   const subscription =
-    data.subscription ?? {
+    data.subscription ??
+    {
       announcementDate:
-        row.announcement_date ??
-        null,
-
+        toNullableString(
+          row.announcement_date
+        ),
       specialSupplyStartDate:
-        row.special_supply_date ??
-        null,
-
-      specialSupplyEndDate:
-        null,
-
+        toNullableString(
+          row.special_supply_date
+        ),
+      specialSupplyEndDate: null,
       firstPriorityStartDate:
-        row.first_priority_date ??
-        null,
-
-      firstPriorityEndDate:
-        null,
-
+        toNullableString(
+          row.first_priority_date
+        ),
+      firstPriorityEndDate: null,
       secondPriorityStartDate:
-        row.second_priority_date ??
-        null,
-
-      secondPriorityEndDate:
-        null,
-
+        toNullableString(
+          row.second_priority_date
+        ),
+      secondPriorityEndDate: null,
       winnerDate:
-        row.winner_date ??
-        null,
-
+        toNullableString(
+          row.winner_date
+        ),
       contractStartDate:
-        row.contract_start_date ??
-        null,
-
+        toNullableString(
+          row.contract_start_date
+        ),
       contractEndDate:
-        row.contract_end_date ??
-        null,
-
+        toNullableString(
+          row.contract_end_date
+        ),
       noticeUrl:
-        row.notice_url ??
-        null,
-
+        toNullableString(
+          row.notice_url
+        ),
       applyUrl:
-        row.apply_url ??
-        null,
-
+        toNullableString(
+          row.apply_url
+        ),
       applyHomeUrl:
-        row.applyhome_url ??
-        null,
+        toNullableString(
+          row.applyhome_url
+        ),
     };
 
+  const subscriptionData =
+    subscription as Apartment["subscription"];
+
   const totalSupplyValue =
-    data.totalSupply ??
-    applyHome.TOT_SUPLY_HSHLDCO ??
-    null;
+    firstDefined(
+      data.totalSupply,
+      applyHome.TOT_SUPLY_HSHLDCO
+    );
 
   const totalSupplyNumber =
-    totalSupplyValue === null ||
-    totalSupplyValue === undefined ||
-    totalSupplyValue === ""
+    totalSupplyValue === undefined
       ? null
       : Number(
-          String(
-            totalSupplyValue
-          ).replace(/,/g, "")
+          String(totalSupplyValue).replace(
+            /,/g,
+            ""
+          )
         );
 
   const normalizedTotalSupply =
+    totalSupplyNumber !== null &&
     Number.isFinite(totalSupplyNumber)
       ? totalSupplyNumber
       : null;
 
   const projectInfo =
-    data.projectInfo ?? {
+    data.projectInfo ??
+    {
       totalHouseholds:
         normalizedTotalSupply !== null
           ? `${normalizedTotalSupply.toLocaleString()}세대`
           : "",
-
       saleHouseholds:
         normalizedTotalSupply !== null
           ? `${normalizedTotalSupply.toLocaleString()}세대`
           : "",
-
       parking: "",
-
       scale: "",
-
       usage:
-        row.type ??
-        data.type ??
-        applyHome.HOUSE_DTL_SECD_NM ??
-        "아파트",
-
+        toStringValue(
+          firstDefined(
+            row.type,
+            data.type,
+            applyHome.HOUSE_DTL_SECD_NM
+          ),
+          "아파트"
+        ),
       moveInDate:
-        applyHome.MVN_PREARNGE_YM ??
-        "",
-
+        toStringValue(
+          applyHome.MVN_PREARNGE_YM
+        ),
       developer:
-        applyHome.BSNS_MBY_NM ??
-        "",
-
+        toStringValue(
+          applyHome.BSNS_MBY_NM
+        ),
       phone:
-        applyHome.MDHS_TELNO ??
-        "",
-
+        toStringValue(
+          applyHome.MDHS_TELNO
+        ),
       floors: "",
       buildings: "",
       siteArea: "",
@@ -260,7 +333,8 @@ export function normalizeApartment(
     };
 
   const locationInfo =
-    data.locationInfo ?? {
+    data.locationInfo ??
+    {
       transport: "",
       education: "",
       living: "",
@@ -270,242 +344,181 @@ export function normalizeApartment(
       cautions: "",
     };
 
-  const status =
-    row.status ??
-    data.status ??
-    "등록예정";
+  const status = toStringValue(
+    firstDefined(
+      row.status,
+      data.status
+    ),
+    "등록예정"
+  );
 
-  const condition =
-    data.condition ??
-    row.condition ??
-    (source === "applyhome"
+  const condition = toStringValue(
+    firstDefined(
+      data.condition,
+      row.condition
+    ),
+    source === "applyhome"
       ? "청약홈 신규 공고"
-      : "");
+      : ""
+  );
 
   const heroImage =
-    row.hero_image ||
-    normalizeHeroImage(
-      data.images?.hero
+    toNullableString(row.hero_image) ??
+    normalizeHeroImage(images.hero);
+
+  const floorPlans = Array.isArray(
+    images.floorPlans
+  )
+    ? images.floorPlans
+    : [];
+
+  const applyHomeUrl =
+    toNullableString(row.applyhome_url) ??
+    toNullableString(
+      subscriptionData?.applyHomeUrl
     );
 
   return {
-    slug:
-      row.slug ?? "",
-
-    city:
-      data.city ??
-      row.city ??
-      "",
-
-    cityName:
-      data.cityName ??
-      row.city ??
-      "",
-
-    district:
-      data.district ??
-      row.district ??
-      "",
-
-    districtName:
-      data.districtName ??
-      row.district ??
-      "",
-
-    region:
-      row.region ??
-      data.region ??
-      "",
-
-    latitude:
-      Number.isFinite(latitude)
-        ? latitude
-        : null,
-
-    longitude:
-      Number.isFinite(longitude)
-        ? longitude
-        : null,
-
-    type:
-      row.type ??
-      data.type ??
-      "아파트",
-
-    brand:
-      row.brand ??
-      data.brand ??
-      "",
-
-    builder:
-      data.builder ??
-      row.builder ??
-      applyHome.CNSTRCT_ENTRPS_NM ??
-      "",
-
-    name:
-      row.name ??
-      data.name ??
-      "",
-
-    leadType:
-      normalizeLeadType(
-        row,
-        data
-      ),
-
+    slug: toStringValue(row.slug),
+    city: toStringValue(
+      firstDefined(data.city, row.city)
+    ),
+    cityName: toStringValue(
+      firstDefined(data.cityName, row.city)
+    ),
+    district: toStringValue(
+      firstDefined(data.district, row.district)
+    ),
+    districtName: toStringValue(
+      firstDefined(data.districtName, row.district)
+    ),
+    region: toStringValue(
+      firstDefined(row.region, data.region)
+    ),
+    latitude,
+    longitude,
+    type: toStringValue(
+      firstDefined(row.type, data.type),
+      "아파트"
+    ),
+    brand: toStringValue(
+      firstDefined(row.brand, data.brand)
+    ),
+    builder: toStringValue(
+      firstDefined(
+        data.builder,
+        row.builder,
+        applyHome.CNSTRCT_ENTRPS_NM
+      )
+    ),
+    name: toStringValue(
+      firstDefined(row.name, data.name)
+    ),
+    leadType: normalizeLeadType(row, data),
     images: {
       hero: heroImage,
-
-      location:
-        normalizeStringArray(
-          data.images?.location
-        ),
-
+      location: normalizeStringArray(images.location),
       floorPlans:
-        Array.isArray(
-          data.images?.floorPlans
-        )
-          ? data.images.floorPlans
-          : [],
-
-      community:
-        normalizeStringArray(
-          data.images?.community
-        ),
-
-      gallery:
-        normalizeStringArray(
-          data.images?.gallery
-        ),
+        floorPlans as Apartment["images"]["floorPlans"],
+      community: normalizeStringArray(images.community),
+      gallery: normalizeStringArray(images.gallery),
     },
-
-    keywords:
-      normalizeStringArray(
-        data.keywords
-      ),
-
+    keywords: normalizeStringArray(data.keywords),
     status,
-
-    listingStage:
-      normalizeListingStage(
-        row,
-        data
-      ),
-
-    price:
-      data.price ??
-      row.price ??
-      "",
-
+    listingStage: normalizeListingStage(row, data),
+    price: toStringValue(
+      firstDefined(data.price, row.price)
+    ),
     condition,
-
     source,
-
-    applyHomeId:
-      row.applyhome_id ??
-      data.applyHomeId ??
-      null,
-
-    applyHomeUrl:
-      row.applyhome_url ??
-      subscription.applyHomeUrl ??
-      null,
-
-    isAutoCreated:
-      row.is_auto_created ??
-      data.isAutoCreated ??
-      false,
-
-    manualOverride:
-      row.manual_override ??
-      data.manualOverride ??
-      false,
-
-    syncStatus:
-      row.sync_status ??
-      data.syncStatus ??
-      "manual",
-
-    lastSyncedAt:
-      row.last_synced_at ??
-      data.lastSyncedAt ??
-      null,
-
-    totalSupply:
-      normalizedTotalSupply,
-
-    subscription,
-
-    projectInfo,
-
-    locationInfo,
-
-    applyHome,
-
-    conditionHistory:
-      Array.isArray(
-        data.conditionHistory
+    applyHomeId: toNullableString(
+      firstDefined(
+        row.applyhome_id,
+        data.applyHomeId
       )
-        ? data.conditionHistory
+    ),
+    applyHomeUrl,
+    isAutoCreated: toBooleanValue(
+      firstDefined(
+        row.is_auto_created,
+        data.isAutoCreated
+      )
+    ),
+    manualOverride: toBooleanValue(
+      firstDefined(
+        row.manual_override,
+        data.manualOverride
+      )
+    ),
+    syncStatus: toStringValue(
+      firstDefined(
+        row.sync_status,
+        data.syncStatus
+      ),
+      "manual"
+    ) as Apartment["syncStatus"],
+    lastSyncedAt: toNullableString(
+      firstDefined(
+        row.last_synced_at,
+        data.lastSyncedAt
+      )
+    ),
+    totalSupply: normalizedTotalSupply,
+    subscription: subscriptionData,
+    projectInfo:
+      projectInfo as Apartment["projectInfo"],
+    locationInfo:
+      locationInfo as Apartment["locationInfo"],
+    applyHome:
+      applyHome as Apartment["applyHome"],
+    conditionHistory:
+      Array.isArray(data.conditionHistory)
+        ? (data.conditionHistory as Apartment["conditionHistory"])
         : [],
-
     priceInfo:
-      data.priceInfo ?? undefined,
-
+      data.priceInfo === undefined
+        ? undefined
+        : (data.priceInfo as Apartment["priceInfo"]),
     priceDetail:
-      data.priceDetail ?? {
-        salePrice:
-          data.price ??
-          row.price ??
-          "",
-
-        pricePerPyeong:
-          "",
-
-        contractPrice:
-          "",
-
-        middlePayment:
-          "",
-
-        balance:
-          "",
-
-        options: [],
-      },
-
+      (
+        data.priceDetail ??
+        {
+          salePrice: toStringValue(
+            firstDefined(data.price, row.price)
+          ),
+          pricePerPyeong: "",
+          contractPrice: "",
+          middlePayment: "",
+          balance: "",
+          options: [],
+        }
+      ) as Apartment["priceDetail"],
     score:
-      data.score ?? {
-        total:
-          row.score_total ??
-          0,
-
-        price: 0,
-        contract: 0,
-        location: 0,
-        living: 0,
-        future: 0,
-        risk: 0,
-      },
-
+      (
+        data.score ??
+        {
+          total:
+            toNullableNumber(row.score_total) ?? 0,
+          price: 0,
+          contract: 0,
+          location: 0,
+          living: 0,
+          future: 0,
+          risk: 0,
+        }
+      ) as Apartment["score"],
     aiReview:
-      data.aiReview ?? {
-        summary: "",
-        liveScore: 0,
-        investScore: 0,
-        safetyScore: 0,
-        strengths: [],
-      },
-
-    pros:
-      normalizeStringArray(
-        data.pros
-      ),
-
-    cons:
-      normalizeStringArray(
-        data.cons
-      ),
+      (
+        data.aiReview ??
+        {
+          summary: "",
+          liveScore: 0,
+          investScore: 0,
+          safetyScore: 0,
+          strengths: [],
+        }
+      ) as Apartment["aiReview"],
+    pros: normalizeStringArray(data.pros),
+    cons: normalizeStringArray(data.cons),
   };
 }
