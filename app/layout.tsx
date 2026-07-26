@@ -314,7 +314,7 @@ export default function RootLayout({
   return (
     <html
       lang="ko"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full bg-[#F7F8FA] antialiased`}
     >
       <body className="min-h-full bg-[#F7F8FA] text-[#111827]">
         <JsonLd
@@ -329,7 +329,7 @@ export default function RootLayout({
           }
         />
 
-        <div className="flex min-h-screen flex-col">
+        <div className="flex min-h-screen flex-col bg-[#F7F8FA]">
           <Suspense
             fallback={
               <SiteHeaderFallback />
@@ -338,7 +338,7 @@ export default function RootLayout({
             <SiteHeader />
           </Suspense>
 
-          <div className="flex-1">
+          <div className="min-w-0 flex-1 bg-[#F7F8FA]">
             {children}
           </div>
 

@@ -390,7 +390,7 @@ export default function MobileSearchCarousel({
         className={[
           "w-full min-w-0 overflow-x-auto overflow-y-hidden pb-2",
           "snap-x snap-mandatory scroll-smooth",
-          "touch-pan-y select-none",
+          "touch-auto select-none",
           "[scrollbar-width:none] [-ms-overflow-style:none]",
           "[&::-webkit-scrollbar]:hidden",
           isDragging
