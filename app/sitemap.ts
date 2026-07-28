@@ -14,6 +14,10 @@ import {
   isCompletedListing,
 } from "../lib/listingStage";
 
+import {
+  getApartmentRegionKey,
+} from "../lib/regionUtils";
+
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(
     /\/$/,
@@ -58,21 +62,26 @@ export default async function sitemap(): Promise<
         )
     );
 
-  const cities = Array.from(
-    new Set(
-      publicApartments
-        .map(
-          (apartment) =>
-            apartment.city
-        )
-        .filter(
-          (
-            city
-          ): city is string =>
-            Boolean(city)
-        )
-    )
-  );
+  const regions =
+    Array.from(
+      new Set(
+        publicApartments
+          .map(
+            getApartmentRegionKey
+          )
+          .filter(
+            (
+              region
+            ): region is Exclude<
+              ReturnType<
+                typeof getApartmentRegionKey
+              >,
+              ""
+            > =>
+              Boolean(region)
+          )
+      )
+    );
 
   const now =
     new Date();
@@ -89,18 +98,7 @@ export default async function sitemap(): Promise<
 
       {
         url:
-          `${SITE_URL}/search`,
-
-        lastModified: now,
-        changeFrequency:
-          "daily",
-        priority: 0.9,
-      },
-
-      {
-        url:
           `${SITE_URL}/region`,
-
         lastModified: now,
         changeFrequency:
           "daily",
@@ -110,7 +108,6 @@ export default async function sitemap(): Promise<
       {
         url:
           `${SITE_URL}/briefing`,
-
         lastModified: now,
         changeFrequency:
           "daily",
@@ -120,7 +117,6 @@ export default async function sitemap(): Promise<
       {
         url:
           `${SITE_URL}/compare`,
-
         lastModified: now,
         changeFrequency:
           "weekly",
@@ -128,18 +124,19 @@ export default async function sitemap(): Promise<
       },
     ];
 
+  /*
+   * /search는 noindex 페이지이므로 사이트맵에서 제외합니다.
+   */
   const regionPages: MetadataRoute.Sitemap =
-    cities.map(
-      (city) => ({
+    regions.map(
+      (region) => ({
         url:
           `${SITE_URL}/region/${encodeURIComponent(
-            city
+            region
           )}`,
-
         lastModified: now,
         changeFrequency:
           "daily",
-
         priority: 0.8,
       })
     );
@@ -151,12 +148,9 @@ export default async function sitemap(): Promise<
           `${SITE_URL}/apartments/${encodeURIComponent(
             apartment.slug
           )}`,
-
         lastModified: now,
-
         changeFrequency:
           "daily",
-
         priority:
           apartment.status?.includes(
             "청약"
@@ -185,17 +179,14 @@ export default async function sitemap(): Promise<
           `${SITE_URL}/briefing/${encodeURIComponent(
             briefing.slug
           )}`,
-
         lastModified:
           briefing.updatedAt
             ? new Date(
                 briefing.updatedAt
               )
             : now,
-
         changeFrequency:
           "weekly",
-
         priority: 0.7,
 
         images:

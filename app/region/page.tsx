@@ -19,7 +19,6 @@ import {
 
 import {
   getApartmentRegionKey,
-  getApartmentRegionName,
 } from "../../lib/regionUtils";
 
 import type {
@@ -36,11 +35,10 @@ const PAGE_TITLE =
   "전국 지역별 분양 아파트·청약·선착순 정보";
 
 const PAGE_DESCRIPTION =
-  "전국 지역별 분양 아파트와 청약 단지, 선착순 분양 정보를 확인하세요. 지역별 등록 단지와 분양가, 계약조건을 집눈에서 비교할 수 있습니다.";
+  "전국 17개 시·도별 분양 아파트와 청약 단지, 선착순 분양 정보를 확인하세요. 지역별 분양가와 계약조건을 집눈에서 한눈에 비교할 수 있습니다.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,
-
   description:
     PAGE_DESCRIPTION,
 
@@ -52,16 +50,11 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "ko_KR",
-
     url:
       `${SITE_URL}/region`,
-
-    siteName:
-      "집눈",
-
+    siteName: "집눈",
     title:
       `${PAGE_TITLE} | 집눈`,
-
     description:
       PAGE_DESCRIPTION,
   },
@@ -69,10 +62,8 @@ export const metadata: Metadata = {
   twitter: {
     card:
       "summary_large_image",
-
     title:
       `${PAGE_TITLE} | 집눈`,
-
     description:
       PAGE_DESCRIPTION,
   },
@@ -87,7 +78,8 @@ type CitySummary = {
   firstComeCount: number;
   saleCount: number;
 
-  latestApartment: Apartment;
+  latestApartment:
+    Apartment;
 };
 
 function getHeroImage(
@@ -104,13 +96,6 @@ function getHeroImage(
     )
   ) {
     return hero;
-  }
-
-  if (
-    Array.isArray(hero) &&
-    hero.length > 0
-  ) {
-    return hero[0] ?? "";
   }
 
   return (
@@ -165,10 +150,11 @@ function getStatusCounts(
 function buildCitySummaries(
   apartments: Apartment[]
 ) {
-  const cityMap = new Map<
-    string,
-    Apartment[]
-  >();
+  const cityMap =
+    new Map<
+      string,
+      Apartment[]
+    >();
 
   apartments.forEach(
     (apartment) => {
@@ -210,21 +196,13 @@ function buildCitySummaries(
 
         return {
           city,
-
-          cityName:
-            getApartmentRegionName(
-              cityApartments[0]
-            ) || city,
+          cityName: city,
 
           totalCount:
             cityApartments.length,
 
           ...counts,
 
-          /*
-           * getApartments()가 최신 등록순이므로
-           * 첫 번째 단지를 최근 등록 단지로 사용합니다.
-           */
           latestApartment:
             cityApartments[0],
         };
@@ -286,7 +264,9 @@ function CityCard({
     city.latestApartment;
 
   const image =
-    getHeroImage(apartment);
+    getHeroImage(
+      apartment
+    );
 
   return (
     <Link
@@ -327,7 +307,7 @@ function CityCard({
 
         <div className="absolute bottom-4 left-4 right-4">
           <p className="text-xs font-bold text-white/75">
-            REGION
+            지역별 분양정보
           </p>
 
           <h2 className="mt-1 text-2xl font-black text-white sm:text-3xl">
@@ -435,7 +415,6 @@ export default async function RegionIndexPage() {
   const breadcrumbJsonLd = {
     "@context":
       "https://schema.org",
-
     "@type":
       "BreadcrumbList",
 
@@ -443,7 +422,6 @@ export default async function RegionIndexPage() {
       {
         "@type":
           "ListItem",
-
         position: 1,
         name: "홈",
         item: SITE_URL,
@@ -451,15 +429,46 @@ export default async function RegionIndexPage() {
       {
         "@type":
           "ListItem",
-
         position: 2,
         name:
           "지역별 분양정보",
-
         item:
           `${SITE_URL}/region`,
       },
     ],
+  };
+
+  const collectionJsonLd = {
+    "@context":
+      "https://schema.org",
+    "@type":
+      "CollectionPage",
+    name: PAGE_TITLE,
+    description:
+      PAGE_DESCRIPTION,
+    url:
+      `${SITE_URL}/region`,
+    mainEntity: {
+      "@type":
+        "ItemList",
+      numberOfItems:
+        cities.length,
+      itemListElement:
+        cities.map(
+          (city, index) => ({
+            "@type":
+              "ListItem",
+            position:
+              index + 1,
+            name:
+              `${city.cityName} 분양정보`,
+            url:
+              `${SITE_URL}/region/${encodeURIComponent(
+                city.city
+              )}`,
+          })
+        ),
+    },
   };
 
   return (
@@ -470,6 +479,19 @@ export default async function RegionIndexPage() {
           __html:
             JSON.stringify(
               breadcrumbJsonLd
+            ).replace(
+              /</g,
+              "\\u003c"
+            ),
+        }}
+      />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html:
+            JSON.stringify(
+              collectionJsonLd
             ).replace(
               /</g,
               "\\u003c"
@@ -508,10 +530,9 @@ export default async function RegionIndexPage() {
           </h1>
 
           <p className="mt-3 max-w-3xl break-keep text-sm leading-6 text-zinc-300 sm:mt-4 sm:text-base sm:leading-8">
-            원하는 지역을 선택해 현재
-            청약 중인 아파트와 선착순
-            분양 단지, 분양가와
-            계약조건을 확인해보세요.
+            17개 시·도 기준으로 현재 청약
+            중인 아파트와 선착순 분양 단지,
+            분양가와 계약조건을 확인해보세요.
           </p>
 
           <div className="mt-6 grid grid-cols-3 gap-2 sm:mt-8 sm:max-w-xl sm:gap-3">
@@ -559,8 +580,8 @@ export default async function RegionIndexPage() {
               </h2>
 
               <p className="mt-2 text-xs leading-5 text-zinc-500 sm:text-sm sm:leading-6">
-                등록 단지가 많은
-                지역부터 표시됩니다.
+                등록 단지가 많은 지역부터
+                표시됩니다.
               </p>
             </div>
 
@@ -594,7 +615,9 @@ export default async function RegionIndexPage() {
               {cities.map(
                 (city) => (
                   <CityCard
-                    key={city.city}
+                    key={
+                      city.city
+                    }
                     city={city}
                   />
                 )

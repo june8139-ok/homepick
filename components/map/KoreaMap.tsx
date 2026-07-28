@@ -6,7 +6,10 @@ import {
   useMemo,
   useState,
 } from "react";
-import { geoMercator, geoPath } from "d3-geo";
+import {
+  geoMercator,
+  geoPath,
+} from "d3-geo";
 
 export type RegionMapItem = {
   city: string;
@@ -35,10 +38,16 @@ type RenderedFeature = {
   region?: RegionMapItem;
   count: number;
   path: string;
-  centroid: [number, number];
+  centroid: [
+    number,
+    number,
+  ];
 };
 
-const nameMap: Record<string, string> = {
+const nameMap: Record<
+  string,
+  string
+> = {
   Seoul: "서울",
   Busan: "부산",
   Daegu: "대구",
@@ -52,72 +61,151 @@ const nameMap: Record<string, string> = {
   Gangwon: "강원",
   "Gangwon-do": "강원",
   Chungbuk: "충북",
-  "Chungcheongbuk-do": "충북",
+  "Chungcheongbuk-do":
+    "충북",
   Chungnam: "충남",
-  "Chungcheongnam-do": "충남",
+  "Chungcheongnam-do":
+    "충남",
   Jeonbuk: "전북",
   "Jeollabuk-do": "전북",
   "Jeonbuk State": "전북",
   Jeonnam: "전남",
   "Jeollanam-do": "전남",
   Gyeongbuk: "경북",
-  "Gyeongsangbuk-do": "경북",
+  "Gyeongsangbuk-do":
+    "경북",
   Gyeongnam: "경남",
-  "Gyeongsangnam-do": "경남",
+  "Gyeongsangnam-do":
+    "경남",
   Jeju: "제주",
   "Jeju-do": "제주",
 };
 
-/*
- * 수도권·광역시처럼 중심점이 가까운 지역은
- * 숫자 배지를 조금씩 이동시켜 겹침을 줄입니다.
- */
 const badgeOffset: Record<
   string,
-  { x: number; y: number }
+  {
+    x: number;
+    y: number;
+  }
 > = {
-  서울: { x: -18, y: -4 },
-  인천: { x: -34, y: 22 },
-  경기: { x: 24, y: 16 },
-  세종: { x: 18, y: -4 },
-  대전: { x: 15, y: 18 },
-  대구: { x: 22, y: 8 },
-  부산: { x: 20, y: 18 },
-  울산: { x: 26, y: -10 },
-  광주: { x: -10, y: 18 },
+  서울: {
+    x: -18,
+    y: -4,
+  },
+  인천: {
+    x: -34,
+    y: 22,
+  },
+  경기: {
+    x: 24,
+    y: 16,
+  },
+  세종: {
+    x: 18,
+    y: -4,
+  },
+  대전: {
+    x: 15,
+    y: 18,
+  },
+  대구: {
+    x: 22,
+    y: 8,
+  },
+  부산: {
+    x: 20,
+    y: 18,
+  },
+  울산: {
+    x: 26,
+    y: -10,
+  },
+  광주: {
+    x: -10,
+    y: 18,
+  },
 };
 
 const labelOffset: Record<
   string,
-  { x: number; y: number }
+  {
+    x: number;
+    y: number;
+  }
 > = {
-  서울: { x: -26, y: -30 },
-  인천: { x: -42, y: -8 },
-  경기: { x: 28, y: -18 },
-  세종: { x: 20, y: -28 },
-  대전: { x: 14, y: -12 },
-  대구: { x: 26, y: -18 },
-  부산: { x: 18, y: 48 },
-  울산: { x: 34, y: -32 },
-  광주: { x: -14, y: -8 },
+  서울: {
+    x: -26,
+    y: -30,
+  },
+  인천: {
+    x: -42,
+    y: -8,
+  },
+  경기: {
+    x: 28,
+    y: -18,
+  },
+  세종: {
+    x: 20,
+    y: -28,
+  },
+  대전: {
+    x: 14,
+    y: -12,
+  },
+  대구: {
+    x: 26,
+    y: -18,
+  },
+  부산: {
+    x: 18,
+    y: 48,
+  },
+  울산: {
+    x: 34,
+    y: -32,
+  },
+  광주: {
+    x: -14,
+    y: -8,
+  },
 };
 
-function normalizeRegionName(name?: string) {
-  if (!name) return "";
+function normalizeRegionName(
+  name?: string
+) {
+  if (!name) {
+    return "";
+  }
 
-  const cleaned = name.trim();
+  const cleaned =
+    name.trim();
 
-  return nameMap[cleaned] ?? cleaned;
+  return (
+    nameMap[cleaned] ??
+    cleaned
+  );
 }
 
 function getRegionFill(
   count: number,
   selected: boolean
 ) {
-  if (selected) return "#c9f3df";
-  if (count >= 10) return "#5fd1a0";
-  if (count >= 5) return "#9ae4c4";
-  if (count >= 1) return "#dff7ec";
+  if (selected) {
+    return "#c9f3df";
+  }
+
+  if (count >= 10) {
+    return "#5fd1a0";
+  }
+
+  if (count >= 5) {
+    return "#9ae4c4";
+  }
+
+  if (count >= 1) {
+    return "#dff7ec";
+  }
 
   return "#fbfaf6";
 }
@@ -129,12 +217,22 @@ function KoreaMap({
 }: {
   regions: RegionMapItem[];
   selectedCity?: string;
-  onSelect: (city: string) => void;
+  onSelect: (
+    city: string
+  ) => void;
 }) {
-  const [geoJson, setGeoJson] =
-    useState<GeoJson | null>(null);
+  const [
+    geoJson,
+    setGeoJson,
+  ] =
+    useState<GeoJson | null>(
+      null
+    );
 
-  const [loadError, setLoadError] =
+  const [
+    loadError,
+    setLoadError,
+  ] =
     useState(false);
 
   useEffect(() => {
@@ -143,12 +241,14 @@ function KoreaMap({
 
     async function loadMap() {
       try {
-        const response = await fetch(
-          "/maps/korea-provinces.json",
-          {
-            signal: controller.signal,
-          }
-        );
+        const response =
+          await fetch(
+            "/maps/korea-provinces.json",
+            {
+              signal:
+                controller.signal,
+            }
+          );
 
         if (!response.ok) {
           throw new Error(
@@ -162,7 +262,8 @@ function KoreaMap({
         setGeoJson(data);
       } catch (error) {
         if (
-          (error as Error).name ===
+          (error as Error)
+            .name ===
           "AbortError"
         ) {
           return;
@@ -179,52 +280,70 @@ function KoreaMap({
 
     loadMap();
 
-    return () => controller.abort();
+    return () =>
+      controller.abort();
   }, []);
 
-  const regionMap = useMemo(() => {
-    return regions.reduce<
-      Record<string, RegionMapItem>
-    >((accumulator, item) => {
-      if (item.city) {
-        accumulator[item.city] = item;
+  const regionMap =
+    useMemo(() => {
+      return regions.reduce<
+        Record<
+          string,
+          RegionMapItem
+        >
+      >(
+        (
+          accumulator,
+          item
+        ) => {
+          if (item.city) {
+            accumulator[
+              item.city
+            ] = item;
+          }
+
+          if (item.cityName) {
+            accumulator[
+              item.cityName
+            ] = item;
+          }
+
+          return accumulator;
+        },
+        {}
+      );
+    }, [regions]);
+
+  const projection =
+    useMemo(() => {
+      if (!geoJson) {
+        return null;
       }
 
-      if (item.cityName) {
-        accumulator[item.cityName] =
-          item;
+      return geoMercator().fitExtent(
+        [
+          [72, 112],
+          [508, 590],
+        ],
+        geoJson as never
+      );
+    }, [geoJson]);
+
+  const pathGenerator =
+    useMemo(() => {
+      if (!projection) {
+        return null;
       }
 
-      return accumulator;
-    }, {});
-  }, [regions]);
-
-  const projection = useMemo(() => {
-    if (!geoJson) {
-      return null;
-    }
-
-    return geoMercator().fitExtent(
-      [
-        [72, 112],
-        [508, 590],
-      ],
-      geoJson as never
-    );
-  }, [geoJson]);
-
-  const pathGenerator = useMemo(() => {
-    if (!projection) {
-      return null;
-    }
-
-    return geoPath().projection(
-      projection
-    );
-  }, [projection]);
+      return geoPath().projection(
+        projection
+      );
+    }, [projection]);
 
   const renderedFeatures =
-    useMemo<RenderedFeature[]>(() => {
+    useMemo<
+      RenderedFeature[]
+    >(() => {
       if (
         !geoJson ||
         !pathGenerator
@@ -248,13 +367,16 @@ function KoreaMap({
             );
 
           const region =
-            regionMap[regionName];
+            regionMap[
+              regionName
+            ];
 
           return {
             key: `${regionName}-${index}`,
             regionName,
             region,
-            count: region?.count ?? 0,
+            count:
+              region?.count ?? 0,
             path:
               pathGenerator(
                 feature as never
@@ -262,7 +384,10 @@ function KoreaMap({
             centroid:
               pathGenerator.centroid(
                 feature as never
-              ) as [number, number],
+              ) as [
+                number,
+                number,
+              ],
           };
         }
       );
@@ -275,7 +400,8 @@ function KoreaMap({
   if (loadError) {
     return (
       <div className="flex aspect-[580/640] w-full max-w-[620px] items-center justify-center rounded-3xl bg-sky-50 px-6 text-center text-sm text-zinc-500">
-        지도를 불러오지 못했습니다.
+        지도를 불러오지
+        못했습니다.
         <br />
         public/maps/korea-provinces.json
         파일을 확인해주세요.
@@ -301,7 +427,7 @@ function KoreaMap({
 
       <div className="pointer-events-none absolute left-4 top-4 z-20 sm:left-6 sm:top-6">
         <p className="text-[10px] font-semibold tracking-wide text-zinc-500 sm:text-xs">
-          JIBNUN MAP
+          집눈 지역지도
         </p>
 
         <h3 className="mt-1 text-lg font-extrabold text-zinc-900 sm:text-2xl">
@@ -322,7 +448,10 @@ function KoreaMap({
       >
         {renderedFeatures.map(
           (item) => {
-            const [baseX, baseY] =
+            const [
+              baseX,
+              baseY,
+            ] =
               item.centroid;
 
             const badge =
@@ -356,13 +485,16 @@ function KoreaMap({
               selectedCity ===
                 item.regionName;
 
-            const selectRegion = () => {
-              if (item.region) {
-                onSelect(
-                  item.region.city
-                );
-              }
-            };
+            const selectRegion =
+              () => {
+                if (
+                  item.region
+                ) {
+                  onSelect(
+                    item.region.city
+                  );
+                }
+              };
 
             return (
               <g key={item.key}>
@@ -392,15 +524,24 @@ function KoreaMap({
                 />
 
                 <text
-                  x={baseX + label.x}
-                  y={baseY + label.y}
+                  x={
+                    baseX +
+                    label.x
+                  }
+                  y={
+                    baseY +
+                    label.y
+                  }
                   textAnchor="middle"
                   className="pointer-events-none select-none fill-zinc-700 text-[12px] font-bold"
                 >
-                  {item.regionName}
+                  {
+                    item.regionName
+                  }
                 </text>
 
-                {item.count > 0 && (
+                {item.count >
+                  0 && (
                   <g
                     role="button"
                     tabIndex={0}
@@ -414,7 +555,8 @@ function KoreaMap({
                       if (
                         event.key ===
                           "Enter" ||
-                        event.key === " "
+                        event.key ===
+                          " "
                       ) {
                         event.preventDefault();
                         selectRegion();
@@ -429,8 +571,12 @@ function KoreaMap({
                         r={29}
                         fill="none"
                         stroke="#59c79b"
-                        strokeWidth={2}
-                        opacity={0.35}
+                        strokeWidth={
+                          2
+                        }
+                        opacity={
+                          0.35
+                        }
                         className="animate-pulse"
                       />
                     )}
@@ -439,7 +585,8 @@ function KoreaMap({
                       cx={cx}
                       cy={cy}
                       r={
-                        item.count >= 10
+                        item.count >=
+                        10
                           ? 21
                           : 18
                       }
@@ -449,7 +596,9 @@ function KoreaMap({
                           : "#00a97a"
                       }
                       stroke="#ffffff"
-                      strokeWidth={3}
+                      strokeWidth={
+                        3
+                      }
                       vectorEffect="non-scaling-stroke"
                       className="drop-shadow-md transition-colors duration-150 hover:fill-[#238b68]"
                     />
@@ -487,4 +636,6 @@ function KoreaMap({
   );
 }
 
-export default memo(KoreaMap);
+export default memo(
+  KoreaMap
+);

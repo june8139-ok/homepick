@@ -6,7 +6,13 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 
-import type { Apartment } from "../../types/apartment";
+import type {
+  Apartment,
+} from "../../types/apartment";
+
+import {
+  getApartmentRegionKey,
+} from "../../lib/regionUtils";
 
 import {
   getHomeVisibleApartments,
@@ -25,7 +31,8 @@ type RegionItem = {
   subscriptionCount: number;
   firstComeCount: number;
 
-  representativeApartment: Apartment | null;
+  representativeApartment:
+    Apartment | null;
 };
 
 function getHeroImage(
@@ -35,14 +42,12 @@ function getHeroImage(
     return "";
   }
 
-  const hero = apartment.images?.hero;
-
-  if (Array.isArray(hero)) {
-    return hero[0] ?? "";
-  }
+  const hero =
+    apartment.images?.hero;
 
   if (
     typeof hero === "string" &&
+    hero.trim() &&
     !hero.includes(
       "/images/apartments/default/main.jpg"
     )
@@ -67,17 +72,25 @@ function getHeroImage(
 function getStatusPriority(
   apartment: Apartment
 ) {
-  if (isFirstComeApartment(apartment)) {
+  if (
+    isFirstComeApartment(
+      apartment
+    )
+  ) {
     return 4;
   }
 
   if (
-    isSubscriptionApartment(apartment)
+    isSubscriptionApartment(
+      apartment
+    )
   ) {
     return 3;
   }
 
-  if (apartment.images?.hero) {
+  if (
+    getHeroImage(apartment)
+  ) {
     return 2;
   }
 
@@ -104,138 +117,137 @@ export default function RegionMapSection({
 }: {
   apartments: Apartment[];
 }) {
-  const router = useRouter();
+  const router =
+    useRouter();
 
-  const visibleApartments = useMemo(
-    () =>
-      getHomeVisibleApartments(
-        apartments
-      ),
-    [apartments]
-  );
-
-  const regions = useMemo<
-    RegionItem[]
-  >(() => {
-    const accumulator: Record<
-      string,
-      {
-        city: string;
-        cityName: string;
-        apartments: Apartment[];
-      }
-    > = {};
-
-    visibleApartments.forEach(
-      (apartment) => {
-        if (!apartment.city) {
-          return;
-        }
-
-        if (
-          !accumulator[apartment.city]
-        ) {
-          accumulator[
-            apartment.city
-          ] = {
-            city: apartment.city,
-
-            cityName:
-              apartment.cityName ||
-              apartment.city,
-
-            apartments: [],
-          };
-        }
-
-        accumulator[
-          apartment.city
-        ].apartments.push(apartment);
-      }
+  const visibleApartments =
+    useMemo(
+      () =>
+        getHomeVisibleApartments(
+          apartments
+        ),
+      [apartments]
     );
 
-    return Object.values(
-      accumulator
-    )
-      .map((group) => {
-        const sortedApartments = [
-          ...group.apartments,
-        ].sort(
-          (a, b) =>
-            getStatusPriority(b) -
-            getStatusPriority(a)
-        );
+  const regions =
+    useMemo<RegionItem[]>(() => {
+      const accumulator =
+        new Map<
+          string,
+          Apartment[]
+        >();
 
-        const subscriptionCount =
-          group.apartments.filter(
-            isSubscriptionApartment
-          ).length;
+      visibleApartments.forEach(
+        (apartment) => {
+          const regionKey =
+            getApartmentRegionKey(
+              apartment
+            );
 
-        const firstComeCount =
-          group.apartments.filter(
-            (apartment) =>
-              !isSubscriptionApartment(
-                apartment
-              ) &&
-              isFirstComeApartment(
-                apartment
-              )
-          ).length;
+          if (!regionKey) {
+            return;
+          }
 
-        const saleCount =
-          group.apartments.filter(
-            (apartment) =>
-              !isSubscriptionApartment(
-                apartment
-              ) &&
-              !isFirstComeApartment(
-                apartment
-              )
-          ).length;
+          const current =
+            accumulator.get(
+              regionKey
+            ) ?? [];
 
-        return {
-          city: group.city,
-          cityName: group.cityName,
+          current.push(apartment);
 
-          count:
-            group.apartments.length,
-
-          saleCount,
-          subscriptionCount,
-          firstComeCount,
-
-          representativeApartment:
-            sortedApartments[0] ?? null,
-        };
-      })
-      .sort((a, b) => {
-        if (b.count !== a.count) {
-          return b.count - a.count;
+          accumulator.set(
+            regionKey,
+            current
+          );
         }
+      );
 
-        return a.cityName.localeCompare(
-          b.cityName,
-          "ko"
-        );
-      });
-  }, [visibleApartments]);
+      return Array.from(
+        accumulator.entries()
+      )
+        .map(
+          ([
+            regionKey,
+            regionApartments,
+          ]): RegionItem => {
+            const sortedApartments = [
+              ...regionApartments,
+            ].sort(
+              (a, b) =>
+                getStatusPriority(b) -
+                getStatusPriority(a)
+            );
+
+            const subscriptionCount =
+              regionApartments.filter(
+                isSubscriptionApartment
+              ).length;
+
+            const firstComeCount =
+              regionApartments.filter(
+                (apartment) =>
+                  !isSubscriptionApartment(
+                    apartment
+                  ) &&
+                  isFirstComeApartment(
+                    apartment
+                  )
+              ).length;
+
+            const saleCount =
+              regionApartments.filter(
+                (apartment) =>
+                  !isSubscriptionApartment(
+                    apartment
+                  ) &&
+                  !isFirstComeApartment(
+                    apartment
+                  )
+              ).length;
+
+            return {
+              city: regionKey,
+              cityName: regionKey,
+
+              count:
+                regionApartments.length,
+
+              saleCount,
+              subscriptionCount,
+              firstComeCount,
+
+              representativeApartment:
+                sortedApartments[0] ??
+                null,
+            };
+          }
+        )
+        .sort((a, b) => {
+          if (
+            b.count !== a.count
+          ) {
+            return (
+              b.count - a.count
+            );
+          }
+
+          return a.cityName.localeCompare(
+            b.cityName,
+            "ko"
+          );
+        });
+    }, [visibleApartments]);
 
   const [
     selectedCity,
     setSelectedCity,
   ] = useState("");
 
-  /*
-   * 선택한 지역이 현재 목록에 있으면 그대로 사용하고,
-   * 목록 변경으로 사라졌다면 첫 번째 지역을 화면상 기본값으로 사용합니다.
-   *
-   * useEffect 안에서 setState를 호출하지 않아
-   * react-hooks/set-state-in-effect 오류를 방지합니다.
-   */
   const selectedRegion =
     regions.find(
       (region) =>
-        region.city === selectedCity
+        region.city ===
+        selectedCity
     ) ??
     regions[0] ??
     null;
@@ -246,19 +258,22 @@ export default function RegionMapSection({
     null;
 
   const selectedImage =
-    getHeroImage(selectedApartment);
-
-  const openSelectedRegion = () => {
-    if (!selectedRegion) {
-      return;
-    }
-
-    router.push(
-      `/region/${encodeURIComponent(
-        selectedRegion.city
-      )}`
+    getHeroImage(
+      selectedApartment
     );
-  };
+
+  const openSelectedRegion =
+    () => {
+      if (!selectedRegion) {
+        return;
+      }
+
+      router.push(
+        `/region/${encodeURIComponent(
+          selectedRegion.city
+        )}`
+      );
+    };
 
   const openRepresentativeApartment =
     () => {
@@ -272,17 +287,18 @@ export default function RegionMapSection({
       );
     };
 
-  if (regions.length === 0) {
+  if (
+    regions.length === 0
+  ) {
     return null;
   }
 
   return (
     <section className="mt-4 overflow-hidden rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-5">
-      {/* 제목 */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-extrabold tracking-[0.14em] text-[#0F766E]">
-            JIBNUN MAP
+            집눈 지역지도
           </p>
 
           <h2 className="mt-1 text-2xl font-black tracking-tight text-[#111827]">
@@ -291,7 +307,7 @@ export default function RegionMapSection({
 
           <p className="mt-1 text-sm leading-6 text-zinc-500">
             지도 위 지역이나 숫자를 누르면
-            해당 지역의 부동산 현황을 확인할 수
+            해당 지역의 분양 현황을 확인할 수
             있습니다.
           </p>
         </div>
@@ -327,7 +343,6 @@ export default function RegionMapSection({
         </button>
       </div>
 
-      {/* 지도 + 선택 지역 */}
       <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-start">
         <div className="flex min-w-0 justify-center">
           <KoreaMap
@@ -335,14 +350,16 @@ export default function RegionMapSection({
             selectedCity={
               selectedRegion?.city
             }
-            onSelect={(city) =>
-              setSelectedCity(city)
+            onSelect={
+              setSelectedCity
             }
           />
         </div>
 
         <aside
-          key={selectedRegion?.city}
+          key={
+            selectedRegion?.city
+          }
           className="
             hidden min-h-[520px]
             min-w-0 animate-[fadeIn_220ms_ease-out]
@@ -352,7 +369,6 @@ export default function RegionMapSection({
             shadow-sm
           "
         >
-          {/* 대표 이미지 */}
           <button
             type="button"
             onClick={
@@ -372,11 +388,15 @@ export default function RegionMapSection({
           >
             {selectedImage ? (
               <img
-                src={selectedImage}
+                src={
+                  selectedImage
+                }
                 alt={
-                  selectedApartment?.name ||
+                  selectedApartment
+                    ?.name ||
                   `${selectedRegion?.cityName} 대표 단지`
                 }
+                loading="lazy"
                 className="
                   h-full w-full object-cover
                   transition-transform
@@ -406,13 +426,15 @@ export default function RegionMapSection({
               </span>
 
               <p className="mt-2 text-3xl font-black text-white">
-                {selectedRegion?.cityName}
+                {
+                  selectedRegion
+                    ?.cityName
+                }
               </p>
             </div>
           </button>
 
           <div className="flex flex-1 flex-col p-5">
-            {/* 등록 단지 */}
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-bold text-zinc-400">
@@ -420,8 +442,10 @@ export default function RegionMapSection({
                 </p>
 
                 <p className="mt-1 text-4xl font-black tracking-tight text-[#111827]">
-                  {selectedRegion?.count ??
-                    0}
+                  {
+                    selectedRegion
+                      ?.count ?? 0
+                  }
                   <span className="ml-1 text-base font-bold text-zinc-500">
                     개 단지
                   </span>
@@ -433,7 +457,6 @@ export default function RegionMapSection({
               </span>
             </div>
 
-            {/* 현황 */}
             <div className="mt-5 grid grid-cols-3 gap-2">
               <RegionCountBox
                 label="분양"
@@ -464,7 +487,6 @@ export default function RegionMapSection({
               />
             </div>
 
-            {/* 대표 단지 */}
             <button
               type="button"
               onClick={
@@ -498,8 +520,11 @@ export default function RegionMapSection({
               </div>
 
               <h3 className="mt-2 line-clamp-2 break-keep text-base font-black leading-6 text-[#111827]">
-                {selectedApartment?.name ||
-                  "등록 준비 중"}
+                {
+                  selectedApartment
+                    ?.name ||
+                  "등록 준비 중"
+                }
               </h3>
 
               <p className="mt-2 line-clamp-2 text-xs leading-5 text-zinc-500">
@@ -509,10 +534,11 @@ export default function RegionMapSection({
               </p>
             </button>
 
-            {/* 주요 버튼 */}
             <button
               type="button"
-              onClick={openSelectedRegion}
+              onClick={
+                openSelectedRegion
+              }
               className="
                 mt-auto inline-flex min-h-12
                 w-full cursor-pointer
@@ -533,7 +559,11 @@ export default function RegionMapSection({
                 focus-visible:ring-offset-2
               "
             >
-              {selectedRegion?.cityName} 전체보기
+              {
+                selectedRegion
+                  ?.cityName
+              }{" "}
+              전체보기
               <span className="ml-2">
                 →
               </span>
@@ -542,32 +572,37 @@ export default function RegionMapSection({
         </aside>
       </div>
 
-      {/* 모바일 지역 빠른 선택 */}
       <div className="mt-4 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden xl:hidden">
-        {regions.map((region) => {
-          const selected =
-            region.city ===
-            selectedRegion?.city;
+        {regions.map(
+          (region) => {
+            const selected =
+              region.city ===
+              selectedRegion?.city;
 
-          return (
-            <button
-              key={region.city}
-              type="button"
-              onClick={() =>
-                setSelectedCity(region.city)
-              }
-              className={[
-                "shrink-0 cursor-pointer rounded-full border px-4 py-2 text-xs font-bold transition-all",
-                selected
-                  ? "border-[#0F766E] bg-[#0F766E] text-white"
-                  : "border-zinc-200 bg-white text-zinc-600 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700",
-              ].join(" ")}
-            >
-              {region.cityName}{" "}
-              {region.count}
-            </button>
-          );
-        })}
+            return (
+              <button
+                key={
+                  region.city
+                }
+                type="button"
+                onClick={() =>
+                  setSelectedCity(
+                    region.city
+                  )
+                }
+                className={[
+                  "shrink-0 cursor-pointer rounded-full border px-4 py-2 text-xs font-bold transition-all",
+                  selected
+                    ? "border-[#0F766E] bg-[#0F766E] text-white"
+                    : "border-zinc-200 bg-white text-zinc-600 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700",
+                ].join(" ")}
+              >
+                {region.cityName}{" "}
+                {region.count}
+              </button>
+            );
+          }
+        )}
       </div>
     </section>
   );
