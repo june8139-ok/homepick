@@ -6,6 +6,16 @@ import { supabaseAdmin } from "./supabaseAdmin";
 
 type Row = Record<string, unknown>;
 
+function isRecord(
+  value: unknown
+): value is Row {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    !Array.isArray(value)
+  );
+}
+
 type SubscriptionSchedule = {
   announcementDate: string | null;
   specialSupplyStartDate: string | null;
@@ -561,15 +571,22 @@ function canonicalTypeName(value: unknown) {
 }
 
 function mergePriceInfo(
-  existing: any,
+  existing: unknown,
   synced: PriceInfo | null,
   preserveManualMinimums: boolean
 ) {
-  if (!synced) return existing ?? null;
-  if (!existing) return synced;
+  if (!synced) {
+    return existing ?? null;
+  }
 
-  const existingUnits = Array.isArray(existing.units)
-    ? existing.units
+  if (!isRecord(existing)) {
+    return synced;
+  }
+
+  const existingUnits = Array.isArray(
+    existing.units
+  )
+    ? existing.units.filter(isRecord)
     : [];
 
   /*
@@ -579,109 +596,191 @@ function mergePriceInfo(
    * manual_override가 true인 단지만 관리자가 직접 입력한
    * 최저가를 보존합니다.
    */
-  const oldTypeMap = new Map<string, any>();
+  const oldTypeMap = new Map<
+    string,
+    Row
+  >();
 
   if (preserveManualMinimums) {
     for (const unit of existingUnits) {
-      const types = Array.isArray(unit?.types)
-        ? unit.types
+      const types = Array.isArray(
+        unit.types
+      )
+        ? unit.types.filter(isRecord)
         : [];
 
       for (const type of types) {
-        const key = canonicalTypeName(type?.typeName);
-        if (key) oldTypeMap.set(key, type);
+        const key =
+          canonicalTypeName(
+            type.typeName
+          );
+
+        if (key) {
+          oldTypeMap.set(
+            key,
+            type
+          );
+        }
       }
     }
   }
 
-  const oldUnitByArea = preserveManualMinimums
-    ? new Map<string, any>(
-        existingUnits.map((unit: any) => [
-          text(unit.area),
-          unit,
-        ])
-      )
-    : new Map<string, any>();
+  const oldUnitByArea =
+    preserveManualMinimums
+      ? new Map<string, Row>(
+          existingUnits.map(
+            (unit) => [
+              text(unit.area),
+              unit,
+            ]
+          )
+        )
+      : new Map<string, Row>();
 
-  const units = synced.units.map((unit) => {
-    const oldUnit = oldUnitByArea.get(unit.area);
-
-    return {
-      ...unit,
-
-      minPrice: preserveManualMinimums
-        ? numberOrNull(oldUnit?.minPrice)
-        : null,
-
-      types: unit.types.map((type) => {
-        const oldType = oldTypeMap.get(
-          canonicalTypeName(type.typeName)
+  const units = synced.units.map(
+    (unit) => {
+      const oldUnit =
+        oldUnitByArea.get(
+          unit.area
         );
 
-        return {
-          ...type,
+      return {
+        ...unit,
 
-          minPrice: preserveManualMinimums
-            ? numberOrNull(oldType?.minPrice)
+        minPrice:
+          preserveManualMinimums
+            ? numberOrNull(
+                oldUnit?.minPrice
+              )
             : null,
-        };
-      }),
-    };
-  });
+
+        types: unit.types.map(
+          (type) => {
+            const oldType =
+              oldTypeMap.get(
+                canonicalTypeName(
+                  type.typeName
+                )
+              );
+
+            return {
+              ...type,
+
+              minPrice:
+                preserveManualMinimums
+                  ? numberOrNull(
+                      oldType?.minPrice
+                    )
+                  : null,
+            };
+          }
+        ),
+      };
+    }
+  );
 
   /*
    * 관리자가 직접 추가한 단위는 manual_override 단지에서만 유지합니다.
    * 자동 단지는 청약홈에서 다시 만든 전용면적 데이터로 완전히 교체합니다.
    */
-  const manualOnly = preserveManualMinimums
-    ? existingUnits.filter((unit: any) => {
-        const source = text(unit?.source).toLowerCase();
+  const manualOnly =
+    preserveManualMinimums
+      ? existingUnits.filter(
+          (unit) => {
+            const source = text(
+              unit.source
+            ).toLowerCase();
 
-        if (source === "applyhome") return false;
+            if (
+              source ===
+              "applyhome"
+            ) {
+              return false;
+            }
 
-        return !units.some(
-          (item) => item.area === text(unit?.area)
-        );
-      })
-    : [];
+            return !units.some(
+              (item) =>
+                item.area ===
+                text(unit.area)
+            );
+          }
+        )
+      : [];
 
-  const allUnits = [...units, ...manualOnly].sort(
-    (a: any, b: any) => {
-      const first =
-        Number(text(a.area).match(/\d+/)?.[0]) || 0;
-      const second =
-        Number(text(b.area).match(/\d+/)?.[0]) || 0;
+  const allUnits: Array<
+    PriceUnit | Row
+  > = [
+    ...units,
+    ...manualOnly,
+  ].sort((first, second) => {
+    const firstArea =
+      Number(
+        text(first.area).match(
+          /\d+/
+        )?.[0]
+      ) || 0;
 
-      return first - second;
-    }
-  );
+    const secondArea =
+      Number(
+        text(second.area).match(
+          /\d+/
+        )?.[0]
+      ) || 0;
 
-  const explicitMinimums = allUnits
-    .flatMap((unit: any) => [
-      numberOrNull(unit.minPrice),
-      ...(Array.isArray(unit.types)
-        ? unit.types.map((type: any) =>
-            numberOrNull(type?.minPrice)
-          )
-        : []),
-    ])
-    .filter(
-      (value: number | null): value is number =>
-        value !== null && value > 0
+    return (
+      firstArea - secondArea
     );
+  });
+
+  const explicitMinimums =
+    allUnits
+      .flatMap((unit) => {
+        const types =
+          Array.isArray(
+            unit.types
+          )
+            ? unit.types.filter(
+                isRecord
+              )
+            : [];
+
+        return [
+          numberOrNull(
+            unit.minPrice
+          ),
+
+          ...types.map((type) =>
+            numberOrNull(
+              type.minPrice
+            )
+          ),
+        ];
+      })
+      .filter(
+        (
+          value
+        ): value is number =>
+          value !== null &&
+          value > 0
+      );
 
   return {
     ...existing,
     ...synced,
 
     minimumPrice:
-      preserveManualMinimums && explicitMinimums.length > 0
-        ? Math.min(...explicitMinimums)
+      preserveManualMinimums &&
+      explicitMinimums.length > 0
+        ? Math.min(
+            ...explicitMinimums
+          )
         : null,
 
     averagePricePerPyeong:
       preserveManualMinimums
-        ? numberOrNull(existing.averagePricePerPyeong)
+        ? numberOrNull(
+            existing.averagePricePerPyeong
+          )
         : null,
 
     units: allUnits,
@@ -954,20 +1053,41 @@ async function insertApartment(
 }
 
 async function updateApartment(
-  existing: Record<string, any>,
+  existing: Row,
   apartment: NormalizedApartment,
   syncedPriceInfo: PriceInfo | null,
   modelRows: Row[]
 ) {
-  const existingData = existing.data ?? {};
-  const manualOverride = Boolean(existing.manual_override);
-  const priceInfo = mergePriceInfo(
-    existingData.priceInfo,
-    syncedPriceInfo,
-    manualOverride
-  );
+  const existingData =
+    isRecord(existing.data)
+      ? existing.data
+      : {};
 
-  const top = numberOrNull(priceInfo?.maximumPrice);
+  const existingPriceDetail =
+    isRecord(
+      existingData.priceDetail
+    )
+      ? existingData.priceDetail
+      : {};
+
+  const manualOverride =
+    Boolean(
+      existing.manual_override
+    );
+
+  const priceInfo =
+    mergePriceInfo(
+      existingData.priceInfo,
+      syncedPriceInfo,
+      manualOverride
+    );
+
+  const top =
+    numberOrNull(
+      isRecord(priceInfo)
+        ? priceInfo.maximumPrice
+        : null
+    );
 
   const nextData = {
     ...existingData,
@@ -981,7 +1101,8 @@ async function updateApartment(
     totalSupply:
       existingData.totalSupply ?? apartment.totalSupply,
     status: manualOverride
-      ? existingData.status ?? existing.status
+      ? existingData.status ??
+        existing.status
       : apartment.status,
     price:
       manualOverride && text(existingData.price)
@@ -990,14 +1111,18 @@ async function updateApartment(
           ? `최고 ${top.toLocaleString()}만원`
           : existingData.price ?? "",
     priceDetail: {
-      ...(existingData.priceDetail ?? {}),
+      ...existingPriceDetail,
+
       salePrice:
         manualOverride &&
-        text(existingData.priceDetail?.salePrice)
-          ? existingData.priceDetail.salePrice
+        text(
+          existingPriceDetail.salePrice
+        )
+          ? existingPriceDetail.salePrice
           : top
             ? `최고 ${top.toLocaleString()}만원`
-            : existingData.priceDetail?.salePrice ?? "",
+            : existingPriceDetail.salePrice ??
+              "",
     },
   };
 
