@@ -1,4 +1,8 @@
 import type {
+  ComponentProps,
+} from "react";
+
+import type {
   Apartment,
   LocationInfo,
 } from "../../types/apartment";
@@ -535,7 +539,9 @@ export default function SaleDetail({
         <div className="mt-3 sm:mt-5">
           <PriceConditionCard
             apartment={
-              apartment as any
+              apartment as ComponentProps<
+                typeof PriceConditionCard
+              >["apartment"]
             }
           />
         </div>
@@ -553,7 +559,9 @@ export default function SaleDetail({
           <div className="mt-3 sm:mt-5">
             <ConditionHistory
               conditionHistory={
-                conditionHistory as any
+                conditionHistory as ComponentProps<
+                  typeof ConditionHistory
+                >["conditionHistory"]
               }
             />
           </div>
