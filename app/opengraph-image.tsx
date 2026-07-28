@@ -13,96 +13,11 @@ export const size = {
 export const contentType =
   "image/png";
 
-function JibnunSymbol() {
-  return (
-    <svg
-      width="82"
-      height="74"
-      viewBox="0 0 72 64"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      {/* 코랄 지붕 */}
-      <path
-        d="M8 27.5L31 8L54 27.5"
-        stroke="#FF5A5F"
-        strokeWidth="5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-
-      {/* 청록색 집 외곽 */}
-      <path
-        d="M12 26.5V50.5H42"
-        stroke="#0F9D98"
-        strokeWidth="5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-
-      {/* 창문 */}
-      <rect
-        x="22"
-        y="27"
-        width="6"
-        height="6"
-        rx="1.4"
-        fill="#0F9D98"
-      />
-
-      <rect
-        x="31"
-        y="27"
-        width="6"
-        height="6"
-        rx="1.4"
-        fill="#0F9D98"
-      />
-
-      <rect
-        x="22"
-        y="36"
-        width="6"
-        height="6"
-        rx="1.4"
-        fill="#0F9D98"
-      />
-
-      <rect
-        x="31"
-        y="36"
-        width="6"
-        height="6"
-        rx="1.4"
-        fill="#0F9D98"
-      />
-
-      {/* 돋보기 */}
-      <circle
-        cx="50"
-        cy="46"
-        r="10"
-        stroke="#0F9D98"
-        strokeWidth="4.5"
-      />
-
-      <path
-        d="M57.5 53.5L66 62"
-        stroke="#0F9D98"
-        strokeWidth="4.5"
-        strokeLinecap="round"
-      />
-
-      {/* 돋보기 내부 코랄 포인트 */}
-      <path
-        d="M46.5 41.5C49.5 39.3 53.7 41 54 44.6"
-        stroke="#FF5A5F"
-        strokeWidth="3.2"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(
+    /\/$/,
+    ""
+  ) || "https://jibnun.com";
 
 export default function OpenGraphImage() {
   return new ImageResponse(
@@ -115,90 +30,102 @@ export default function OpenGraphImage() {
           position: "relative",
           overflow: "hidden",
           background:
-            "linear-gradient(135deg, #ecfdf5 0%, #ffffff 48%, #d1fae5 100%)",
+            "linear-gradient(135deg, #ecfdf5 0%, #ffffff 52%, #d1fae5 100%)",
           color: "#132238",
-          fontFamily:
-            "Arial, sans-serif",
         }}
       >
-        {/* 우측 상단 민트 원형 장식 */}
+        {/* 우측 상단 장식 */}
         <div
           style={{
             position: "absolute",
-            top: -110,
-            right: -60,
-            width: 380,
-            height: 380,
-            borderRadius: "999px",
+            top: -130,
+            right: -80,
+            width: 420,
+            height: 420,
+            display: "flex",
+            borderRadius: 999,
             background:
-              "rgba(16, 185, 129, 0.16)",
+              "rgba(16, 185, 129, 0.14)",
           }}
         />
 
-        {/* 좌측 하단 청록 원형 장식 */}
+        {/* 좌측 하단 장식 */}
         <div
           style={{
             position: "absolute",
-            bottom: -140,
-            left: -80,
-            width: 400,
-            height: 400,
-            borderRadius: "999px",
+            bottom: -180,
+            left: -130,
+            width: 440,
+            height: 440,
+            display: "flex",
+            borderRadius: 999,
             background:
-              "rgba(5, 150, 105, 0.12)",
+              "rgba(15, 118, 110, 0.10)",
           }}
         />
 
-        {/* 우측 중단 코랄 포인트 */}
+        {/* 코랄 포인트 */}
         <div
           style={{
             position: "absolute",
-            top: 210,
-            right: 95,
-            width: 96,
-            height: 96,
-            borderRadius: "999px",
-            background:
-              "rgba(255, 90, 95, 0.10)",
+            top: 105,
+            right: 145,
+            width: 26,
+            height: 26,
+            display: "flex",
+            borderRadius: 999,
+            background: "#FF5A5F",
           }}
         />
 
         <div
           style={{
+            width: "100%",
+            height: "100%",
             display: "flex",
             flexDirection: "column",
             justifyContent:
               "space-between",
-            width: "100%",
-            padding: "64px 76px",
+            padding: "58px 72px",
           }}
         >
-          {/* 브랜드 영역 */}
+          {/* 상단 브랜드 */}
           <div
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 20,
+              gap: 22,
             }}
           >
             <div
               style={{
+                width: 92,
+                height: 92,
                 display: "flex",
-                width: 88,
-                height: 88,
                 alignItems: "center",
                 justifyContent:
                   "center",
+                overflow: "hidden",
                 borderRadius: 24,
-                background:
-                  "rgba(255,255,255,0.82)",
+                background: "#ffffff",
                 border:
-                  "1px solid rgba(15,157,152,0.18)",
+                  "1px solid #a7f3d0",
                 boxShadow:
-                  "0 12px 30px rgba(15,118,110,0.10)",
+                  "0 12px 28px rgba(15, 118, 110, 0.12)",
               }}
             >
-              <JibnunSymbol />
+              <img
+                src={`${SITE_URL}/icon-512.png`}
+                alt=""
+                width="78"
+                height="78"
+                style={{
+                  width: 78,
+                  height: 78,
+                  objectFit:
+                    "contain",
+                }}
+              />
             </div>
 
             <div
@@ -209,7 +136,9 @@ export default function OpenGraphImage() {
             >
               <div
                 style={{
+                  display: "flex",
                   fontSize: 48,
+                  lineHeight: 1,
                   fontWeight: 900,
                   letterSpacing: -2,
                   color: "#0F766E",
@@ -220,10 +149,11 @@ export default function OpenGraphImage() {
 
               <div
                 style={{
-                  marginTop: 2,
+                  display: "flex",
+                  marginTop: 10,
                   fontSize: 22,
-                  fontWeight: 800,
-                  color: "#4B5563",
+                  fontWeight: 700,
+                  color: "#64748B",
                 }}
               >
                 전국 부동산을 한눈에
@@ -231,41 +161,63 @@ export default function OpenGraphImage() {
             </div>
           </div>
 
-          {/* 메인 문구 */}
+          {/* 중앙 문구 */}
           <div
             style={{
               display: "flex",
               flexDirection: "column",
-              maxWidth: 930,
             }}
           >
             <div
               style={{
-                fontSize: 62,
-                lineHeight: 1.18,
+                display: "flex",
+                fontSize: 64,
+                lineHeight: 1.16,
                 fontWeight: 900,
                 letterSpacing: -3,
+                color: "#111827",
               }}
             >
-              전국 분양 아파트를
-              <br />
-              한눈에 검색하고 비교하세요
+              분양 아파트부터 청약 일정까지
             </div>
 
             <div
               style={{
-                marginTop: 26,
-                fontSize: 27,
-                lineHeight: 1.5,
-                color: "#4B5563",
-                fontWeight: 600,
+                display: "flex",
+                marginTop: 8,
+                fontSize: 64,
+                lineHeight: 1.16,
+                fontWeight: 900,
+                letterSpacing: -3,
+                color: "#111827",
               }}
             >
-              청약 일정 · 선착순 분양 · 분양가 · 계약조건 · 입지 · 평면도
+              한눈에 찾고
+              <span
+                style={{
+                  display: "flex",
+                  marginLeft: 16,
+                  color: "#FF5A5F",
+                }}
+              >
+                비교하세요
+              </span>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                marginTop: 26,
+                fontSize: 25,
+                fontWeight: 600,
+                color: "#4B5563",
+              }}
+            >
+              청약 일정 · 선착순 분양 · 분양가 · 계약조건 · 입지정보
             </div>
           </div>
 
-          {/* 하단 태그 + 도메인 */}
+          {/* 하단 */}
           <div
             style={{
               display: "flex",
@@ -277,40 +229,85 @@ export default function OpenGraphImage() {
             <div
               style={{
                 display: "flex",
-                gap: 12,
+                gap: 10,
               }}
             >
-              {[
-                "청약",
-                "선착순",
-                "지역검색",
-                "단지비교",
-              ].map(
-                (label) => (
-                  <div
-                    key={label}
-                    style={{
-                      display: "flex",
-                      borderRadius: 999,
-                      background:
-                        "#ffffff",
-                      border:
-                        "1px solid #a7f3d0",
-                      padding:
-                        "11px 18px",
-                      fontSize: 18,
-                      fontWeight: 800,
-                      color: "#047857",
-                    }}
-                  >
-                    {label}
-                  </div>
-                )
-              )}
+              <div
+                style={{
+                  display: "flex",
+                  padding:
+                    "10px 17px",
+                  borderRadius: 999,
+                  background:
+                    "#ffffff",
+                  border:
+                    "1px solid #a7f3d0",
+                  fontSize: 17,
+                  fontWeight: 800,
+                  color: "#047857",
+                }}
+              >
+                청약
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  padding:
+                    "10px 17px",
+                  borderRadius: 999,
+                  background:
+                    "#ffffff",
+                  border:
+                    "1px solid #a7f3d0",
+                  fontSize: 17,
+                  fontWeight: 800,
+                  color: "#047857",
+                }}
+              >
+                선착순
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  padding:
+                    "10px 17px",
+                  borderRadius: 999,
+                  background:
+                    "#ffffff",
+                  border:
+                    "1px solid #a7f3d0",
+                  fontSize: 17,
+                  fontWeight: 800,
+                  color: "#047857",
+                }}
+              >
+                지역검색
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  padding:
+                    "10px 17px",
+                  borderRadius: 999,
+                  background:
+                    "#ffffff",
+                  border:
+                    "1px solid #a7f3d0",
+                  fontSize: 17,
+                  fontWeight: 800,
+                  color: "#047857",
+                }}
+              >
+                단지비교
+              </div>
             </div>
 
             <div
               style={{
+                display: "flex",
                 fontSize: 22,
                 fontWeight: 900,
                 color: "#0F766E",

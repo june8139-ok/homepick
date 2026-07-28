@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -221,30 +220,18 @@ export default function RegionMapSection({
       });
   }, [visibleApartments]);
 
-  const initialCity =
-    regions[0]?.city ?? "";
-
   const [
     selectedCity,
     setSelectedCity,
-  ] = useState(initialCity);
+  ] = useState("");
 
-  useEffect(() => {
-    const selectedExists =
-      regions.some(
-        (region) =>
-          region.city === selectedCity
-      );
-
-    if (selectedExists) {
-      return;
-    }
-
-    setSelectedCity(
-      regions[0]?.city ?? ""
-    );
-  }, [regions, selectedCity]);
-
+  /*
+   * 선택한 지역이 현재 목록에 있으면 그대로 사용하고,
+   * 목록 변경으로 사라졌다면 첫 번째 지역을 화면상 기본값으로 사용합니다.
+   *
+   * useEffect 안에서 setState를 호출하지 않아
+   * react-hooks/set-state-in-effect 오류를 방지합니다.
+   */
   const selectedRegion =
     regions.find(
       (region) =>
