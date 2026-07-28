@@ -38,6 +38,118 @@ function textOrFallback(
   return normalized || fallback;
 }
 
+function validPrice(
+  value?: number | null
+): value is number {
+  return (
+    typeof value === "number" &&
+    Number.isFinite(value) &&
+    value > 0
+  );
+}
+
+function formatPrice(
+  value?: number | null
+) {
+  if (!validPrice(value)) {
+    return "";
+  }
+
+  const amount = Math.round(value);
+  const eok = Math.floor(
+    amount / 10000
+  );
+  const manwon =
+    amount % 10000;
+
+  if (eok === 0) {
+    return `${amount.toLocaleString(
+      "ko-KR"
+    )}만원`;
+  }
+
+  if (manwon === 0) {
+    return `${eok}억원`;
+  }
+
+  return `${eok}억 ${manwon.toLocaleString(
+    "ko-KR"
+  )}만원`;
+}
+
+function getStructuredSalePrice(
+  apartment: Apartment
+) {
+  const units =
+    apartment.priceInfo?.units ??
+    [];
+
+  const minimums =
+    units
+      .flatMap((unit) => [
+        unit.minPrice,
+        ...(unit.types ?? []).map(
+          (type) =>
+            type.minPrice
+        ),
+      ])
+      .filter(validPrice);
+
+  if (minimums.length > 0) {
+    return `최저 ${formatPrice(
+      Math.min(...minimums)
+    )}부터`;
+  }
+
+  const maximums =
+    units
+      .flatMap((unit) => [
+        unit.maxPrice,
+        ...(unit.types ?? []).map(
+          (type) =>
+            type.maxPrice
+        ),
+      ])
+      .filter(validPrice);
+
+  if (maximums.length > 0) {
+    return `최고 ${formatPrice(
+      Math.max(...maximums)
+    )}`;
+  }
+
+  return "";
+}
+
+function formatMoveInDate(
+  value: unknown
+) {
+  const normalized =
+    String(value ?? "")
+      .replace(/[^\d]/g, "");
+
+  if (normalized.length === 6) {
+    const year =
+      normalized.slice(0, 4);
+    const month =
+      Number(
+        normalized.slice(4, 6)
+      );
+
+    if (
+      month >= 1 &&
+      month <= 12
+    ) {
+      return `${year}년 ${month}월`;
+    }
+  }
+
+  return textOrFallback(
+    value,
+    "정보 확인 중"
+  );
+}
+
 function getHeroImage(
   apartment: Apartment
 ) {
@@ -67,10 +179,16 @@ function getHeroImage(
 function getSalePrice(
   apartment: Apartment
 ) {
-  return textOrFallback(
-    apartment.priceDetail?.salePrice ||
-      apartment.price,
-    "분양가 확인 중"
+  return (
+    getStructuredSalePrice(
+      apartment
+    ) ||
+    textOrFallback(
+      apartment.priceDetail
+        ?.salePrice ||
+        apartment.price,
+      "분양가 확인 중"
+    )
   );
 }
 
@@ -86,9 +204,9 @@ function getContractPrice(
 function getMoveInDate(
   apartment: Apartment
 ) {
-  return textOrFallback(
-    apartment.projectInfo?.moveInDate,
-    "정보 확인 중"
+  return formatMoveInDate(
+    apartment.projectInfo
+      ?.moveInDate
   );
 }
 

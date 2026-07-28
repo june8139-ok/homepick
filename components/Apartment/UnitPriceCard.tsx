@@ -57,19 +57,18 @@ function explicitMinimumOfUnit(
     : null;
 }
 
-function lowestPublishedTopPrice(
+function highestPublishedTopPrice(
   unit: UnitPrice
 ) {
-  const values = (unit.types ?? [])
-    .map((type) => type.maxPrice)
-    .filter(validPrice);
+  const values = [
+    unit.maxPrice,
+    ...(unit.types ?? []).map(
+      (type) => type.maxPrice
+    ),
+  ].filter(validPrice);
 
-  if (values.length > 0) {
-    return Math.min(...values);
-  }
-
-  return validPrice(unit.maxPrice)
-    ? unit.maxPrice
+  return values.length > 0
+    ? Math.max(...values)
     : null;
 }
 
@@ -86,14 +85,14 @@ function unitDisplayPrice(unit: UnitPrice) {
     };
   }
 
-  const lowestTopPrice =
-    lowestPublishedTopPrice(unit);
+  const highestTopPrice =
+    highestPublishedTopPrice(unit);
 
-  if (validPrice(lowestTopPrice)) {
+  if (validPrice(highestTopPrice)) {
     return {
-      value: lowestTopPrice,
-      label: "타입별 최저 공급가",
-      text: formatPrice(lowestTopPrice),
+      value: highestTopPrice,
+      label: "평형 최고 공급가",
+      text: formatPrice(highestTopPrice),
       isActualMinimum: false,
     };
   }
@@ -380,9 +379,9 @@ export default function UnitPriceCard({
         </h2>
 
         <p className="mt-1 break-keep text-xs leading-5 text-zinc-500 sm:mt-2 sm:text-sm sm:leading-6">
-          평형 카드는 공개된 타입 가격 중 가장 낮은
-          금액을 보여주며, 펼치면 타입별 공급가격을
-          확인할 수 있습니다.
+          관리자가 최저가를 입력한 평형은 최저 공급가를,
+          청약홈 최고가만 있는 평형은 최고 공급가를 보여줍니다.
+          펼치면 타입별 가격 범위를 확인할 수 있습니다.
         </p>
       </div>
 
