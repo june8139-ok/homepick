@@ -5,7 +5,6 @@ import Image from "next/image";
 import {
   memo,
   useDeferredValue,
-  useEffect,
   useMemo,
   useRef,
   useState,
@@ -293,10 +292,6 @@ function SearchHero({
       deferredKeyword,
     ]);
 
-  useEffect(() => {
-    setActiveIndex(-1);
-  }, [deferredKeyword]);
-
   const openApartment = (
     apartment: Apartment
   ) => {
@@ -499,11 +494,12 @@ function SearchHero({
               <input
                 ref={inputRef}
                 value={keyword}
-                onChange={(event) =>
+                onChange={(event) => {
                   setKeyword(
                     event.target.value
-                  )
-                }
+                  );
+                  setActiveIndex(-1);
+                }}
                 onFocus={() =>
                   setIsFocused(true)
                 }
