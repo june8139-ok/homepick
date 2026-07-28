@@ -1,0 +1,121 @@
+"use client";
+
+import dynamic from "next/dynamic";
+
+import {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+
+import type {
+  Apartment,
+} from "../../types/apartment";
+
+const RegionMapSection =
+  dynamic(
+    () =>
+      import(
+        "./RegionMapSection"
+      ),
+    {
+      ssr: false,
+
+      loading: () => (
+        <RegionMapFallback />
+      ),
+    }
+  );
+
+function RegionMapFallback() {
+  return (
+    <section
+      aria-hidden="true"
+      className="mt-4 overflow-hidden rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-5"
+    >
+      <div className="h-4 w-28 animate-pulse rounded bg-zinc-200" />
+
+      <div className="mt-3 h-8 w-52 animate-pulse rounded-lg bg-zinc-200" />
+
+      <div className="mt-2 h-5 w-full max-w-md animate-pulse rounded bg-zinc-100" />
+
+      <div className="mt-5 min-h-[360px] animate-pulse rounded-3xl bg-zinc-100 sm:min-h-[460px]" />
+    </section>
+  );
+}
+
+export default function DeferredRegionMapSection({
+  apartments,
+}: {
+  apartments: Apartment[];
+}) {
+  const rootRef =
+    useRef<HTMLDivElement | null>(
+      null
+    );
+
+  const [
+    shouldLoad,
+    setShouldLoad,
+  ] = useState(false);
+
+  useEffect(() => {
+    const element =
+      rootRef.current;
+
+    if (
+      !element ||
+      shouldLoad
+    ) {
+      return;
+    }
+
+    if (
+      !(
+        "IntersectionObserver" in
+        window
+      )
+    ) {
+      setShouldLoad(true);
+      return;
+    }
+
+    const observer =
+      new IntersectionObserver(
+        (entries) => {
+          if (
+            entries.some(
+              (entry) =>
+                entry.isIntersecting
+            )
+          ) {
+            setShouldLoad(true);
+            observer.disconnect();
+          }
+        },
+        {
+          rootMargin:
+            "500px 0px",
+        }
+      );
+
+    observer.observe(element);
+
+    return () =>
+      observer.disconnect();
+  }, [shouldLoad]);
+
+  return (
+    <div ref={rootRef}>
+      {shouldLoad ? (
+        <RegionMapSection
+          apartments={
+            apartments
+          }
+        />
+      ) : (
+        <RegionMapFallback />
+      )}
+    </div>
+  );
+}

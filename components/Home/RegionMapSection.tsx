@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 import {
   useMemo,
   useState,
@@ -387,7 +389,7 @@ export default function RegionMapSection({
             "
           >
             {selectedImage ? (
-              <img
+              <Image
                 src={
                   selectedImage
                 }
@@ -396,9 +398,10 @@ export default function RegionMapSection({
                     ?.name ||
                   `${selectedRegion?.cityName} 대표 단지`
                 }
-                loading="lazy"
+                fill
+                sizes="360px"
                 className="
-                  h-full w-full object-cover
+                  object-cover
                   transition-transform
                   duration-500
                   group-hover:scale-105

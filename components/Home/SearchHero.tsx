@@ -705,8 +705,7 @@ function SearchHero({
               }
               alt={`${featuredApartment.name} 대표 이미지`}
               fill
-              priority
-              fetchPriority="high"
+              loading="lazy"
               sizes="
                 (max-width: 1023px) 100vw,
                 60vw

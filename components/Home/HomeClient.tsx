@@ -24,7 +24,7 @@ import {
 } from "../../lib/subscriptionVisibility";
 
 import SearchHero from "./SearchHero";
-import RegionMapSection from "./RegionMapSection";
+import DeferredRegionMapSection from "./DeferredRegionMapSection";
 import HomeBriefingSection from "./HomeBriefingSection";
 
 const regionNames = [
@@ -404,7 +404,7 @@ export default function HomeClient({
           </DashboardPanel>
         </section>
 
-        <RegionMapSection
+        <DeferredRegionMapSection
           apartments={
             visibleApartments
           }
