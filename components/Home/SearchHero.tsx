@@ -439,35 +439,36 @@ function SearchHero({
       <div className="grid lg:min-h-[430px] lg:grid-cols-[0.78fr_1.22fr] xl:min-h-[470px]">
         {/* 왼쪽 검색 영역 */}
         <div className="relative z-20 flex min-w-0 flex-col justify-center px-4 pb-6 pt-5 sm:px-10 sm:py-10 lg:px-12 xl:px-16">
-          <div className="inline-flex w-fit items-center rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-[10px] font-extrabold text-[#0F766E] sm:px-4 sm:py-2 sm:text-xs">
+          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[10px] font-extrabold text-[#0F766E] shadow-sm sm:px-4 sm:py-2 sm:text-xs">
+            <span
+              aria-hidden="true"
+              className="h-2 w-2 rounded-full bg-[#FF5A5F] shadow-[0_0_0_4px_rgba(255,90,95,0.10)]"
+            />
             전국 부동산 정보 플랫폼
           </div>
 
-          <h1 className="mt-3 leading-none tracking-[-0.055em] sm:mt-5">
-            <span className="block text-[44px] font-black text-[#0F766E] sm:text-[70px] xl:text-[82px]">
+          <h1 className="mt-4 tracking-[-0.055em] sm:mt-6">
+            <span className="block text-[48px] font-black leading-none text-[#0F766E] drop-shadow-[0_3px_0_rgba(15,118,110,0.08)] sm:text-[76px] xl:text-[88px]">
               집눈
             </span>
 
-            <span className="mt-2 block text-xs font-extrabold tracking-[-0.01em] text-zinc-500 sm:text-base">
-              전국 부동산을 한눈에
+            <span className="mt-3 block break-keep text-[25px] font-black leading-[1.14] tracking-[-0.045em] text-[#111827] sm:mt-4 sm:text-[38px] xl:text-[44px]">
+              전국 부동산을
+              <br />
+              <span className="relative inline-block text-[#FF5A5F]">
+                한눈에
+                <span
+                  aria-hidden="true"
+                  className="absolute -bottom-1 left-0 h-2 w-full rounded-full bg-[#FF5A5F]/12"
+                />
+              </span>
             </span>
           </h1>
 
-          <p className="mt-3 break-keep text-lg font-black tracking-[-0.03em] text-[#111827] sm:mt-4 sm:text-2xl xl:text-[28px]">
-            분양 아파트부터 청약 일정까지
-          </p>
-
-          <p className="mt-0.5 text-xl font-black tracking-[-0.04em] text-[#111827] sm:mt-2 sm:text-3xl xl:text-[36px]">
-            한눈에 찾고{" "}
-            <span className="text-[#FF5A5F]">
-              비교하세요
-            </span>
-          </p>
-
-          <p className="mt-2.5 line-clamp-2 max-w-lg break-keep text-xs leading-5 text-zinc-500 sm:mt-4 sm:text-base sm:leading-7">
-            청약과 선착순 분양,
-            지역별 단지를 빠르게
-            찾아보세요.
+          <p className="mt-4 max-w-lg break-keep text-xs font-semibold leading-5 text-zinc-500 sm:mt-5 sm:text-base sm:leading-7">
+            분양 아파트부터 청약 일정,
+            선착순 분양과 계약조건까지
+            한 번에 찾고 비교하세요.
           </p>
 
           {/* 검색창 */}
@@ -681,7 +682,14 @@ function SearchHero({
                     onClick={() =>
                       openSearch(item)
                     }
-                    className="shrink-0 cursor-pointer rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1.5 text-[10px] font-bold text-zinc-600 transition-all hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 sm:px-3 sm:py-2 sm:text-xs"
+                    className={[
+                      "shrink-0 cursor-pointer rounded-full px-2.5 py-1.5 text-[10px] font-bold transition-all",
+                      "hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2",
+                      "sm:px-3 sm:py-2 sm:text-xs",
+                      item === "선착순"
+                        ? "border border-emerald-300 bg-emerald-50 text-emerald-700 shadow-sm hover:border-emerald-400 hover:bg-emerald-100"
+                        : "border border-zinc-200 bg-white text-zinc-600 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700",
+                    ].join(" ")}
                   >
                     # {item}
                   </button>
