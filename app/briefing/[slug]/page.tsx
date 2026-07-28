@@ -15,6 +15,10 @@ import {
   getApartments,
 } from "../../../lib/getApartments";
 
+import {
+  normalizeRegionRoute,
+} from "../../../lib/regionUtils";
+
 import type {
   Apartment,
 } from "../../../types/apartment";
@@ -61,6 +65,17 @@ function formatDate(
     return "";
   }
 
+  const date =
+    new Date(value);
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return "";
+  }
+
   return new Intl.DateTimeFormat(
     "ko-KR",
     {
@@ -68,7 +83,7 @@ function formatDate(
       month: "long",
       day: "numeric",
     }
-  ).format(new Date(value));
+  ).format(date);
 }
 
 function getHeroImage(
@@ -110,7 +125,7 @@ export async function generateMetadata({
   if (!briefing) {
     return {
       title:
-        "브리핑을 찾을 수 없습니다 | 집눈",
+        "브리핑을 찾을 수 없습니다",
 
       robots: {
         index: false,
@@ -125,7 +140,8 @@ export async function generateMetadata({
   const description =
     truncateText(
       briefing.summary ||
-        briefing.content
+        briefing.content ||
+        `${briefing.title} 관련 분양시장과 단지 정보를 집눈 브리핑에서 확인하세요.`
     );
 
   return {
@@ -245,10 +261,18 @@ export default async function BriefingDetailPage({
   const canonical =
     `${SITE_URL}/briefing/${briefing.slug}`;
 
+  const regionKey =
+    briefing.region
+      ? normalizeRegionRoute(
+          briefing.region
+        )
+      : "";
+
   const description =
     truncateText(
       briefing.summary ||
-        briefing.content
+        briefing.content ||
+        `${briefing.title} 관련 분양시장과 단지 정보를 집눈 브리핑에서 확인하세요.`
     );
 
   const breadcrumbJsonLd = {
@@ -329,6 +353,9 @@ export default async function BriefingDetailPage({
     inLanguage:
       "ko-KR",
 
+    isAccessibleForFree:
+      true,
+
     articleSection:
       briefing.category ||
       undefined,
@@ -345,6 +372,9 @@ export default async function BriefingDetailPage({
       "@type":
         "Organization",
 
+      "@id":
+        `${SITE_URL}/#organization`,
+
       name: "집눈",
 
       url:
@@ -354,6 +384,9 @@ export default async function BriefingDetailPage({
     publisher: {
       "@type":
         "Organization",
+
+      "@id":
+        `${SITE_URL}/#organization`,
 
       name: "집눈",
 
@@ -435,9 +468,20 @@ export default async function BriefingDetailPage({
             </span>
 
             {briefing.region && (
-              <span className="text-xs font-semibold text-zinc-400">
-                {briefing.region}
-              </span>
+              regionKey ? (
+                <Link
+                  href={`/region/${encodeURIComponent(
+                    regionKey
+                  )}`}
+                  className="text-xs font-semibold text-zinc-400 transition hover:text-emerald-700"
+                >
+                  {briefing.region}
+                </Link>
+              ) : (
+                <span className="text-xs font-semibold text-zinc-400">
+                  {briefing.region}
+                </span>
+              )
             )}
           </div>
 

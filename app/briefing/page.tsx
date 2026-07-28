@@ -19,7 +19,9 @@ const DESCRIPTION =
   "전국 청약 일정, 선착순 분양 소식, 계약조건 변경과 지역별 분양시장 정보를 집눈 브리핑에서 확인하세요.";
 
 export const metadata: Metadata = {
-  title: TITLE,
+  title: {
+    absolute: TITLE,
+  },
   description: DESCRIPTION,
 
   alternates: {
@@ -35,6 +37,16 @@ export const metadata: Metadata = {
     siteName: "집눈",
     title: TITLE,
     description: DESCRIPTION,
+    images: [
+      {
+        url:
+          "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt:
+          "집눈 브리핑",
+      },
+    ],
   },
 
   twitter: {
@@ -42,6 +54,9 @@ export const metadata: Metadata = {
       "summary_large_image",
     title: TITLE,
     description: DESCRIPTION,
+    images: [
+      "/opengraph-image",
+    ],
   },
 };
 
@@ -52,6 +67,17 @@ function formatDate(
     return "";
   }
 
+  const date =
+    new Date(value);
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return "";
+  }
+
   return new Intl.DateTimeFormat(
     "ko-KR",
     {
@@ -59,7 +85,7 @@ function formatDate(
       month: "2-digit",
       day: "2-digit",
     }
-  ).format(new Date(value));
+  ).format(date);
 }
 
 function getCategoryClass(
@@ -120,6 +146,59 @@ export default async function BriefingPage() {
     ],
   };
 
+  const collectionJsonLd = {
+    "@context":
+      "https://schema.org",
+
+    "@type":
+      "CollectionPage",
+
+    "@id":
+      `${SITE_URL}/briefing#collection`,
+
+    name:
+      TITLE,
+
+    description:
+      DESCRIPTION,
+
+    url:
+      `${SITE_URL}/briefing`,
+
+    inLanguage:
+      "ko-KR",
+
+    mainEntity: {
+      "@type":
+        "ItemList",
+
+      numberOfItems:
+        briefings.length,
+
+      itemListElement:
+        briefings.map(
+          (
+            briefing,
+            index
+          ) => ({
+            "@type":
+              "ListItem",
+
+            position:
+              index + 1,
+
+            name:
+              briefing.title,
+
+            url:
+              `${SITE_URL}/briefing/${encodeURIComponent(
+                briefing.slug
+              )}`,
+          })
+        ),
+    },
+  };
+
   return (
     <main className="min-h-screen bg-zinc-50 px-4 py-6 text-zinc-900 sm:px-6 sm:py-10">
       <script
@@ -127,6 +206,18 @@ export default async function BriefingPage() {
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(
             breadcrumbJsonLd
+          ).replace(
+            /</g,
+            "\\u003c"
+          ),
+        }}
+      />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            collectionJsonLd
           ).replace(
             /</g,
             "\\u003c"

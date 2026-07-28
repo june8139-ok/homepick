@@ -4,6 +4,7 @@ import type {
 
 import Link from "next/link";
 import {
+  notFound,
   permanentRedirect,
 } from "next/navigation";
 
@@ -320,17 +321,23 @@ export async function generateMetadata({
         `${title} | 집눈`,
       description,
 
-      images:
-        representativeImage
-          ? [
-              {
-                url:
-                  representativeImage,
-                alt:
-                  `${safeCityName} 분양 아파트 정보`,
-              },
-            ]
-          : undefined,
+      images: [
+        {
+          url:
+            representativeImage ||
+            "/opengraph-image",
+          width:
+            representativeImage
+              ? undefined
+              : 1200,
+          height:
+            representativeImage
+              ? undefined
+              : 630,
+          alt:
+            `${safeCityName} 분양 아파트 정보`,
+        },
+      ],
     },
 
     twitter: {
@@ -341,12 +348,10 @@ export async function generateMetadata({
       title:
         `${title} | 집눈`,
       description,
-      images:
-        representativeImage
-          ? [
-              representativeImage,
-            ]
-          : undefined,
+      images: [
+        representativeImage ||
+          "/opengraph-image",
+      ],
     },
   };
 }
@@ -600,6 +605,10 @@ export default async function RegionPage({
         cityKey
       )}`
     );
+  }
+
+  if (!cityKey) {
+    notFound();
   }
 
   const safeCityName =

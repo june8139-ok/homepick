@@ -24,6 +24,46 @@ const SITE_URL =
     ""
   ) || "https://jibnun.com";
 
+
+function absoluteUrl(
+  value?: string | null
+) {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    return new URL(
+      value,
+      SITE_URL
+    ).toString();
+  } catch {
+    return null;
+  }
+}
+
+function validDate(
+  value: unknown,
+  fallback: Date
+) {
+  if (
+    typeof value !==
+      "string" ||
+    !value
+  ) {
+    return fallback;
+  }
+
+  const date =
+    new Date(value);
+
+  return Number.isNaN(
+    date.getTime()
+  )
+    ? fallback
+    : date;
+}
+
 export const revalidate =
   3600;
 
@@ -113,15 +153,6 @@ export default async function sitemap(): Promise<
           "daily",
         priority: 0.8,
       },
-
-      {
-        url:
-          `${SITE_URL}/compare`,
-        lastModified: now,
-        changeFrequency:
-          "weekly",
-        priority: 0.5,
-      },
     ];
 
   /*
@@ -143,59 +174,92 @@ export default async function sitemap(): Promise<
 
   const apartmentPages: MetadataRoute.Sitemap =
     publicApartments.map(
-      (apartment) => ({
-        url:
-          `${SITE_URL}/apartments/${encodeURIComponent(
-            apartment.slug
-          )}`,
-        lastModified: now,
-        changeFrequency:
-          "daily",
-        priority:
-          apartment.status?.includes(
-            "청약"
-          ) ||
-          apartment.status?.includes(
-            "선착순"
-          )
-            ? 0.9
-            : 0.7,
+      (apartment) => {
+        const record =
+          apartment as unknown as Record<
+            string,
+            unknown
+          >;
 
-        images:
-          apartment.images
-            ?.hero
-            ? [
-                apartment.images
-                  .hero,
-              ]
-            : undefined,
-      })
+        const image =
+          absoluteUrl(
+            typeof apartment.images
+              ?.hero ===
+              "string"
+              ? apartment.images
+                  .hero
+              : null
+          );
+
+        return {
+          url:
+            `${SITE_URL}/apartments/${encodeURIComponent(
+              apartment.slug
+            )}`,
+
+          lastModified:
+            validDate(
+              record.updatedAt ??
+                record.updated_at ??
+                record.createdAt ??
+                record.created_at,
+              now
+            ),
+
+          changeFrequency:
+            "daily" as const,
+
+          priority:
+            apartment.status?.includes(
+              "청약"
+            ) ||
+            apartment.status?.includes(
+              "선착순"
+            )
+              ? 0.9
+              : 0.7,
+
+          images:
+            image
+              ? [image]
+              : undefined,
+        };
+      }
     );
 
   const briefingPages: MetadataRoute.Sitemap =
     publicBriefings.map(
-      (briefing) => ({
-        url:
-          `${SITE_URL}/briefing/${encodeURIComponent(
-            briefing.slug
-          )}`,
-        lastModified:
-          briefing.updatedAt
-            ? new Date(
-                briefing.updatedAt
-              )
-            : now,
-        changeFrequency:
-          "weekly",
-        priority: 0.7,
+      (briefing) => {
+        const image =
+          absoluteUrl(
+            briefing.thumbnailUrl
+          );
 
-        images:
-          briefing.thumbnailUrl
-            ? [
-                briefing.thumbnailUrl,
-              ]
-            : undefined,
-      })
+        return {
+          url:
+            `${SITE_URL}/briefing/${encodeURIComponent(
+              briefing.slug
+            )}`,
+
+          lastModified:
+            validDate(
+              briefing.updatedAt ??
+                briefing.publishedAt ??
+                briefing.createdAt,
+              now
+            ),
+
+          changeFrequency:
+            "weekly" as const,
+
+          priority: 0.7,
+
+          images:
+            image
+              ? [image]
+              : undefined,
+        };
+      }
     );
 
   return [

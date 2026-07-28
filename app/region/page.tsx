@@ -57,6 +57,16 @@ export const metadata: Metadata = {
       `${PAGE_TITLE} | 집눈`,
     description:
       PAGE_DESCRIPTION,
+    images: [
+      {
+        url:
+          "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt:
+          "집눈 전국 지역별 분양정보",
+      },
+    ],
   },
 
   twitter: {
@@ -66,6 +76,9 @@ export const metadata: Metadata = {
       `${PAGE_TITLE} | 집눈`,
     description:
       PAGE_DESCRIPTION,
+    images: [
+      "/opengraph-image",
+    ],
   },
 };
 

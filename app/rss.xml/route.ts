@@ -3,6 +3,10 @@ import {
 } from "../../lib/getApartments";
 
 import {
+  getBriefings,
+} from "../../lib/getBriefings";
+
+import {
   isCompletedListing,
 } from "../../lib/listingStage";
 
@@ -40,7 +44,7 @@ function escapeXml(
     );
 }
 
-function getDescription(
+function getApartmentDescription(
   apartment: {
     name: string;
     region?: string;
@@ -58,6 +62,29 @@ function getDescription(
   ]
     .filter(Boolean)
     .join(" · ");
+}
+
+
+function getBriefingDescription(
+  briefing: {
+    title: string;
+    summary?: string;
+    content?: string;
+    category?: string;
+    region?: string | null;
+  }
+) {
+  return (
+    briefing.summary ||
+    [
+      briefing.title,
+      briefing.category,
+      briefing.region,
+      briefing.content,
+    ]
+      .filter(Boolean)
+      .join(" · ")
+  );
 }
 
 function getItemDate(
@@ -106,12 +133,20 @@ function getItemDate(
 }
 
 export async function GET() {
-  const apartments =
-    await getApartments({
+  const [
+    apartments,
+    briefings,
+  ] = await Promise.all([
+    getApartments({
       publishedOnly: true,
-    });
+    }),
 
-  const items =
+    getBriefings({
+      publishedOnly: true,
+    }),
+  ]);
+
+  const apartmentItems =
     apartments
       .filter(
         (apartment) =>
@@ -120,20 +155,25 @@ export async function GET() {
             apartment
           )
       )
-      .slice(0, 30)
       .map(
-        (apartment) => {
-          const url =
-            `${SITE_URL}/apartments/${encodeURIComponent(
-              apartment.slug
-            )}`;
-
-          const pubDate =
+        (apartment) => ({
+          sortDate:
             getItemDate(
               apartment
-            );
+            ),
 
-          return `
+          xml: (() => {
+            const url =
+              `${SITE_URL}/apartments/${encodeURIComponent(
+                apartment.slug
+              )}`;
+
+            const pubDate =
+              getItemDate(
+                apartment
+              );
+
+            return `
     <item>
       <title>${escapeXml(
         apartment.name
@@ -145,7 +185,7 @@ export async function GET() {
         url
       )}</guid>
       <description>${escapeXml(
-        getDescription(
+        getApartmentDescription(
           apartment
         )
       )}</description>
@@ -161,7 +201,102 @@ export async function GET() {
           : ""
       }
     </item>`;
+          })(),
+        })
+      );
+
+  const briefingItems =
+    briefings
+      .filter(
+        (briefing) =>
+          Boolean(
+            briefing.slug
+          )
+      )
+      .map(
+        (briefing) => {
+          const url =
+            `${SITE_URL}/briefing/${encodeURIComponent(
+              briefing.slug
+            )}`;
+
+          const pubDate =
+            getItemDate({
+              updatedAt:
+                briefing.updatedAt,
+              publishedAt:
+                briefing.publishedAt,
+              createdAt:
+                briefing.createdAt,
+            });
+
+          return {
+            sortDate:
+              pubDate,
+
+            xml: `
+    <item>
+      <title>${escapeXml(
+        briefing.title
+      )}</title>
+      <link>${escapeXml(
+        url
+      )}</link>
+      <guid isPermaLink="true">${escapeXml(
+        url
+      )}</guid>
+      <description>${escapeXml(
+        getBriefingDescription(
+          briefing
+        )
+      )}</description>
+      <category>${escapeXml(
+        briefing.category ||
+          "집눈 브리핑"
+      )}</category>${
+        pubDate
+          ? `
+      <pubDate>${escapeXml(
+        pubDate
+      )}</pubDate>`
+          : ""
+      }
+    </item>`,
+          };
         }
+      );
+
+  const items =
+    [
+      ...apartmentItems,
+      ...briefingItems,
+    ]
+      .sort(
+        (first, second) => {
+          const firstTime =
+            first.sortDate
+              ? new Date(
+                  first.sortDate
+                ).getTime()
+              : 0;
+
+          const secondTime =
+            second.sortDate
+              ? new Date(
+                  second.sortDate
+                ).getTime()
+              : 0;
+
+          return (
+            secondTime -
+            firstTime
+          );
+        }
+      )
+      .slice(0, 50)
+      .map(
+        (item) =>
+          item.xml
       )
       .join("");
 
@@ -175,7 +310,7 @@ export async function GET() {
   xmlns:atom="http://www.w3.org/2005/Atom"
 >
   <channel>
-    <title>집눈 분양정보</title>
+    <title>집눈 분양정보·브리핑</title>
 
     <link>${escapeXml(
       SITE_URL
@@ -189,7 +324,7 @@ export async function GET() {
       type="application/rss+xml"
     />
 
-    <description>집눈에서 제공하는 전국 분양 아파트, 청약 일정, 선착순 분양 단지와 계약조건 정보</description>
+    <description>집눈에서 제공하는 전국 분양 아파트, 청약 일정, 선착순 분양 단지, 계약조건과 부동산 브리핑</description>
 
     <language>ko-KR</language>
 

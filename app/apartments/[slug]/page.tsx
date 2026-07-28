@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { notFound } from "next/navigation";
 
 import { conditionHistories } from "../../../data/history";
 
 import { getApartment } from "../../../lib/getApartment";
 import { getApartments } from "../../../lib/getApartments";
 import { getBriefings } from "../../../lib/getBriefings";
+import {
+  getApartmentRegionKey,
+} from "../../../lib/regionUtils";
 
 import {
   getListingStage,
@@ -261,7 +265,7 @@ export async function generateMetadata({
   if (!apartment) {
     return {
       title:
-        "단지를 찾을 수 없습니다 | 집눈",
+        "단지를 찾을 수 없습니다",
 
       description:
         "요청한 분양 단지 정보를 찾을 수 없습니다.",
@@ -371,6 +375,11 @@ function createJsonLd(
     apartment.city ||
     "";
 
+  const regionKey =
+    getApartmentRegionKey(
+      apartment
+    );
+
   const district =
     apartment.districtName ||
     apartment.district ||
@@ -398,12 +407,13 @@ function createJsonLd(
 
         position: 2,
         name:
-          city || "분양 단지",
+          regionKey ||
+          city ||
+          "분양 단지",
 
-        item: city
+        item: regionKey
           ? `${SITE_URL}/region/${encodeURIComponent(
-              apartment.city ||
-                city
+              regionKey
             )}`
           : `${SITE_URL}/region`,
       },
@@ -675,27 +685,7 @@ export default async function ApartmentDetailPage({
     )) as Apartment | null;
 
   if (!apartment) {
-    return (
-      <main className="min-h-screen bg-zinc-50 px-4 py-20 text-zinc-900 sm:px-6">
-        <section className="mx-auto max-w-3xl rounded-3xl border border-zinc-200 bg-white p-8 text-center shadow-sm sm:p-10">
-          <h1 className="text-2xl font-black">
-            단지를 찾을 수 없습니다.
-          </h1>
-
-          <p className="mt-3 text-sm leading-6 text-zinc-500">
-            삭제되었거나 현재 공개되지
-            않은 단지일 수 있습니다.
-          </p>
-
-          <Link
-            href="/search"
-            className="mt-6 inline-flex min-h-12 cursor-pointer items-center justify-center rounded-xl bg-zinc-900 px-6 text-sm font-bold text-white transition hover:bg-emerald-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
-          >
-            분양 단지 찾기
-          </Link>
-        </section>
-      </main>
-    );
+    notFound();
   }
 
   const listingStage =
@@ -762,7 +752,13 @@ export default async function ApartmentDetailPage({
     apartment.city ||
     "전국";
 
+  const regionKey =
+    getApartmentRegionKey(
+      apartment
+    );
+
   const cityPathValue =
+    regionKey ||
     apartment.city ||
     cityName;
 
