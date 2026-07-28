@@ -425,6 +425,10 @@ export async function POST(
               slug,
               name,
               is_published,
+              source,
+              applyhome_id,
+              is_auto_created,
+              manual_override,
               data
             `
           )
@@ -467,13 +471,35 @@ export async function POST(
         );
       }
 
+      const isApplyHomeApartment =
+        existingApartment.source ===
+          "applyhome" ||
+        Boolean(
+          existingApartment.applyhome_id
+        ) ||
+        Boolean(
+          existingApartment.is_auto_created
+        );
+
       const mergedData =
         mergeApartmentData(
           existingApartment.data,
           payload.data
         );
 
-      const updatePayload = {
+      /*
+       * 청약홈 자동등록 단지를 관리자가 수정하면
+       * 이후 동기화에서 상태·계약조건·수동 입력값을
+       * 덮어쓰지 않도록 수동 수정 플래그를 남깁니다.
+       */
+      if (
+        isApplyHomeApartment
+      ) {
+        mergedData.manualOverride =
+          true;
+      }
+
+      const updatePayload: JsonRecord = {
         ...payload,
 
         /*
@@ -491,6 +517,13 @@ export async function POST(
         updated_at:
           new Date().toISOString(),
       };
+
+      if (
+        isApplyHomeApartment
+      ) {
+        updatePayload.manual_override =
+          true;
+      }
 
       const {
         data:
@@ -570,8 +603,23 @@ export async function POST(
         .insert({
           ...payload,
 
-          data:
-            createdData,
+          data: {
+            ...createdData,
+            source:
+              createdData.source ??
+              "manual",
+            isAutoCreated:
+              false,
+          },
+
+          source:
+            "manual",
+
+          is_auto_created:
+            false,
+
+          manual_override:
+            true,
 
           is_published:
             false,

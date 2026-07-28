@@ -1207,12 +1207,21 @@ export async function syncApplyHomeApartments():
       const { data: existing, error } = await supabaseAdmin
         .from("apartments")
         .select(
-          "slug, status, data, manual_override, is_auto_created"
+          "slug, status, data, manual_override, is_auto_created, sync_status"
         )
         .eq("applyhome_id", apartment.applyHomeId)
         .maybeSingle();
 
       if (error) throw error;
+
+      if (
+        existing &&
+        existing.sync_status ===
+          "excluded"
+      ) {
+        result.skipped += 1;
+        continue;
+      }
 
       if (existing) {
         await updateApartment(

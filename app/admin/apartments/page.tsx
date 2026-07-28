@@ -438,6 +438,10 @@ function AdminApartmentsPageContent() {
         await supabase
           .from("apartments")
           .select("*")
+          .neq(
+            "sync_status",
+            "excluded"
+          )
           .order("updated_at", {
             ascending: false,
           });
@@ -496,23 +500,45 @@ function AdminApartmentsPageContent() {
 
       setPublishingId(apartment.id);
 
-      const { error } =
-        await supabase
-          .from("apartments")
-          .update({
-            is_published:
-              nextPublished,
-          })
-          .eq("id", apartment.id);
+      const response =
+        await fetch(
+          "/api/admin/apartments/action",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+            body:
+              JSON.stringify({
+                action:
+                  "togglePublished",
+                apartmentId:
+                  apartment.id,
+                isPublished:
+                  nextPublished,
+              }),
+          }
+        );
 
-      if (error) {
+      const result =
+        (await response.json()) as {
+          message?: string;
+        };
+
+      if (!response.ok) {
         console.error(
           "게시상태 변경 오류:",
-          error
+          result.message
         );
 
         alert(
-          `게시상태 변경 중 오류가 발생했습니다.\n\n${error.message}`
+          `게시상태 변경 중 오류가 발생했습니다.
+
+${
+            result.message ??
+            "알 수 없는 오류"
+          }`
         );
 
         setPublishingId(null);
@@ -610,22 +636,45 @@ function AdminApartmentsPageContent() {
         ],
       };
 
-      const { error } =
-        await supabase
-          .from("apartments")
-          .update({
-            data: nextData,
-          })
-          .eq("id", apartment.id);
+      const response =
+        await fetch(
+          "/api/admin/apartments/action",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+            body:
+              JSON.stringify({
+                action:
+                  "transitionToFirstCome",
+                apartmentId:
+                  apartment.id,
+                data:
+                  nextData,
+              }),
+          }
+        );
 
-      if (error) {
+      const result =
+        (await response.json()) as {
+          message?: string;
+        };
+
+      if (!response.ok) {
         console.error(
           "선착순 전환 오류:",
-          error
+          result.message
         );
 
         alert(
-          `선착순 전환 중 오류가 발생했습니다.\n\n${error.message}`
+          `선착순 전환 중 오류가 발생했습니다.
+
+${
+            result.message ??
+            "알 수 없는 오류"
+          }`
         );
 
         setTransitioningId(null);
@@ -667,20 +716,44 @@ function AdminApartmentsPageContent() {
 
       setDeletingId(apartment.id);
 
-      const { error } =
-        await supabase
-          .from("apartments")
-          .delete()
-          .eq("id", apartment.id);
+      const response =
+        await fetch(
+          "/api/admin/apartments/delete",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+            body:
+              JSON.stringify({
+                apartmentId:
+                  apartment.id,
+              }),
+          }
+        );
 
-      if (error) {
+      const result =
+        (await response.json()) as {
+          message?: string;
+          deletionType?:
+            | "hard"
+            | "excluded";
+        };
+
+      if (!response.ok) {
         console.error(
-          "Supabase 삭제 오류:",
-          error
+          "단지 삭제 오류:",
+          result.message
         );
 
         alert(
-          `삭제 중 오류가 발생했습니다.\n\n${error.message}`
+          `삭제 중 오류가 발생했습니다.
+
+${
+            result.message ??
+            "알 수 없는 오류"
+          }`
         );
 
         setDeletingId(null);
@@ -696,7 +769,12 @@ function AdminApartmentsPageContent() {
 
       setDeletingId(null);
 
-      alert("삭제되었습니다.");
+      alert(
+        result.deletionType ===
+          "excluded"
+          ? "자동수집 제외 처리되었습니다."
+          : "삭제되었습니다."
+      );
     };
 
   const taskCounts = useMemo(() => {
