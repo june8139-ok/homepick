@@ -16,56 +16,108 @@ const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(
     /\/$/,
     ""
-  ) || "https://homepick.kr";
+  ) || "https://jibnun.com";
+
+const SITE_NAME =
+  "집눈";
 
 const HOME_TITLE =
-  "홈픽(HomePick) | 전국 분양 아파트·청약·선착순 정보";
+  "집눈 | 전국 부동산을 한눈에";
 
 const HOME_DESCRIPTION =
-  "홈픽(HomePick)은 전국 분양 아파트와 청약 일정, 선착순 분양 단지의 분양가, 계약조건, 입지와 평면도를 검색하고 비교할 수 있는 부동산 플랫폼입니다.";
+  "집눈은 전국 분양 아파트와 청약·선착순 정보, 분양가·계약조건·입지를 한눈에 비교하는 부동산 플랫폼입니다.";
 
 export const metadata: Metadata = {
+  /*
+   * layout의 title template이 중복 적용되지 않도록
+   * 홈페이지에서는 absolute 제목을 사용합니다.
+   */
   title: {
-    absolute: HOME_TITLE,
+    absolute:
+      HOME_TITLE,
   },
 
-  description: HOME_DESCRIPTION,
+  description:
+    HOME_DESCRIPTION,
 
   alternates: {
-    canonical: SITE_URL,
+    canonical:
+      SITE_URL,
   },
 
   openGraph: {
-    type: "website",
-    locale: "ko_KR",
-    url: SITE_URL,
-    siteName: "홈픽(HomePick)",
-    title: HOME_TITLE,
-    description: HOME_DESCRIPTION,
+    type:
+      "website",
+
+    locale:
+      "ko_KR",
+
+    url:
+      SITE_URL,
+
+    siteName:
+      SITE_NAME,
+
+    title:
+      HOME_TITLE,
+
+    description:
+      HOME_DESCRIPTION,
+
+    images: [
+      {
+        url:
+          "/opengraph-image",
+
+        width:
+          1200,
+
+        height:
+          630,
+
+        alt:
+          "집눈 전국 부동산을 한눈에",
+      },
+    ],
   },
 
   twitter: {
-    card: "summary_large_image",
-    title: HOME_TITLE,
-    description: HOME_DESCRIPTION,
+    card:
+      "summary_large_image",
+
+    title:
+      HOME_TITLE,
+
+    description:
+      HOME_DESCRIPTION,
+
+    images: [
+      "/opengraph-image",
+    ],
   },
 };
 
 export default async function Home() {
-  const [apartments, briefings] =
-    await Promise.all([
-      getApartments(),
+  const [
+    apartments,
+    briefings,
+  ] = await Promise.all([
+    getApartments(),
 
-      getBriefings({
-        publishedOnly: true,
-        limit: 3,
-      }),
-    ]);
+    getBriefings({
+      publishedOnly: true,
+      limit: 3,
+    }),
+  ]);
 
   return (
     <HomeClient
-      apartments={apartments}
-      briefings={briefings}
+      apartments={
+        apartments
+      }
+      briefings={
+        briefings
+      }
     />
   );
 }

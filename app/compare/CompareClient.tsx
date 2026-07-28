@@ -300,7 +300,7 @@ export default function CompareClient({
       <main className="min-h-screen bg-zinc-50 px-5 py-16 text-zinc-900">
         <section className="mx-auto max-w-3xl rounded-3xl border border-zinc-200 bg-white px-6 py-14 text-center shadow-sm">
           <p className="text-sm font-extrabold tracking-wide text-emerald-600">
-            HOMEPICK COMPARE
+            JIBNUN COMPARE
           </p>
 
           <h1 className="mt-3 text-2xl font-black sm:text-3xl">
@@ -446,7 +446,7 @@ export default function CompareClient({
 
         <header className="mx-auto mt-5 max-w-3xl text-center sm:mt-7">
           <p className="text-[11px] font-extrabold tracking-wide text-emerald-600 sm:text-sm">
-            HOMEPICK COMPARE
+            JIBNUN COMPARE
           </p>
 
           <h1 className="mt-1.5 text-2xl font-black tracking-tight text-[#132238] sm:mt-2 sm:text-4xl">

@@ -29,7 +29,7 @@ const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(
     /\/$/,
     ""
-  ) || "https://homepick.kr";
+  ) || "https://jibnun.com";
 
 function truncateText(
   value: string,
@@ -71,29 +71,6 @@ function formatDate(
   ).format(new Date(value));
 }
 
-function isExplicitlyUnpublished(
-  briefing: unknown
-) {
-  if (
-    !briefing ||
-    typeof briefing !== "object"
-  ) {
-    return false;
-  }
-
-  const value = (
-    briefing as {
-      isPublished?: unknown;
-      published?: unknown;
-    }
-  );
-
-  return (
-    value.isPublished === false ||
-    value.published === false
-  );
-}
-
 function getHeroImage(
   apartment: Apartment
 ) {
@@ -133,7 +110,7 @@ export async function generateMetadata({
   if (!briefing) {
     return {
       title:
-        "브리핑을 찾을 수 없습니다 | 홈픽",
+        "브리핑을 찾을 수 없습니다 | 집눈",
 
       robots: {
         index: false,
@@ -154,7 +131,7 @@ export async function generateMetadata({
   return {
     title: {
       absolute:
-        `${briefing.title} | 홈픽 브리핑`,
+        `${briefing.title} | 집눈 브리핑`,
     },
 
     description,
@@ -167,8 +144,7 @@ export async function generateMetadata({
       type: "article",
       locale: "ko_KR",
       url: canonical,
-      siteName:
-        "홈픽(HomePick)",
+      siteName: "집눈",
       title:
         briefing.title,
       description,
@@ -300,7 +276,7 @@ export default async function BriefingDetailPage({
         position: 2,
 
         name:
-          "홈픽 브리핑",
+          "집눈 브리핑",
 
         item:
           `${SITE_URL}/briefing`,
@@ -369,8 +345,7 @@ export default async function BriefingDetailPage({
       "@type":
         "Organization",
 
-      name:
-        "홈픽(HomePick)",
+      name: "집눈",
 
       url:
         SITE_URL,
@@ -380,8 +355,7 @@ export default async function BriefingDetailPage({
       "@type":
         "Organization",
 
-      name:
-        "홈픽(HomePick)",
+      name: "집눈",
 
       url:
         SITE_URL,
@@ -442,7 +416,7 @@ export default async function BriefingDetailPage({
             href="/briefing"
             className="transition hover:text-emerald-700"
           >
-            홈픽 브리핑
+            집눈 브리핑
           </Link>
 
           <span className="mx-2">
@@ -533,11 +507,11 @@ export default async function BriefingDetailPage({
           0 && (
           <section className="mt-6 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:mt-8 sm:rounded-3xl sm:p-6">
             <p className="text-xs font-extrabold text-emerald-600 sm:text-sm">
-              RELATED APARTMENTS
+              관련 분양 단지
             </p>
 
             <h2 className="mt-1 text-xl font-black text-[#132238] sm:text-2xl">
-              관련 분양 단지
+              함께 확인할 분양 단지
             </h2>
 
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -603,7 +577,7 @@ export default async function BriefingDetailPage({
           0 && (
           <section className="mt-6 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:mt-8 sm:rounded-3xl sm:p-6">
             <p className="text-xs font-extrabold text-emerald-600 sm:text-sm">
-              MORE BRIEFINGS
+              집눈 브리핑
             </p>
 
             <h2 className="mt-1 text-xl font-black text-[#132238] sm:text-2xl">

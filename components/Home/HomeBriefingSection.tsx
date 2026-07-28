@@ -22,7 +22,7 @@ export default function HomeBriefingSection({
       <div className="flex items-end justify-between gap-4">
         <div className="min-w-0">
           <p className="text-xs font-extrabold tracking-wide text-emerald-600 sm:text-sm">
-            HOMEPICK BRIEFING
+            JIBNUN BRIEFING
           </p>
 
           <h2 className="mt-1 break-keep text-xl font-black tracking-tight text-[#132238] sm:text-2xl">

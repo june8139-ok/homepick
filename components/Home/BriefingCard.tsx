@@ -92,7 +92,7 @@ export default function BriefingCard({
                 </p>
 
                 <p className="mt-2 text-[10px] font-bold text-zinc-400 sm:text-xs">
-                  홈픽 브리핑
+                  집눈 브리핑
                 </p>
               </div>
             </div>

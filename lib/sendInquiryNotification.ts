@@ -71,13 +71,13 @@ export async function sendInquiryNotification(
   const inquiryTypeLabel =
     getInquiryTypeLabel(input.inquiryType);
 
-  const subject = `[HomePick] ${input.apartmentName} ${inquiryTypeLabel} 접수`;
+  const subject = `[집눈] ${input.apartmentName} ${inquiryTypeLabel} 접수`;
 
   const html = `
     <div style="font-family:Arial,sans-serif;max-width:620px;margin:0 auto;padding:24px;color:#18181b;">
       <div style="background:#18181b;color:#ffffff;padding:22px;border-radius:18px 18px 0 0;">
         <p style="margin:0;font-size:13px;font-weight:700;color:#6ee7b7;">
-          HOMEPICK CRM
+          집눈 CRM
         </p>
         <h1 style="margin:8px 0 0;font-size:24px;">
           신규 ${escapeHtml(inquiryTypeLabel)}
@@ -168,7 +168,7 @@ export async function sendInquiryNotification(
   `;
 
   const { data, error } = await resend.emails.send({
-    from: "HomePick <onboarding@resend.dev>",
+    from: "집눈 <onboarding@resend.dev>",
     to: [adminEmail],
     subject,
     html,

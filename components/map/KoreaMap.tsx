@@ -301,7 +301,7 @@ function KoreaMap({
 
       <div className="pointer-events-none absolute left-4 top-4 z-20 sm:left-6 sm:top-6">
         <p className="text-[10px] font-semibold tracking-wide text-zinc-500 sm:text-xs">
-          HOMEPICK MAP
+          JIBNUN MAP
         </p>
 
         <h3 className="mt-1 text-lg font-extrabold text-zinc-900 sm:text-2xl">

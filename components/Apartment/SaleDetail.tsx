@@ -287,7 +287,7 @@ function getInformationCards(
   );
 }
 
-function getHomePickSummary(
+function getJibnunSummary(
   apartment: Apartment
 ) {
   if (
@@ -496,7 +496,7 @@ export default function SaleDetail({
     );
 
   const summary =
-    getHomePickSummary(
+    getJibnunSummary(
       apartment
     );
 
@@ -705,11 +705,11 @@ export default function SaleDetail({
         <div className="flex flex-col gap-3 sm:gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0 max-w-3xl">
             <p className="text-xs font-extrabold text-emerald-600 sm:text-sm">
-              HOMEPICK SUMMARY
+              집눈 한눈 정리
             </p>
 
             <h2 className="mt-1 text-xl font-extrabold text-[#132238] sm:text-2xl">
-              HomePick 한줄 정리
+              집눈 한눈 정리
             </h2>
 
             <p className="mt-2 break-keep text-sm font-semibold leading-6 text-zinc-700 sm:mt-4 sm:text-base sm:leading-8">

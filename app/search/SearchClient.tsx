@@ -942,7 +942,7 @@ export default function SearchClient({
           <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
             <div>
               <p className="text-xs font-semibold text-emerald-600 sm:text-sm">
-                HOMEPICK SEARCH
+                JIBNUN SEARCH
               </p>
 
               <h1 className="mt-1 break-keep text-2xl font-extrabold tracking-tight sm:text-3xl">

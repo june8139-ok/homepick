@@ -18,7 +18,7 @@ const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(
     /\/$/,
     ""
-  ) || "https://homepick.kr";
+  ) || "https://jibnun.com";
 
 export const revalidate =
   3600;

@@ -1,53 +1,94 @@
 import Link from "next/link";
 
-function HomePickSymbol({
+function JibnunSymbol({
   className = "",
 }: {
   className?: string;
 }) {
   return (
     <svg
-      viewBox="0 0 64 64"
+      viewBox="0 0 72 64"
       aria-hidden="true"
       className={className}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
+      {/* 코랄색 지붕 */}
       <path
-        d="M13 29.5L31.5 12L50 29.5"
-        stroke="currentColor"
+        d="M8 27.5L31 8L54 27.5"
+        stroke="#FF5A5F"
         strokeWidth="5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
 
+      {/* 청록색 집 외곽 */}
       <path
-        d="M16 29V49H37"
-        stroke="currentColor"
+        d="M12 26.5V50.5H42"
+        stroke="#0F9D98"
         strokeWidth="5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
 
+      {/* 창문 */}
+      <rect
+        x="22"
+        y="27"
+        width="6"
+        height="6"
+        rx="1.4"
+        fill="#0F9D98"
+      />
+
+      <rect
+        x="31"
+        y="27"
+        width="6"
+        height="6"
+        rx="1.4"
+        fill="#0F9D98"
+      />
+
+      <rect
+        x="22"
+        y="36"
+        width="6"
+        height="6"
+        rx="1.4"
+        fill="#0F9D98"
+      />
+
+      <rect
+        x="31"
+        y="36"
+        width="6"
+        height="6"
+        rx="1.4"
+        fill="#0F9D98"
+      />
+
+      {/* 돋보기 */}
+      <circle
+        cx="50"
+        cy="46"
+        r="10"
+        stroke="#0F9D98"
+        strokeWidth="4.5"
+      />
+
       <path
-        d="M24 28V43M24 35H35M35 28V43"
-        stroke="currentColor"
+        d="M57.5 53.5L66 62"
+        stroke="#0F9D98"
         strokeWidth="4.5"
         strokeLinecap="round"
       />
 
-      <circle
-        cx="44"
-        cy="45"
-        r="7"
-        stroke="currentColor"
-        strokeWidth="4"
-      />
-
+      {/* 코랄 포인트 */}
       <path
-        d="M49 50L55 56"
-        stroke="currentColor"
-        strokeWidth="4"
+        d="M46.5 41.5C49.5 39.3 53.7 41 54 44.6"
+        stroke="#FF5A5F"
+        strokeWidth="3.2"
         strokeLinecap="round"
       />
     </svg>
@@ -96,7 +137,8 @@ const legalLinks = [
     emphasized: true,
   },
   {
-    label: "이용약관",
+    label:
+      "이용약관",
     href: "/terms",
     emphasized: false,
   },
@@ -114,7 +156,7 @@ export default function SiteFooter() {
           <section>
             <Link
               href="/"
-              aria-label="홈픽 홈페이지로 이동"
+              aria-label="집눈 홈페이지로 이동"
               className="
                 group inline-flex items-center gap-2.5 rounded-lg
                 focus-visible:outline-none
@@ -123,33 +165,27 @@ export default function SiteFooter() {
                 focus-visible:ring-offset-2
               "
             >
-              <HomePickSymbol className="h-10 w-10 text-[#0F766E] transition-transform duration-200 group-hover:-translate-y-0.5" />
+              <JibnunSymbol className="h-10 w-11 transition-transform duration-200 group-hover:-translate-y-0.5" />
 
               <div className="min-w-0">
-                <div className="flex items-baseline gap-1.5">
-                  <p className="text-xl font-black tracking-[-0.04em] text-[#0F766E]">
-                    홈픽
-                  </p>
+                <p className="text-xl font-black tracking-[-0.045em] text-[#0F766E]">
+                  집눈
+                </p>
 
-                  <p className="text-[11px] font-extrabold text-zinc-500">
-                    HomePick
-                  </p>
-                </div>
-
-                <p className="text-[9px] font-bold tracking-tight text-zinc-400">
-                  전국 분양 아파트 플랫폼
+                <p className="text-[9px] font-bold tracking-tight text-zinc-500">
+                  전국 부동산을 한눈에
                 </p>
               </div>
             </Link>
 
             <p className="mt-3 max-w-[470px] break-keep text-[11px] leading-5 text-zinc-500 sm:text-xs sm:leading-6">
-              홈픽(HomePick)은 전국
-              분양 아파트와 청약
-              일정, 선착순 분양
-              단지의 분양가,
-              계약조건과 입지 정보를
-              검색하고 비교할 수 있는
-              부동산 플랫폼입니다.
+              집눈은 전국 분양
+              아파트와 청약 일정,
+              선착순 분양 단지의
+              분양가, 계약조건과
+              입지 정보를 검색하고
+              비교할 수 있는 부동산
+              플랫폼입니다.
             </p>
           </section>
 
@@ -166,8 +202,12 @@ export default function SiteFooter() {
               {serviceLinks.map(
                 (item) => (
                   <Link
-                    key={item.label}
-                    href={item.href}
+                    key={
+                      item.label
+                    }
+                    href={
+                      item.href
+                    }
                     className="
                       w-fit rounded text-xs font-medium text-zinc-500
                       transition-all duration-200
@@ -179,7 +219,9 @@ export default function SiteFooter() {
                       focus-visible:ring-offset-2
                     "
                   >
-                    {item.label}
+                    {
+                      item.label
+                    }
                   </Link>
                 )
               )}
@@ -215,7 +257,9 @@ export default function SiteFooter() {
               {popularRegions.map(
                 (region) => (
                   <Link
-                    key={region}
+                    key={
+                      region
+                    }
                     href={`/region/${encodeURIComponent(
                       region
                     )}`}
@@ -254,8 +298,12 @@ export default function SiteFooter() {
                 {legalLinks.map(
                   (item) => (
                     <Link
-                      key={item.label}
-                      href={item.href}
+                      key={
+                        item.label
+                      }
+                      href={
+                        item.href
+                      }
                       className={[
                         "rounded text-[11px] transition-colors",
                         "focus-visible:outline-none",
@@ -265,9 +313,13 @@ export default function SiteFooter() {
                         item.emphasized
                           ? "font-extrabold text-zinc-700 hover:text-emerald-700"
                           : "font-semibold text-zinc-500 hover:text-emerald-700",
-                      ].join(" ")}
+                      ].join(
+                        " "
+                      )}
                     >
-                      {item.label}
+                      {
+                        item.label
+                      }
                     </Link>
                   )
                 )}
@@ -289,23 +341,24 @@ export default function SiteFooter() {
 
               <p className="mt-2 text-[10px] leading-5 text-zinc-400">
                 운영자 옥광준 · 문의
+                {" "}
                 june8139@gmail.com
               </p>
 
               <p className="mt-1 max-w-4xl break-keep text-[10px] leading-5 text-zinc-400">
-                홈픽에서 제공하는
+                집눈에서 제공하는
                 분양가, 계약조건,
-                청약일정 및 단지 정보는
-                참고용입니다. 계약 또는
-                청약 전 모집공고문,
-                공급계약서와 사업주체의
-                최신 안내를 반드시
-                확인해주세요.
+                청약일정 및 단지
+                정보는 참고용입니다.
+                계약 또는 청약 전
+                모집공고문, 공급계약서와
+                사업주체의 최신 안내를
+                반드시 확인해주세요.
               </p>
             </div>
 
             <p className="shrink-0 text-[10px] font-medium text-zinc-400 sm:text-[11px]">
-              © {currentYear} HomePick.
+              © {currentYear} 집눈.
               All rights reserved.
             </p>
           </div>

@@ -9,7 +9,7 @@ import {
 declare global {
   interface Window {
     naver?: any;
-    __homepickAdminNaverMapPromise?: Promise<void>;
+    __jibnunAdminNaverMapPromise?: Promise<void>;
   }
 }
 
@@ -51,17 +51,17 @@ function loadAdminNaverMapScript(
   }
 
   if (
-    window.__homepickAdminNaverMapPromise
+    window.__jibnunAdminNaverMapPromise
   ) {
-    return window.__homepickAdminNaverMapPromise;
+    return window.__jibnunAdminNaverMapPromise;
   }
 
-  window.__homepickAdminNaverMapPromise =
+  window.__jibnunAdminNaverMapPromise =
     new Promise<void>(
       (resolve, reject) => {
         const existingScript =
           document.querySelector<HTMLScriptElement>(
-            'script[data-homepick-naver-map="true"]'
+            'script[data-jibnun-naver-map="true"], script[data-homepick-naver-map="true"]'
           );
 
         if (existingScript) {
@@ -100,7 +100,7 @@ function loadAdminNaverMapScript(
             "script"
           );
 
-        script.dataset.homepickNaverMap =
+        script.dataset.jibnunNaverMap =
           "true";
 
         script.async = true;
@@ -130,7 +130,7 @@ function loadAdminNaverMapScript(
       }
     );
 
-  return window.__homepickAdminNaverMapPromise;
+  return window.__jibnunAdminNaverMapPromise;
 }
 
 export default function AdminLocationPicker({

@@ -10,8 +10,7 @@ const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(
     /\/$/,
     ""
-  ) ||
-  "https://homepick.kr";
+  ) || "https://jibnun.com";
 
 function escapeXml(
   value: unknown
@@ -176,10 +175,12 @@ export async function GET() {
   xmlns:atom="http://www.w3.org/2005/Atom"
 >
   <channel>
-    <title>홈픽(HomePick) 분양정보</title>
+    <title>집눈 분양정보</title>
+
     <link>${escapeXml(
       SITE_URL
     )}</link>
+
     <atom:link
       href="${escapeXml(
         `${SITE_URL}/rss.xml`
@@ -187,11 +188,15 @@ export async function GET() {
       rel="self"
       type="application/rss+xml"
     />
-    <description>홈픽(HomePick)에서 제공하는 전국 분양 아파트, 청약 일정, 선착순 분양 단지와 계약조건 정보</description>
+
+    <description>집눈에서 제공하는 전국 분양 아파트, 청약 일정, 선착순 분양 단지와 계약조건 정보</description>
+
     <language>ko-KR</language>
+
     <lastBuildDate>${escapeXml(
       now
     )}</lastBuildDate>
+
     <ttl>60</ttl>
 ${items}
   </channel>

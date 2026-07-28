@@ -61,7 +61,7 @@ export default async function InquiryPage() {
         <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-sm font-bold text-emerald-600">
-              HOMEPICK CRM
+              JINNUN CRM
             </p>
 
             <h1 className="mt-1 text-3xl font-extrabold tracking-tight">

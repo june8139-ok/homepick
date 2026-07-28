@@ -19,7 +19,7 @@ import {
 declare global {
   interface Window {
     naver?: any;
-    __homepickNaverMapPromise?: Promise<void>;
+    __jibnunNaverMapPromise?: Promise<void>;
   }
 }
 
@@ -163,17 +163,17 @@ function loadNaverMapScript(
   }
 
   if (
-    window.__homepickNaverMapPromise
+    window.__jibnunNaverMapPromise
   ) {
-    return window.__homepickNaverMapPromise;
+    return window.__jibnunNaverMapPromise;
   }
 
-  window.__homepickNaverMapPromise =
+  window.__jibnunNaverMapPromise =
     new Promise<void>(
       (resolve, reject) => {
         const existing =
           document.querySelector<HTMLScriptElement>(
-            'script[data-homepick-naver-map="true"]'
+            'script[data-jibnun-naver-map="true"], script[data-homepick-naver-map="true"]'
           );
 
         if (existing) {
@@ -211,7 +211,7 @@ function loadNaverMapScript(
             "script"
           );
 
-        script.dataset.homepickNaverMap =
+        script.dataset.jibnunNaverMap =
           "true";
 
         script.async = true;
@@ -239,7 +239,7 @@ function loadNaverMapScript(
       }
     );
 
-  return window.__homepickNaverMapPromise;
+  return window.__jibnunNaverMapPromise;
 }
 
 async function geocodeAddress(
@@ -252,7 +252,7 @@ async function geocodeAddress(
   }
 
   const cacheKey =
-    `homepick-geocode:${address}`;
+    `jibnun-geocode:${address}`;
 
   try {
     const cached =

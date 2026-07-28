@@ -295,7 +295,7 @@ export default function RegionMapSection({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-extrabold tracking-[0.14em] text-[#0F766E]">
-            HOMEPICK MAP
+            JIBNUN MAP
           </p>
 
           <h2 className="mt-1 text-2xl font-black tracking-tight text-[#111827]">

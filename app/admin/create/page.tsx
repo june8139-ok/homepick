@@ -10,7 +10,7 @@ export default function AdminCreatePage() {
         <section className="mx-auto max-w-7xl">
           <div className="rounded-3xl bg-zinc-900 p-6 text-white sm:p-8">
             <p className="text-sm font-semibold text-emerald-400">
-              HOMEPICK ADMIN
+              JIBNUN ADMIN
             </p>
 
             <h1 className="mt-2 text-3xl font-black sm:text-4xl">

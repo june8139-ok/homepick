@@ -15,8 +15,11 @@ type NaverMapsService = {
   Status: {
     OK: unknown;
   };
+
   geocode: (
-    options: { query: string },
+    options: {
+      query: string;
+    },
     callback: (
       status: unknown,
       response: NaverGeocodeResponse
@@ -24,18 +27,9 @@ type NaverMapsService = {
   ) => void;
 };
 
-type NaverMaps = {
-  Service?: NaverMapsService;
-};
-
-type NaverGlobal = {
-  maps?: NaverMaps;
-};
-
 declare global {
   interface Window {
-    naver?: NaverGlobal;
-    __homepickNaverGeocodePromise?: Promise<void>;
+    __jibnunNaverGeocodePromise?: Promise<void>;
   }
 }
 
@@ -44,14 +38,36 @@ export type Coordinates = {
   longitude: number;
 };
 
-function getNaverService(): NaverMapsService | null {
-  return window.naver?.maps?.Service ?? null;
+function getNaverGlobal() {
+  return (
+    window as typeof window & {
+      naver?: {
+        maps?: {
+          Service?: NaverMapsService;
+        };
+      };
+    }
+  ).naver;
 }
 
-function loadNaverGeocoder(clientId: string): Promise<void> {
-  if (typeof window === "undefined") {
+function getNaverService(): NaverMapsService | null {
+  return (
+    getNaverGlobal()?.maps
+      ?.Service ?? null
+  );
+}
+
+function loadNaverGeocoder(
+  clientId: string
+): Promise<void> {
+  if (
+    typeof window ===
+    "undefined"
+  ) {
     return Promise.reject(
-      new Error("브라우저에서만 위치를 찾을 수 있습니다.")
+      new Error(
+        "브라우저에서만 위치를 찾을 수 있습니다."
+      )
     );
   }
 
@@ -59,98 +75,135 @@ function loadNaverGeocoder(clientId: string): Promise<void> {
     return Promise.resolve();
   }
 
-  if (window.__homepickNaverGeocodePromise) {
-    return window.__homepickNaverGeocodePromise;
+  if (
+    window.__jibnunNaverGeocodePromise
+  ) {
+    return window
+      .__jibnunNaverGeocodePromise;
   }
 
-  window.__homepickNaverGeocodePromise = new Promise<void>(
-    (resolve, reject) => {
-      const existing =
-        document.querySelector<HTMLScriptElement>(
-          'script[data-homepick-naver-geocoder="true"]'
-        );
+  window.__jibnunNaverGeocodePromise =
+    new Promise<void>(
+      (resolve, reject) => {
+        const existing =
+          document.querySelector<HTMLScriptElement>(
+            [
+              'script[data-jibnun-naver-geocoder="true"]',
+              'script[data-jibnun-naver-map="true"]',
+              'script[data-homepick-naver-geocoder="true"]',
+              'script[data-homepick-naver-map="true"]',
+            ].join(", ")
+          );
 
-      if (existing) {
-        if (getNaverService()) {
-          resolve();
+        if (existing) {
+          if (
+            getNaverService()
+          ) {
+            resolve();
+            return;
+          }
+
+          existing.addEventListener(
+            "load",
+            () => {
+              if (
+                getNaverService()
+              ) {
+                resolve();
+              } else {
+                reject(
+                  new Error(
+                    "네이버 Geocoder 모듈을 불러오지 못했습니다."
+                  )
+                );
+              }
+            },
+            {
+              once: true,
+            }
+          );
+
+          existing.addEventListener(
+            "error",
+            () =>
+              reject(
+                new Error(
+                  "네이버 지도 스크립트를 불러오지 못했습니다."
+                )
+              ),
+            {
+              once: true,
+            }
+          );
+
           return;
         }
 
-        existing.addEventListener(
-          "load",
-          () => {
-            if (getNaverService()) {
-              resolve();
-            } else {
-              reject(
-                new Error(
-                  "네이버 Geocoder 모듈을 불러오지 못했습니다."
-                )
-              );
-            }
-          },
-          { once: true }
-        );
+        const script =
+          document.createElement(
+            "script"
+          );
 
-        existing.addEventListener(
-          "error",
-          () =>
+        script.dataset
+          .jibnunNaverGeocoder =
+          "true";
+
+        script.async = true;
+
+        script.src =
+          "https://oapi.map.naver.com/openapi/v3/maps.js" +
+          `?ncpKeyId=${encodeURIComponent(
+            clientId
+          )}` +
+          "&submodules=geocoder";
+
+        script.onload = () => {
+          if (
+            getNaverService()
+          ) {
+            resolve();
+          } else {
             reject(
               new Error(
-                "네이버 지도 스크립트를 불러오지 못했습니다."
+                "네이버 Geocoder 모듈을 불러오지 못했습니다."
               )
-            ),
-          { once: true }
-        );
+            );
+          }
+        };
 
-        return;
-      }
-
-      const script = document.createElement("script");
-      script.dataset.homepickNaverGeocoder = "true";
-      script.async = true;
-      script.src =
-        "https://oapi.map.naver.com/openapi/v3/maps.js" +
-        `?ncpKeyId=${encodeURIComponent(clientId)}` +
-        "&submodules=geocoder";
-
-      script.onload = () => {
-        if (getNaverService()) {
-          resolve();
-        } else {
+        script.onerror = () =>
           reject(
             new Error(
-              "네이버 Geocoder 모듈을 불러오지 못했습니다."
+              "네이버 지도 스크립트를 불러오지 못했습니다."
             )
           );
-        }
-      };
 
-      script.onerror = () =>
-        reject(
-          new Error(
-            "네이버 지도 스크립트를 불러오지 못했습니다."
-          )
+        document.head.appendChild(
+          script
         );
+      }
+    );
 
-      document.head.appendChild(script);
-    }
-  );
-
-  return window.__homepickNaverGeocodePromise;
+  return window
+    .__jibnunNaverGeocodePromise;
 }
 
 export async function geocodeAddress(
   address: string
 ): Promise<Coordinates> {
-  const trimmedAddress = address.trim();
+  const trimmedAddress =
+    address.trim();
 
   if (!trimmedAddress) {
-    throw new Error("사업지 주소를 입력해주세요.");
+    throw new Error(
+      "사업지 주소를 입력해주세요."
+    );
   }
 
   const clientId =
-    process.env.NEXT_PUBLIC_NAVER_MAP_CLIENT_ID ?? "";
+    process.env
+      .NEXT_PUBLIC_NAVER_MAP_CLIENT_ID ??
+    "";
 
   if (!clientId) {
     throw new Error(
@@ -158,56 +211,85 @@ export async function geocodeAddress(
     );
   }
 
-  await loadNaverGeocoder(clientId);
+  await loadNaverGeocoder(
+    clientId
+  );
 
-  return new Promise<Coordinates>((resolve, reject) => {
-    const service = getNaverService();
+  return new Promise<Coordinates>(
+    (resolve, reject) => {
+      const service =
+        getNaverService();
 
-    if (!service) {
-      reject(
-        new Error(
-          "네이버 Geocoder 모듈이 준비되지 않았습니다."
-        )
-      );
-      return;
-    }
+      if (!service) {
+        reject(
+          new Error(
+            "네이버 Geocoder 모듈이 준비되지 않았습니다."
+          )
+        );
 
-    service.geocode(
-      { query: trimmedAddress },
-      (
-        status: unknown,
-        response: NaverGeocodeResponse
-      ) => {
-        const addresses = response.v2?.addresses;
-
-        if (
-          status !== service.Status.OK ||
-          !addresses?.length
-        ) {
-          reject(
-            new Error(
-              "주소의 위치를 찾지 못했습니다. 시·도부터 번지까지 정확히 입력해주세요."
-            )
-          );
-          return;
-        }
-
-        const first = addresses[0];
-        const latitude = Number(first.y);
-        const longitude = Number(first.x);
-
-        if (
-          !Number.isFinite(latitude) ||
-          !Number.isFinite(longitude)
-        ) {
-          reject(
-            new Error("좌표 변환 결과가 올바르지 않습니다.")
-          );
-          return;
-        }
-
-        resolve({ latitude, longitude });
+        return;
       }
-    );
-  });
+
+      service.geocode(
+        {
+          query:
+            trimmedAddress,
+        },
+        (
+          status,
+          response
+        ) => {
+          const addresses =
+            response.v2
+              ?.addresses;
+
+          if (
+            status !==
+              service.Status
+                .OK ||
+            !addresses?.length
+          ) {
+            reject(
+              new Error(
+                "주소의 위치를 찾지 못했습니다. 시·도부터 번지까지 정확히 입력해주세요."
+              )
+            );
+
+            return;
+          }
+
+          const first =
+            addresses[0];
+
+          const latitude =
+            Number(first.y);
+
+          const longitude =
+            Number(first.x);
+
+          if (
+            !Number.isFinite(
+              latitude
+            ) ||
+            !Number.isFinite(
+              longitude
+            )
+          ) {
+            reject(
+              new Error(
+                "좌표 변환 결과가 올바르지 않습니다."
+              )
+            );
+
+            return;
+          }
+
+          resolve({
+            latitude,
+            longitude,
+          });
+        }
+      );
+    }
+  );
 }

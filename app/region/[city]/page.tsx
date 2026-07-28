@@ -4,7 +4,9 @@ import type {
 
 import Link from "next/link";
 
-import { getApartments } from "../../../lib/getApartments";
+import {
+  getApartments,
+} from "../../../lib/getApartments";
 
 import {
   isFirstComeApartment,
@@ -15,13 +17,20 @@ import {
   isCompletedListing,
 } from "../../../lib/listingStage";
 
-import type { Apartment } from "../../../types/apartment";
+import {
+  isApartmentInRegion,
+  normalizeRegionRoute,
+} from "../../../lib/regionUtils";
+
+import type {
+  Apartment,
+} from "../../../types/apartment";
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(
     /\/$/,
     ""
-  ) || "https://homepick.kr";
+  ) || "https://jibnun.com";
 
 type PageProps = {
   params: Promise<{
@@ -90,7 +99,8 @@ function getStatusInfo(
     )
   ) {
     return {
-      label: "선착순",
+      label:
+        "선착순",
 
       className:
         "bg-emerald-600 text-white",
@@ -108,7 +118,8 @@ function getStatusInfo(
     className:
       "bg-amber-500 text-white",
 
-    category: "sale",
+    category:
+      "sale",
   };
 }
 
@@ -154,8 +165,10 @@ function getConditionText(
 async function getRegionData(
   city: string
 ) {
-  const decodedCity =
-    decodeURIComponent(city);
+  const normalizedCity =
+    normalizeRegionRoute(
+      city
+    );
 
   const apartments =
     (await getApartments({
@@ -165,22 +178,25 @@ async function getRegionData(
   const regionApartments =
     apartments.filter(
       (apartment) =>
-        apartment.city ===
-          decodedCity &&
-        apartment.slug &&
+        Boolean(
+          apartment.slug
+        ) &&
         !isCompletedListing(
           apartment
+        ) &&
+        isApartmentInRegion(
+          apartment,
+          normalizedCity
         )
     );
 
-  const cityName =
-    regionApartments[0]
-      ?.cityName ||
-    decodedCity;
-
   return {
-    decodedCity,
-    cityName,
+    cityKey:
+      normalizedCity,
+
+    cityName:
+      normalizedCity,
+
     regionApartments,
   };
 }
@@ -192,23 +208,27 @@ export async function generateMetadata({
     await params;
 
   const {
+    cityKey,
     cityName,
     regionApartments,
-  } = await getRegionData(city);
+  } = await getRegionData(
+    city
+  );
 
   const canonical =
     `${SITE_URL}/region/${encodeURIComponent(
-      decodeURIComponent(city)
+      cityKey
     )}`;
 
   const title =
     `${cityName} 분양 아파트·청약·선착순 정보`;
 
   const description =
-    `${cityName} 분양 아파트와 청약 일정, 선착순 분양 단지의 분양가, 계약조건, 입지 정보를 홈픽에서 확인하고 비교하세요.`;
+    `${cityName} 분양 아파트와 청약 일정, 선착순 분양 단지의 분양가, 계약조건, 입지 정보를 집눈에서 확인하고 비교하세요.`;
 
   if (
-    regionApartments.length === 0
+    regionApartments.length ===
+    0
   ) {
     return {
       title,
@@ -240,35 +260,65 @@ export async function generateMetadata({
       canonical,
     },
 
+    robots: {
+      index: true,
+      follow: true,
+
+      googleBot: {
+        index: true,
+        follow: true,
+
+        "max-image-preview":
+          "large",
+
+        "max-snippet":
+          -1,
+
+        "max-video-preview":
+          -1,
+      },
+    },
+
     openGraph: {
-      type: "website",
-      locale: "ko_KR",
-      url: canonical,
+      type:
+        "website",
+
+      locale:
+        "ko_KR",
+
+      url:
+        canonical,
+
       siteName:
-        "홈픽(HomePick)",
+        "집눈",
+
       title:
-        `${title} | 홈픽`,
+        `${title} | 집눈`,
+
       description,
 
-      images: representativeImage
-        ? [
-            {
-              url:
-                representativeImage,
+      images:
+        representativeImage
+          ? [
+              {
+                url:
+                  representativeImage,
 
-              alt:
-                `${cityName} 분양 아파트 정보`,
-            },
-          ]
-        : undefined,
+                alt:
+                  `${cityName} 분양 아파트 정보`,
+              },
+            ]
+          : undefined,
     },
 
     twitter: {
       card:
-        "summary_large_image",
+        representativeImage
+          ? "summary_large_image"
+          : "summary",
 
       title:
-        `${title} | 홈픽`,
+        `${title} | 집눈`,
 
       description,
 
@@ -316,13 +366,19 @@ function ApartmentCard({
   apartment: Apartment;
 }) {
   const status =
-    getStatusInfo(apartment);
+    getStatusInfo(
+      apartment
+    );
 
   const image =
-    getHeroImage(apartment);
+    getHeroImage(
+      apartment
+    );
 
   const price =
-    getPriceText(apartment);
+    getPriceText(
+      apartment
+    );
 
   const condition =
     getConditionText(
@@ -346,7 +402,16 @@ function ApartmentCard({
       <div className="flex flex-col sm:min-h-[210px] sm:flex-row">
         <Link
           href={`/apartments/${apartment.slug}`}
-          className="relative h-44 shrink-0 overflow-hidden bg-zinc-100 sm:h-auto sm:w-56"
+          className="
+            relative h-44 shrink-0
+            cursor-pointer overflow-hidden
+            bg-zinc-100
+            focus-visible:outline-none
+            focus-visible:ring-2
+            focus-visible:ring-emerald-500
+            focus-visible:ring-inset
+            sm:h-auto sm:w-56
+          "
         >
           {image ? (
             <img
@@ -390,7 +455,13 @@ function ApartmentCard({
 
             <Link
               href={`/apartments/${apartment.slug}`}
-              className="block"
+              className="
+                block rounded-lg
+                focus-visible:outline-none
+                focus-visible:ring-2
+                focus-visible:ring-emerald-500
+                focus-visible:ring-offset-2
+              "
             >
               <h2 className="mt-3 break-keep text-xl font-black leading-tight text-[#132238] transition group-hover:text-emerald-700 sm:text-2xl">
                 {apartment.name}
@@ -427,15 +498,19 @@ function ApartmentCard({
 
           <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
             <Link
-              href={`/compare?left=${apartment.slug}`}
+              href={`/compare?left=${encodeURIComponent(
+                apartment.slug
+              )}`}
               className="
                 inline-flex min-h-11
-                items-center justify-center
-                rounded-xl border
-                border-zinc-200 bg-white
-                px-4 py-2 text-sm
-                font-bold text-zinc-700
-                transition
+                cursor-pointer items-center
+                justify-center rounded-xl
+                border border-zinc-200
+                bg-white px-4 py-2
+                text-sm font-bold
+                text-zinc-700
+                transition-all
+                hover:-translate-y-0.5
                 hover:border-emerald-300
                 hover:bg-emerald-50
                 hover:text-emerald-700
@@ -452,11 +527,12 @@ function ApartmentCard({
               href={`/apartments/${apartment.slug}`}
               className="
                 inline-flex min-h-11
-                items-center justify-center
-                rounded-xl bg-[#132238]
-                px-4 py-2 text-sm
-                font-bold text-white
-                transition
+                cursor-pointer items-center
+                justify-center rounded-xl
+                bg-[#132238] px-4 py-2
+                text-sm font-bold
+                text-white
+                transition-all
                 hover:-translate-y-0.5
                 hover:bg-emerald-600
                 hover:shadow-md
@@ -482,9 +558,12 @@ export default async function RegionPage({
     await params;
 
   const {
+    cityKey,
     cityName,
     regionApartments,
-  } = await getRegionData(city);
+  } = await getRegionData(
+    city
+  );
 
   const subscriptionApartments =
     regionApartments.filter(
@@ -515,7 +594,7 @@ export default async function RegionPage({
 
   const pageUrl =
     `${SITE_URL}/region/${encodeURIComponent(
-      decodeURIComponent(city)
+      cityKey
     )}`;
 
   const breadcrumbJsonLd = {
@@ -530,15 +609,22 @@ export default async function RegionPage({
         "@type":
           "ListItem",
 
-        position: 1,
-        name: "홈",
-        item: SITE_URL,
+        position:
+          1,
+
+        name:
+          "홈",
+
+        item:
+          SITE_URL,
       },
       {
         "@type":
           "ListItem",
 
-        position: 2,
+        position:
+          2,
+
         name:
           "지역별 분양정보",
 
@@ -549,11 +635,14 @@ export default async function RegionPage({
         "@type":
           "ListItem",
 
-        position: 3,
+        position:
+          3,
+
         name:
           `${cityName} 분양정보`,
 
-        item: pageUrl,
+        item:
+          pageUrl,
       },
     ],
   };
@@ -565,11 +654,17 @@ export default async function RegionPage({
     "@type":
       "ItemList",
 
+    "@id":
+      `${pageUrl}#apartment-list`,
+
     name:
       `${cityName} 분양 아파트 목록`,
 
     numberOfItems:
       regionApartments.length,
+
+    itemListOrder:
+      "https://schema.org/ItemListOrderDescending",
 
     itemListElement:
       regionApartments.map(
@@ -595,21 +690,22 @@ export default async function RegionPage({
   };
 
   if (
-    regionApartments.length === 0
+    regionApartments.length ===
+    0
   ) {
     return (
       <main className="flex min-h-[70vh] items-center justify-center bg-zinc-50 px-4 py-16">
         <section className="w-full max-w-xl rounded-2xl border border-zinc-200 bg-white p-8 text-center shadow-sm sm:rounded-3xl sm:p-10">
           <p className="text-xs font-bold text-emerald-600">
-            REGION INFORMATION
+            집눈 지역별 분양정보
           </p>
 
-          <h1 className="mt-2 text-2xl font-black">
+          <h1 className="mt-2 break-keep text-2xl font-black">
             {cityName} 지역에 공개된
             단지가 없습니다.
           </h1>
 
-          <p className="mt-3 text-sm leading-6 text-zinc-500">
+          <p className="mt-3 break-keep text-sm leading-6 text-zinc-500">
             공개 중인 분양 단지가
             등록되면 이 페이지에 자동으로
             표시됩니다.
@@ -618,14 +714,44 @@ export default async function RegionPage({
           <div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row">
             <Link
               href="/region"
-              className="inline-flex min-h-11 items-center justify-center rounded-xl border border-zinc-200 px-5 py-3 text-sm font-bold text-zinc-700 transition hover:bg-zinc-50"
+              className="
+                inline-flex min-h-11
+                cursor-pointer items-center
+                justify-center rounded-xl
+                border border-zinc-200
+                px-5 py-3 text-sm
+                font-bold text-zinc-700
+                transition-all
+                hover:-translate-y-0.5
+                hover:border-emerald-300
+                hover:bg-emerald-50
+                hover:text-emerald-700
+                focus-visible:outline-none
+                focus-visible:ring-2
+                focus-visible:ring-emerald-500
+                focus-visible:ring-offset-2
+              "
             >
               지역 목록으로
             </Link>
 
             <Link
               href="/search"
-              className="inline-flex min-h-11 items-center justify-center rounded-xl bg-zinc-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-600"
+              className="
+                inline-flex min-h-11
+                cursor-pointer items-center
+                justify-center rounded-xl
+                bg-zinc-900 px-5 py-3
+                text-sm font-bold text-white
+                transition-all
+                hover:-translate-y-0.5
+                hover:bg-emerald-600
+                hover:shadow-md
+                focus-visible:outline-none
+                focus-visible:ring-2
+                focus-visible:ring-emerald-500
+                focus-visible:ring-offset-2
+              "
             >
               전국 단지 검색
             </Link>
@@ -640,24 +766,26 @@ export default async function RegionPage({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(
-            breadcrumbJsonLd
-          ).replace(
-            /</g,
-            "\\u003c"
-          ),
+          __html:
+            JSON.stringify(
+              breadcrumbJsonLd
+            ).replace(
+              /</g,
+              "\\u003c"
+            ),
         }}
       />
 
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(
-            itemListJsonLd
-          ).replace(
-            /</g,
-            "\\u003c"
-          ),
+          __html:
+            JSON.stringify(
+              itemListJsonLd
+            ).replace(
+              /</g,
+              "\\u003c"
+            ),
         }}
       />
 
@@ -668,23 +796,29 @@ export default async function RegionPage({
         >
           <Link
             href="/"
-            className="transition hover:text-emerald-700"
+            className="rounded transition hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
           >
             홈
           </Link>
 
-          <span className="mx-2">
+          <span
+            aria-hidden="true"
+            className="mx-2"
+          >
             /
           </span>
 
           <Link
             href="/region"
-            className="transition hover:text-emerald-700"
+            className="rounded transition hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
           >
             지역
           </Link>
 
-          <span className="mx-2">
+          <span
+            aria-hidden="true"
+            className="mx-2"
+          >
             /
           </span>
 
@@ -695,7 +829,7 @@ export default async function RegionPage({
 
         <section className="mt-5 overflow-hidden rounded-2xl bg-[#132238] p-5 text-white shadow-sm sm:mt-6 sm:rounded-3xl sm:p-8 lg:p-10">
           <p className="text-xs font-bold tracking-wide text-emerald-300 sm:text-sm">
-            {cityName.toUpperCase()} APARTMENT
+            집눈 지역별 분양정보
           </p>
 
           <h1 className="mt-2 break-keep text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl">
@@ -707,7 +841,7 @@ export default async function RegionPage({
             중인 청약 아파트와 선착순
             분양 단지의 분양가,
             계약조건과 입지 정보를
-            확인해보세요.
+            한눈에 확인해보세요.
           </p>
 
           <div className="mt-6 grid grid-cols-3 gap-2 sm:mt-8 sm:max-w-xl sm:gap-3">
@@ -773,7 +907,7 @@ export default async function RegionPage({
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-xs font-extrabold text-emerald-600 sm:text-sm">
-                AVAILABLE APARTMENTS
+                현재 분양정보
               </p>
 
               <h2 className="mt-1 text-2xl font-black tracking-tight text-[#132238] sm:text-3xl">
@@ -792,13 +926,13 @@ export default async function RegionPage({
               )}`}
               className="
                 inline-flex min-h-11
-                w-fit items-center
-                justify-center rounded-xl
-                border border-zinc-200
-                bg-white px-4 py-2
-                text-sm font-bold
-                text-zinc-700 shadow-sm
-                transition
+                w-fit cursor-pointer
+                items-center justify-center
+                rounded-xl border
+                border-zinc-200 bg-white
+                px-4 py-2 text-sm
+                font-bold text-zinc-700
+                shadow-sm transition-all
                 hover:-translate-y-0.5
                 hover:border-emerald-300
                 hover:bg-emerald-50

@@ -28,18 +28,15 @@ const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(
     /\/$/,
     ""
-  ) || "https://homepick.kr";
+  ) || "https://jibnun.com";
 
-const SITE_NAME = "HomePick";
-const KOREAN_SITE_NAME = "홈픽";
-const DISPLAY_SITE_NAME =
-  "홈픽(HomePick)";
+const SITE_NAME = "집눈";
 
 const DEFAULT_TITLE =
-  "홈픽(HomePick) | 전국 분양 아파트·청약·선착순 정보";
+  "집눈 | 전국 부동산을 한눈에";
 
 const DEFAULT_DESCRIPTION =
-  "홈픽(HomePick)은 전국 분양 아파트와 청약 일정, 선착순 분양 단지의 분양가, 계약조건, 입지와 평면도를 검색하고 비교할 수 있는 부동산 플랫폼입니다.";
+  "집눈은 전국 분양 아파트와 청약·선착순 정보, 분양가·계약조건·입지를 한눈에 비교하는 부동산 플랫폼입니다.";
 
 const googleVerification =
   process.env
@@ -59,39 +56,35 @@ export const metadata: Metadata = {
 
     /*
      * 단지 상세페이지 등에서는
-     * "단지명 분양가·계약조건 | 홈픽" 형태로 표시됩니다.
+     * "단지명 분양가·계약조건 | 집눈" 형태로 표시됩니다.
      */
-    template: "%s | 홈픽",
+    template: "%s | 집눈",
   },
 
   description:
     DEFAULT_DESCRIPTION,
 
   applicationName:
-    DISPLAY_SITE_NAME,
+    SITE_NAME,
 
   authors: [
     {
-      name:
-        DISPLAY_SITE_NAME,
+      name: SITE_NAME,
       url: SITE_URL,
     },
   ],
 
-  creator:
-    DISPLAY_SITE_NAME,
+  creator: SITE_NAME,
 
-  publisher:
-    DISPLAY_SITE_NAME,
+  publisher: SITE_NAME,
 
   category: "real estate",
 
   keywords: [
-    "홈픽",
-    "HomePick",
-    "홈픽 부동산",
-    "홈픽 분양",
-    "HomePick 부동산",
+    "집눈",
+    "집눈 부동산",
+    "전국 부동산",
+    "부동산 플랫폼",
     "분양 아파트",
     "아파트 분양",
     "분양정보",
@@ -114,26 +107,34 @@ export const metadata: Metadata = {
     telephone: false,
   },
 
+  alternates: {
+    canonical: SITE_URL,
+  },
+
   openGraph: {
     type: "website",
     locale: "ko_KR",
     url: SITE_URL,
+
     siteName:
-      DISPLAY_SITE_NAME,
-    title: DEFAULT_TITLE,
+      SITE_NAME,
+
+    title:
+      DEFAULT_TITLE,
+
     description:
       DEFAULT_DESCRIPTION,
 
     /*
-     * app/opengraph-image.tsx를 만들면
-     * 이 주소에서 자동으로 이미지가 제공됩니다.
+     * app/opengraph-image.tsx에서
+     * 카카오톡·네이버·SNS 공유 이미지를 제공합니다.
      */
     images: [
       {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "홈픽 전국 분양 아파트·청약·선착순 정보",
+        alt: "집눈 전국 부동산을 한눈에",
       },
     ],
   },
@@ -141,9 +142,13 @@ export const metadata: Metadata = {
   twitter: {
     card:
       "summary_large_image",
-    title: DEFAULT_TITLE,
+
+    title:
+      DEFAULT_TITLE,
+
     description:
       DEFAULT_DESCRIPTION,
+
     images: [
       "/opengraph-image",
     ],
@@ -156,9 +161,12 @@ export const metadata: Metadata = {
     googleBot: {
       index: true,
       follow: true,
+
       "max-image-preview":
         "large",
+
       "max-snippet": -1,
+
       "max-video-preview": -1,
     },
   },
@@ -178,7 +186,8 @@ export const metadata: Metadata = {
   },
 
   /*
-   * 인증값이 있을 때만 해당 메타태그를 생성합니다.
+   * 인증값이 있을 때만
+   * 검색엔진 인증 메타태그를 생성합니다.
    */
   verification: {
     ...(googleVerification
@@ -209,14 +218,14 @@ const organizationJsonLd = {
   "@id":
     `${SITE_URL}/#organization`,
 
-  name: SITE_NAME,
+  name:
+    SITE_NAME,
 
-  alternateName: [
-    KOREAN_SITE_NAME,
-    DISPLAY_SITE_NAME,
-  ],
+  url:
+    SITE_URL,
 
-  url: SITE_URL,
+  slogan:
+    "전국 부동산을 한눈에",
 
   logo: {
     "@type":
@@ -234,19 +243,17 @@ const websiteJsonLd = {
   "@context":
     "https://schema.org",
 
-  "@type": "WebSite",
+  "@type":
+    "WebSite",
 
   "@id":
     `${SITE_URL}/#website`,
 
-  url: SITE_URL,
+  url:
+    SITE_URL,
 
-  name: SITE_NAME,
-
-  alternateName: [
-    KOREAN_SITE_NAME,
-    DISPLAY_SITE_NAME,
-  ],
+  name:
+    SITE_NAME,
 
   description:
     DEFAULT_DESCRIPTION,
@@ -256,7 +263,8 @@ const websiteJsonLd = {
       `${SITE_URL}/#organization`,
   },
 
-  inLanguage: "ko-KR",
+  inLanguage:
+    "ko-KR",
 
   potentialAction: {
     "@type":

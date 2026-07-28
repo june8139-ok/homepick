@@ -30,7 +30,7 @@ type SyncResponse = {
 };
 
 const STORAGE_KEY =
-  "homepick-applyhome-last-sync";
+  "jibnun-applyhome-last-sync";
 
 function formatSyncDate(
   value?: string | null

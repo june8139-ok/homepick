@@ -440,27 +440,27 @@ function SearchHero({
         {/* 왼쪽 검색 영역 */}
         <div className="relative z-20 flex min-w-0 flex-col justify-center px-4 pb-6 pt-5 sm:px-10 sm:py-10 lg:px-12 xl:px-16">
           <div className="inline-flex w-fit items-center rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-[10px] font-extrabold text-[#0F766E] sm:px-4 sm:py-2 sm:text-xs">
-            전국 분양 아파트 플랫폼
+            전국 부동산 정보 플랫폼
           </div>
 
           <h1 className="mt-3 leading-none tracking-[-0.055em] sm:mt-5">
-            <span className="block text-[38px] font-black text-[#0F766E] sm:text-[66px] xl:text-[78px]">
-              HomePick
+            <span className="block text-[44px] font-black text-[#0F766E] sm:text-[70px] xl:text-[82px]">
+              집눈
             </span>
 
             <span className="mt-2 block text-xs font-extrabold tracking-[-0.01em] text-zinc-500 sm:text-base">
-              홈픽 · 전국 분양 아파트 플랫폼
+              전국 부동산을 한눈에
             </span>
           </h1>
 
           <p className="mt-3 break-keep text-lg font-black tracking-[-0.03em] text-[#111827] sm:mt-4 sm:text-2xl xl:text-[28px]">
-            전국 부동산을 한눈에.
+            분양 아파트부터 청약 일정까지
           </p>
 
           <p className="mt-0.5 text-xl font-black tracking-[-0.04em] text-[#111827] sm:mt-2 sm:text-3xl xl:text-[36px]">
-            내 집은 내가{" "}
+            한눈에 찾고{" "}
             <span className="text-[#FF5A5F]">
-              Pick
+              비교하세요
             </span>
           </p>
 
@@ -479,23 +479,51 @@ function SearchHero({
                 fill="none"
                 className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 sm:left-5 sm:h-5 sm:w-5"
               >
-                <circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="1.8" />
-                <path d="M16 16L21 21" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                <circle
+                  cx="11"
+                  cy="11"
+                  r="6.5"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                />
+
+                <path
+                  d="M16 16L21 21"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
               </svg>
 
               <input
                 ref={inputRef}
                 value={keyword}
-                onChange={(event) => setKeyword(event.target.value)}
-                onFocus={() => setIsFocused(true)}
+                onChange={(event) =>
+                  setKeyword(
+                    event.target.value
+                  )
+                }
+                onFocus={() =>
+                  setIsFocused(true)
+                }
                 onBlur={() => {
-                  window.setTimeout(() => setIsFocused(false), 150);
+                  window.setTimeout(
+                    () =>
+                      setIsFocused(
+                        false
+                      ),
+                    150
+                  );
                 }}
-                onKeyDown={handleKeyDown}
+                onKeyDown={
+                  handleKeyDown
+                }
                 placeholder="지역, 단지명, 계약조건 검색"
                 autoComplete="off"
                 role="combobox"
-                aria-expanded={showSuggestions}
+                aria-expanded={
+                  showSuggestions
+                }
                 aria-controls="home-search-results"
                 aria-autocomplete="list"
                 className="h-[50px] w-full min-w-0 rounded-xl bg-white pl-10 pr-[58px] text-xs font-semibold text-[#111827] outline-none placeholder:font-medium placeholder:text-zinc-400 sm:h-[60px] sm:pl-14 sm:pr-20 sm:text-base"
@@ -503,13 +531,32 @@ function SearchHero({
 
               <button
                 type="button"
-                onClick={handleSubmit}
+                onClick={
+                  handleSubmit
+                }
                 aria-label="검색하기"
                 className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-xl bg-[#10B981] text-white shadow-sm transition-all hover:-translate-y-[55%] hover:bg-[#0F766E] hover:shadow-lg active:translate-y-[-50%] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 sm:right-3 sm:h-12 sm:w-14"
               >
-                <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true">
-                  <circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="2" />
-                  <path d="M16 16L21 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  className="h-4 w-4 sm:h-5 sm:w-5"
+                  aria-hidden="true"
+                >
+                  <circle
+                    cx="11"
+                    cy="11"
+                    r="6.5"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  />
+
+                  <path
+                    d="M16 16L21 21"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
                 </svg>
               </button>
             </div>
@@ -521,58 +568,103 @@ function SearchHero({
                 role="listbox"
                 className="absolute left-0 right-0 top-[62px] z-[100] max-h-[300px] overflow-y-auto rounded-xl border border-zinc-200 bg-white p-1.5 shadow-2xl sm:top-[76px] sm:max-h-[320px] sm:rounded-2xl sm:p-2"
               >
-                {suggestions.map((apartment, index) => {
-                  const active = index === activeIndex;
+                {suggestions.map(
+                  (
+                    apartment,
+                    index
+                  ) => {
+                    const active =
+                      index ===
+                      activeIndex;
 
-                  return (
-                    <button
-                      key={apartment.slug}
-                      type="button"
-                      role="option"
-                      aria-selected={active}
-                      onMouseEnter={() => setActiveIndex(index)}
-                      onMouseDown={(event) => event.preventDefault()}
-                      onClick={() => openApartment(apartment)}
-                      className={[
-                        "flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left transition sm:rounded-xl sm:px-4 sm:py-3",
-                        active ? "bg-emerald-50" : "hover:bg-zinc-50",
-                      ].join(" ")}
-                    >
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="truncate text-sm font-extrabold text-[#111827] sm:text-base">
-                            {apartment.name}
+                    return (
+                      <button
+                        key={
+                          apartment.slug
+                        }
+                        type="button"
+                        role="option"
+                        aria-selected={
+                          active
+                        }
+                        onMouseEnter={() =>
+                          setActiveIndex(
+                            index
+                          )
+                        }
+                        onMouseDown={(
+                          event
+                        ) =>
+                          event.preventDefault()
+                        }
+                        onClick={() =>
+                          openApartment(
+                            apartment
+                          )
+                        }
+                        className={[
+                          "flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left transition sm:rounded-xl sm:px-4 sm:py-3",
+                          active
+                            ? "bg-emerald-50"
+                            : "hover:bg-zinc-50",
+                        ].join(
+                          " "
+                        )}
+                      >
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="truncate text-sm font-extrabold text-[#111827] sm:text-base">
+                              {
+                                apartment.name
+                              }
+                            </p>
+
+                            <span
+                              className={[
+                                "shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold sm:text-[10px]",
+                                getStatusStyle(
+                                  apartment
+                                ),
+                              ].join(
+                                " "
+                              )}
+                            >
+                              {apartment.status ||
+                                "정보 확인"}
+                            </span>
+                          </div>
+
+                          <p className="mt-1 truncate text-[10px] text-zinc-500 sm:text-xs">
+                            {apartment.region ||
+                              apartment.cityName ||
+                              apartment.city}
                           </p>
-
-                          <span
-                            className={[
-                              "shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold sm:text-[10px]",
-                              getStatusStyle(apartment),
-                            ].join(" ")}
-                          >
-                            {apartment.status || "정보 확인"}
-                          </span>
                         </div>
 
-                        <p className="mt-1 truncate text-[10px] text-zinc-500 sm:text-xs">
-                          {apartment.region || apartment.cityName || apartment.city}
-                        </p>
-                      </div>
-
-                      <span className="hidden shrink-0 text-sm font-bold text-emerald-700 sm:block">
-                        상세보기 →
-                      </span>
-                    </button>
-                  );
-                })}
+                        <span className="hidden shrink-0 text-sm font-bold text-emerald-700 sm:block">
+                          상세보기 →
+                        </span>
+                      </button>
+                    );
+                  }
+                )}
 
                 <button
                   type="button"
-                  onMouseDown={(event) => event.preventDefault()}
-                  onClick={() => openSearch(keyword)}
+                  onMouseDown={(
+                    event
+                  ) =>
+                    event.preventDefault()
+                  }
+                  onClick={() =>
+                    openSearch(
+                      keyword
+                    )
+                  }
                   className="mt-1 w-full cursor-pointer rounded-lg bg-zinc-50 px-3 py-2.5 text-xs font-bold text-zinc-600 transition hover:bg-emerald-50 hover:text-emerald-700 sm:rounded-xl sm:px-4 sm:py-3 sm:text-sm"
                 >
-                  ‘{keyword.trim()}’ 전체 검색결과 보기 →
+                  ‘{keyword.trim()}’ 전체
+                  검색결과 보기 →
                 </button>
               </div>
             )}
@@ -604,7 +696,9 @@ function SearchHero({
           {featuredImage &&
           featuredApartment ? (
             <Image
-              src={featuredImage}
+              src={
+                featuredImage
+              }
               alt={`${featuredApartment.name} 대표 이미지`}
               fill
               priority
@@ -690,7 +784,9 @@ function SearchHero({
               </div>
 
               <p className="mt-2 line-clamp-1 text-sm font-black leading-5 text-[#111827] sm:mt-3 sm:line-clamp-2 sm:text-lg sm:leading-7">
-                {featuredApartment.name}
+                {
+                  featuredApartment.name
+                }
               </p>
 
               <p className="mt-1 line-clamp-2 break-keep text-[10px] leading-4 text-zinc-500 sm:text-sm sm:leading-6">

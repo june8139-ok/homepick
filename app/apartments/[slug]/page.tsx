@@ -35,7 +35,7 @@ const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(
     /\/$/,
     ""
-  ) || "https://homepick.kr";
+  ) || "https://jibnun.com";
 
 function getHeroImage(
   apartment?: Apartment | null
@@ -121,8 +121,10 @@ function getStatusKeyword(
   if (
     listingStage === "subscription"
   ) {
-    return apartment.status ||
-      "청약 정보";
+    return (
+      apartment.status ||
+      "청약 정보"
+    );
   }
 
   if (
@@ -131,8 +133,10 @@ function getStatusKeyword(
     return "선착순 분양";
   }
 
-  return apartment.status ||
-    "분양 정보";
+  return (
+    apartment.status ||
+    "분양 정보"
+  );
 }
 
 function getSeoTitle(
@@ -194,7 +198,7 @@ function getSeoDescription(
   return truncateText(
     `${summaryParts.join(
       " · "
-    )}. 단지 규모, 평면도, 입지환경과 최신 분양 정보를 홈픽에서 확인하세요.`
+    )}. 단지 규모, 평면도, 입지환경과 최신 분양 정보를 집눈에서 확인하세요.`
   );
 }
 
@@ -257,7 +261,7 @@ export async function generateMetadata({
   if (!apartment) {
     return {
       title:
-        "단지를 찾을 수 없습니다 | 홈픽",
+        "단지를 찾을 수 없습니다 | 집눈",
 
       description:
         "요청한 분양 단지 정보를 찾을 수 없습니다.",
@@ -321,7 +325,7 @@ export async function generateMetadata({
       type: "website",
       locale: "ko_KR",
       url: canonicalUrl,
-      siteName: "홈픽(HomePick)",
+      siteName: "집눈",
       title,
       description,
 
@@ -336,10 +340,9 @@ export async function generateMetadata({
     },
 
     twitter: {
-      card:
-        image
-          ? "summary_large_image"
-          : "summary",
+      card: image
+        ? "summary_large_image"
+        : "summary",
 
       title,
       description,
@@ -439,8 +442,8 @@ function createJsonLd(
 
       addressCountry: "KR",
 
-      addressRegion: city ||
-        undefined,
+      addressRegion:
+        city || undefined,
 
       addressLocality:
         district || undefined,
@@ -468,7 +471,7 @@ function createJsonLd(
       "@type":
         "Organization",
 
-      name: "홈픽(HomePick)",
+      name: "집눈",
       url: SITE_URL,
     },
 
@@ -543,12 +546,14 @@ function JsonLd({
       dangerouslySetInnerHTML={{
         __html: JSON.stringify(
           data
-        ).replace(/</g, "\\u003c"),
+        ).replace(
+          /</g,
+          "\\u003c"
+        ),
       }}
     />
   );
 }
-
 
 function RelatedContentFallback() {
   return (
@@ -692,6 +697,7 @@ export default async function ApartmentDetailPage({
       </main>
     );
   }
+
   const listingStage =
     getListingStage(apartment);
 

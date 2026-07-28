@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+
 import {
   usePathname,
   useRouter,
@@ -36,7 +37,7 @@ const menuItems = [
   },
 ];
 
-function HomePickSymbol({
+function JibnunSymbol({
   className = "",
 }: {
   className?: string;
@@ -49,47 +50,62 @@ function HomePickSymbol({
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      {/* 빨간 지붕 */}
+      {/* 코랄색 지붕 */}
       <path
-        d="M8 28.5L31.5 8L54.5 28.5"
+        d="M8 27.5L31 8L54 27.5"
         stroke="#FF5A5F"
         strokeWidth="5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
 
-      {/* 연한 청록색 집 뼈대 */}
+      {/* 청록색 집 외곽 */}
       <path
-        d="M12 26.5V51H42"
-        stroke="#A8D8D5"
+        d="M12 26.5V50.5H42"
+        stroke="#0F9D98"
         strokeWidth="5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
 
-      {/* HomePick의 H */}
-      <path
-        d="M22 27V45"
-        stroke="#0F9D98"
-        strokeWidth="5"
-        strokeLinecap="round"
+      {/* 창문 */}
+      <rect
+        x="22"
+        y="27"
+        width="6"
+        height="6"
+        rx="1.4"
+        fill="#0F9D98"
       />
 
-      <path
-        d="M37 27V45"
-        stroke="#0F9D98"
-        strokeWidth="5"
-        strokeLinecap="round"
+      <rect
+        x="31"
+        y="27"
+        width="6"
+        height="6"
+        rx="1.4"
+        fill="#0F9D98"
       />
 
-      <path
-        d="M22 36H37"
-        stroke="#0F9D98"
-        strokeWidth="5"
-        strokeLinecap="round"
+      <rect
+        x="22"
+        y="36"
+        width="6"
+        height="6"
+        rx="1.4"
+        fill="#0F9D98"
       />
 
-      {/* 청록색 돋보기 */}
+      <rect
+        x="31"
+        y="36"
+        width="6"
+        height="6"
+        rx="1.4"
+        fill="#0F9D98"
+      />
+
+      {/* 돋보기 */}
       <circle
         cx="50"
         cy="46"
@@ -105,35 +121,36 @@ function HomePickSymbol({
         strokeLinecap="round"
       />
 
-      {/* 돋보기 안 P */}
+      {/* 돋보기 내부 코랄 포인트 */}
       <path
-        d="M47 40.5V51.5"
-        stroke="#0F9D98"
-        strokeWidth="2.8"
+        d="M46.5 41.5C49.5 39.3 53.7 41 54 44.6"
+        stroke="#FF5A5F"
+        strokeWidth="3.2"
         strokeLinecap="round"
-      />
-
-      <path
-        d="M47 41H51C53.2 41 54.5 42.2 54.5 44.2C54.5 46.2 53.2 47.4 51 47.4H47"
-        stroke="#0F9D98"
-        strokeWidth="2.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
       />
     </svg>
   );
 }
 
 export default function SiteHeader() {
-  const pathname = usePathname();
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const pathname =
+    usePathname();
 
-  const [isMenuOpen, setIsMenuOpen] =
-    useState(false);
+  const router =
+    useRouter();
 
-  const [searchKeyword, setSearchKeyword] =
-    useState("");
+  const searchParams =
+    useSearchParams();
+
+  const [
+    isMenuOpen,
+    setIsMenuOpen,
+  ] = useState(false);
+
+  const [
+    searchKeyword,
+    setSearchKeyword,
+  ] = useState("");
 
   const currentQuery =
     searchParams.get("q") ?? "";
@@ -158,7 +175,9 @@ export default function SiteHeader() {
   const handleSearchKeyDown = (
     event: React.KeyboardEvent<HTMLInputElement>
   ) => {
-    if (event.key === "Enter") {
+    if (
+      event.key === "Enter"
+    ) {
       event.preventDefault();
       handleSearch();
     }
@@ -172,7 +191,9 @@ export default function SiteHeader() {
         "/search"
       )
     ) {
-      if (pathname !== "/search") {
+      if (
+        pathname !== "/search"
+      ) {
         return false;
       }
 
@@ -180,7 +201,9 @@ export default function SiteHeader() {
         return ![
           "청약",
           "선착순",
-        ].includes(currentQuery);
+        ].includes(
+          currentQuery
+        );
       }
 
       return (
@@ -189,8 +212,12 @@ export default function SiteHeader() {
       );
     }
 
-    if (item.href === "/") {
-      return pathname === "/";
+    if (
+      item.href === "/"
+    ) {
+      return (
+        pathname === "/"
+      );
     }
 
     return pathname.startsWith(
@@ -205,7 +232,9 @@ export default function SiteHeader() {
         <Link
           href="/"
           onClick={() =>
-            setIsMenuOpen(false)
+            setIsMenuOpen(
+              false
+            )
           }
           className="
             group flex shrink-0
@@ -217,23 +246,17 @@ export default function SiteHeader() {
             focus-visible:ring-offset-2
             sm:gap-2.5
           "
-          aria-label="홈픽 홈페이지로 이동"
+          aria-label="집눈 홈페이지로 이동"
         >
-          <HomePickSymbol className="h-9 w-10 transition-transform duration-200 group-hover:-translate-y-0.5 sm:h-10 sm:w-11" />
+          <JibnunSymbol className="h-9 w-10 transition-transform duration-200 group-hover:-translate-y-0.5 sm:h-10 sm:w-11" />
 
           <div className="min-w-0">
-            <div className="flex items-baseline gap-1.5">
-              <p className="text-xl font-black tracking-[-0.04em] text-[#0F8F88] sm:text-[22px]">
-                홈픽
-              </p>
+            <p className="text-xl font-black tracking-[-0.045em] text-[#0F8F88] sm:text-[23px]">
+              집눈
+            </p>
 
-              <p className="hidden text-xs font-extrabold tracking-tight text-zinc-400 sm:block">
-                HomePick
-              </p>
-            </div>
-
-            <p className="hidden text-[10px] font-semibold tracking-tight text-zinc-400 xl:block">
-              전국 분양 아파트 플랫폼
+            <p className="hidden text-[10px] font-bold tracking-[-0.02em] text-zinc-500 xl:block">
+              전국 부동산을 한눈에
             </p>
           </div>
         </Link>
@@ -246,12 +269,18 @@ export default function SiteHeader() {
           {menuItems.map(
             (item) => {
               const active =
-                isMenuActive(item);
+                isMenuActive(
+                  item
+                );
 
               return (
                 <Link
-                  key={item.label}
-                  href={item.href}
+                  key={
+                    item.label
+                  }
+                  href={
+                    item.href
+                  }
                   className={[
                     "rounded-xl px-4 py-2.5 text-sm font-bold transition-all duration-200",
                     "hover:bg-emerald-50 hover:text-emerald-700",
@@ -259,7 +288,9 @@ export default function SiteHeader() {
                     active
                       ? "bg-emerald-50 text-emerald-700"
                       : "text-zinc-700",
-                  ].join(" ")}
+                  ].join(
+                    " "
+                  )}
                 >
                   {item.label}
                 </Link>
@@ -279,10 +310,15 @@ export default function SiteHeader() {
             </span>
 
             <input
-              value={searchKeyword}
-              onChange={(event) =>
+              value={
+                searchKeyword
+              }
+              onChange={(
+                event
+              ) =>
                 setSearchKeyword(
-                  event.target.value
+                  event.target
+                    .value
                 )
               }
               onKeyDown={
@@ -314,7 +350,9 @@ export default function SiteHeader() {
 
             <button
               type="button"
-              onClick={handleSearch}
+              onClick={
+                handleSearch
+              }
               aria-label="검색 실행"
               className="
                 absolute right-1.5 top-1/2
@@ -403,7 +441,8 @@ export default function SiteHeader() {
                   event
                 ) =>
                   setSearchKeyword(
-                    event.target.value
+                    event.target
+                      .value
                   )
                 }
                 onKeyDown={
@@ -498,11 +537,11 @@ export default function SiteHeader() {
 
             <div className="mt-4 rounded-2xl bg-zinc-50 px-4 py-3">
               <p className="text-xs font-black text-[#0F766E]">
-                홈픽 HomePick
+                집눈
               </p>
 
               <p className="mt-1 text-[11px] leading-5 text-zinc-500">
-                전국 분양 아파트와 청약·선착순 정보를 검색하고 비교하세요.
+                전국 분양 아파트와 청약·선착순 정보를 한눈에 검색하고 비교하세요.
               </p>
             </div>
           </div>

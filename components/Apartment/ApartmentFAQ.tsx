@@ -150,7 +150,7 @@ function createSubscriptionFaqs(
   faqs.push({
     question: `${name}의 현재 청약 단계는 어떻게 되나요?`,
     answer:
-      `${name}은 홈픽 등록 정보 기준으로 현재 '${status}' 단계입니다. ` +
+      `${name}은 집눈 등록 정보 기준으로 현재 '${status}' 단계입니다. ` +
       "청약 일정과 공급 내용은 변경될 수 있으므로 신청 전 청약홈 또는 사업주체의 최신 모집공고문을 확인해주세요.",
   });
 
@@ -272,7 +272,7 @@ function createSaleFaqs(
     faqs.push({
       question: `${name}은 현재 선착순 계약이 가능한가요?`,
       answer:
-        `${name}은 홈픽 등록 정보 기준으로 현재 선착순 분양 단계입니다.` +
+        `${name}은 집눈 등록 정보 기준으로 현재 선착순 분양 단계입니다.` +
         (condition
           ? ` 등록된 핵심 계약조건은 '${condition}'입니다.`
           : "") +
@@ -282,7 +282,7 @@ function createSaleFaqs(
     faqs.push({
       question: `${name}의 현재 분양 상태는 어떻게 되나요?`,
       answer:
-        `${name}은 홈픽 등록 정보 기준으로 현재 '${status}' 상태입니다.` +
+        `${name}은 집눈 등록 정보 기준으로 현재 '${status}' 상태입니다.` +
         (condition
           ? ` 등록된 핵심 조건은 '${condition}'입니다.`
           : "") +

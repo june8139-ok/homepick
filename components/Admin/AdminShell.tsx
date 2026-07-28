@@ -95,7 +95,7 @@ export default function AdminShell({
 
               <div className="hidden sm:block">
                 <p className="font-black text-zinc-900">
-                  HomePick Admin
+                  JIBNUN Admin
                 </p>
 
                 <p className="text-xs text-zinc-400">

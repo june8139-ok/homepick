@@ -385,7 +385,7 @@ export default function SubscriptionAlertForm({
     if (isClosed) {
       return {
         eyebrow:
-          "HOMEPICK SUBSCRIPTION",
+          "JUBNUN SUBSCRIPTION",
 
         title:
           "신청이 종료되었습니다",
@@ -401,7 +401,7 @@ export default function SubscriptionAlertForm({
     if (isConsult) {
       return {
         eyebrow:
-          "HOMEPICK CONSULTATION",
+          "JIBNUN CONSULTATION",
 
         title:
           "청약 상담 신청",
@@ -416,7 +416,7 @@ export default function SubscriptionAlertForm({
 
     return {
       eyebrow:
-        "HOMEPICK SUBSCRIPTION ALERT",
+        "JIBNUN SUBSCRIPTION ALERT",
 
       title:
         "청약 일정 알림 신청",
@@ -701,7 +701,7 @@ export default function SubscriptionAlertForm({
           </div>
 
           <p className="mt-4 text-xs font-bold text-emerald-700 sm:mt-6 sm:text-sm">
-            HOMEPICK
+            JIBNUN
           </p>
 
           <h2 className="mt-2 break-keep text-xl font-extrabold text-zinc-900 sm:text-3xl">

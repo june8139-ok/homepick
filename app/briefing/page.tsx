@@ -10,13 +10,13 @@ const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(
     /\/$/,
     ""
-  ) || "https://homepick.kr";
+  ) || "https://jibnun.com";
 
 const TITLE =
-  "홈픽 브리핑 | 청약·선착순·계약조건 변경 소식";
+  "집눈 브리핑 | 청약·선착순·계약조건 변경 소식";
 
 const DESCRIPTION =
-  "전국 청약 일정, 선착순 분양 소식, 계약조건 변경과 지역별 분양시장 정보를 홈픽 브리핑에서 확인하세요.";
+  "전국 청약 일정, 선착순 분양 소식, 계약조건 변경과 지역별 분양시장 정보를 집눈 브리핑에서 확인하세요.";
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -32,8 +32,7 @@ export const metadata: Metadata = {
     locale: "ko_KR",
     url:
       `${SITE_URL}/briefing`,
-    siteName:
-      "홈픽(HomePick)",
+    siteName: "집눈",
     title: TITLE,
     description: DESCRIPTION,
   },
@@ -114,7 +113,7 @@ export default async function BriefingPage() {
         "@type":
           "ListItem",
         position: 2,
-        name: "홈픽 브리핑",
+        name: "집눈 브리핑",
         item:
           `${SITE_URL}/briefing`,
       },
@@ -152,17 +151,17 @@ export default async function BriefingPage() {
           </span>
 
           <span className="font-semibold text-zinc-700">
-            홈픽 브리핑
+            집눈 브리핑
           </span>
         </nav>
 
         <section className="mt-5 overflow-hidden rounded-2xl bg-[#132238] p-5 text-white shadow-sm sm:mt-6 sm:rounded-3xl sm:p-8 lg:p-10">
           <p className="text-xs font-extrabold tracking-wide text-emerald-300 sm:text-sm">
-            HOMEPICK BRIEFING
+            집눈 부동산 브리핑
           </p>
 
           <h1 className="mt-2 break-keep text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl">
-            홈픽 브리핑
+            집눈 브리핑
           </h1>
 
           <p className="mt-3 max-w-3xl break-keep text-sm leading-6 text-zinc-300 sm:mt-4 sm:text-base sm:leading-8">
@@ -204,7 +203,7 @@ export default async function BriefingPage() {
                             </p>
 
                             <p className="mt-2 text-xs font-bold text-zinc-400">
-                              홈픽 브리핑
+                              집눈 브리핑
                             </p>
                           </div>
                         </div>

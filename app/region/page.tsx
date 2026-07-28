@@ -1,7 +1,12 @@
-import type { Metadata } from "next";
+import type {
+  Metadata,
+} from "next";
+
 import Link from "next/link";
 
-import { getApartments } from "../../lib/getApartments";
+import {
+  getApartments,
+} from "../../lib/getApartments";
 
 import {
   isFirstComeApartment,
@@ -12,42 +17,64 @@ import {
   isCompletedListing,
 } from "../../lib/listingStage";
 
-import type { Apartment } from "../../types/apartment";
+import {
+  getApartmentRegionKey,
+  getApartmentRegionName,
+} from "../../lib/regionUtils";
+
+import type {
+  Apartment,
+} from "../../types/apartment";
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(
     /\/$/,
     ""
-  ) || "https://homepick.kr";
+  ) || "https://jibnun.com";
 
 const PAGE_TITLE =
   "전국 지역별 분양 아파트·청약·선착순 정보";
 
 const PAGE_DESCRIPTION =
-  "전국 지역별 분양 아파트와 청약 단지, 선착순 분양 정보를 확인하세요. 지역별 등록 단지와 분양가, 계약조건을 홈픽에서 비교할 수 있습니다.";
+  "전국 지역별 분양 아파트와 청약 단지, 선착순 분양 정보를 확인하세요. 지역별 등록 단지와 분양가, 계약조건을 집눈에서 비교할 수 있습니다.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,
 
-  description: PAGE_DESCRIPTION,
+  description:
+    PAGE_DESCRIPTION,
 
   alternates: {
-    canonical: `${SITE_URL}/region`,
+    canonical:
+      `${SITE_URL}/region`,
   },
 
   openGraph: {
     type: "website",
     locale: "ko_KR",
-    url: `${SITE_URL}/region`,
-    siteName: "홈픽(HomePick)",
-    title: `${PAGE_TITLE} | 홈픽`,
-    description: PAGE_DESCRIPTION,
+
+    url:
+      `${SITE_URL}/region`,
+
+    siteName:
+      "집눈",
+
+    title:
+      `${PAGE_TITLE} | 집눈`,
+
+    description:
+      PAGE_DESCRIPTION,
   },
 
   twitter: {
-    card: "summary_large_image",
-    title: `${PAGE_TITLE} | 홈픽`,
-    description: PAGE_DESCRIPTION,
+    card:
+      "summary_large_image",
+
+    title:
+      `${PAGE_TITLE} | 집눈`,
+
+    description:
+      PAGE_DESCRIPTION,
   },
 };
 
@@ -145,19 +172,24 @@ function buildCitySummaries(
 
   apartments.forEach(
     (apartment) => {
-      if (!apartment.city) {
+      const regionKey =
+        getApartmentRegionKey(
+          apartment
+        );
+
+      if (!regionKey) {
         return;
       }
 
       const current =
         cityMap.get(
-          apartment.city
+          regionKey
         ) ?? [];
 
       current.push(apartment);
 
       cityMap.set(
-        apartment.city,
+        regionKey,
         current
       );
     }
@@ -180,9 +212,9 @@ function buildCitySummaries(
           city,
 
           cityName:
-            cityApartments[0]
-              ?.cityName ||
-            city,
+            getApartmentRegionName(
+              cityApartments[0]
+            ) || city,
 
           totalCount:
             cityApartments.length,
@@ -191,7 +223,7 @@ function buildCitySummaries(
 
           /*
            * getApartments()가 최신 등록순이므로
-           * 지역 배열의 첫 번째 단지를 최근 등록 단지로 사용합니다.
+           * 첫 번째 단지를 최근 등록 단지로 사용합니다.
            */
           latestApartment:
             cityApartments[0],
@@ -199,9 +231,22 @@ function buildCitySummaries(
       }
     )
     .sort(
-      (first, second) =>
-        second.totalCount -
-        first.totalCount
+      (first, second) => {
+        if (
+          second.totalCount !==
+          first.totalCount
+        ) {
+          return (
+            second.totalCount -
+            first.totalCount
+          );
+        }
+
+        return first.cityName.localeCompare(
+          second.cityName,
+          "ko"
+        );
+      }
     );
 }
 
@@ -408,7 +453,9 @@ export default async function RegionIndexPage() {
           "ListItem",
 
         position: 2,
-        name: "지역별 분양정보",
+        name:
+          "지역별 분양정보",
+
         item:
           `${SITE_URL}/region`,
       },
@@ -420,12 +467,13 @@ export default async function RegionIndexPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(
-            breadcrumbJsonLd
-          ).replace(
-            /</g,
-            "\\u003c"
-          ),
+          __html:
+            JSON.stringify(
+              breadcrumbJsonLd
+            ).replace(
+              /</g,
+              "\\u003c"
+            ),
         }}
       />
 
@@ -452,7 +500,7 @@ export default async function RegionIndexPage() {
 
         <section className="mt-5 overflow-hidden rounded-2xl bg-[#132238] p-5 text-white shadow-sm sm:mt-6 sm:rounded-3xl sm:p-8 lg:p-10">
           <p className="text-xs font-bold tracking-wide text-emerald-300 sm:text-sm">
-            REGIONAL APARTMENT
+            집눈 지역별 분양정보
           </p>
 
           <h1 className="mt-2 break-keep text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl">
@@ -461,9 +509,9 @@ export default async function RegionIndexPage() {
 
           <p className="mt-3 max-w-3xl break-keep text-sm leading-6 text-zinc-300 sm:mt-4 sm:text-base sm:leading-8">
             원하는 지역을 선택해 현재
-            청약 중인 아파트와 선착순 분양
-            단지, 분양가와 계약조건을
-            확인해보세요.
+            청약 중인 아파트와 선착순
+            분양 단지, 분양가와
+            계약조건을 확인해보세요.
           </p>
 
           <div className="mt-6 grid grid-cols-3 gap-2 sm:mt-8 sm:max-w-xl sm:gap-3">
@@ -503,7 +551,7 @@ export default async function RegionIndexPage() {
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-xs font-extrabold text-emerald-600 sm:text-sm">
-                SELECT REGION
+                지역별 단지 찾기
               </p>
 
               <h2 className="mt-1 text-2xl font-black tracking-tight text-[#132238] sm:text-3xl">
@@ -511,8 +559,8 @@ export default async function RegionIndexPage() {
               </h2>
 
               <p className="mt-2 text-xs leading-5 text-zinc-500 sm:text-sm sm:leading-6">
-                등록 단지가 많은 지역부터
-                표시됩니다.
+                등록 단지가 많은
+                지역부터 표시됩니다.
               </p>
             </div>
 
@@ -559,8 +607,9 @@ export default async function RegionIndexPage() {
               </h2>
 
               <p className="mt-2 text-sm text-zinc-500">
-                공개된 분양 단지가 등록되면
-                지역별로 자동 표시됩니다.
+                공개된 분양 단지가
+                등록되면 지역별로 자동
+                표시됩니다.
               </p>
             </div>
           )}
