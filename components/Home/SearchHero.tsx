@@ -460,16 +460,8 @@ function SearchHero({
               </span>
             </span>
 
-            <span className="mt-3 block break-keep text-[25px] font-black leading-[1.14] tracking-[-0.045em] text-[#111827] sm:mt-4 sm:text-[38px] xl:text-[44px]">
-              전국 부동산을
-              <br />
-              <span className="relative inline-block text-[#FF5A5F]">
-                한눈에
-                <span
-                  aria-hidden="true"
-                  className="absolute -bottom-1 left-0 h-2 w-full rounded-full bg-[#FF5A5F]/12"
-                />
-              </span>
+            <span className="mt-3 block whitespace-nowrap text-[22px] font-black leading-tight tracking-[-0.04em] text-[#132238] sm:mt-4 sm:text-[30px] xl:text-[34px]">
+              전국 부동산을 한눈에
             </span>
           </h1>
 
