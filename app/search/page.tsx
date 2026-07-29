@@ -8,13 +8,13 @@ const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(
     /\/$/,
     ""
-  ) || "https://homepick.kr";
+  ) || "https://jibnun.com";
 
 export const metadata: Metadata = {
   title: "전국 분양 아파트 지도검색",
 
   description:
-    "홈픽에서 전국 분양 아파트와 청약 단지, 선착순 분양 정보를 지도와 목록으로 검색하고 비교하세요.",
+    "집눈에서 전국 분양 아파트와 청약 단지, 선착순 분양 정보를 지도와 목록으로 검색하고 비교하세요.",
 
   alternates: {
     canonical: `${SITE_URL}/search`,
@@ -41,10 +41,10 @@ export const metadata: Metadata = {
     type: "website",
     locale: "ko_KR",
     url: `${SITE_URL}/search`,
-    siteName: "홈픽(HomePick)",
+    siteName: "집눈",
 
     title:
-      "전국 분양 아파트 지도검색 | 홈픽",
+      "전국 분양 아파트 지도검색 | 집눈",
 
     description:
       "전국 청약·선착순 분양 단지를 지도에서 찾고 분양가와 계약조건을 비교하세요.",
@@ -54,7 +54,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
 
     title:
-      "전국 분양 아파트 지도검색 | 홈픽",
+      "전국 분양 아파트 지도검색 | 집눈",
 
     description:
       "전국 청약·선착순 분양 단지를 지도에서 검색하고 비교하세요.",

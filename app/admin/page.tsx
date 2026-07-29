@@ -349,7 +349,7 @@ export default function AdminDashboardPage() {
           <div className="flex flex-col gap-6 p-6 sm:p-8 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-sm font-semibold text-emerald-400">
-                HOMEPICK ADMIN
+                JIBNUN ADMIN
               </p>
 
               <h1 className="mt-2 text-3xl font-black sm:text-4xl">

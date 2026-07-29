@@ -42,7 +42,7 @@ export default function RelatedBriefings({
           </p>
 
           <h2 className="mt-1 text-xl font-black text-[#132238] sm:text-2xl">
-            이 단지 관련 홈픽 브리핑
+            이 단지 관련 집눈 브리핑
           </h2>
 
           <p className="mt-2 break-keep text-xs leading-5 text-zinc-500 sm:text-sm sm:leading-6">

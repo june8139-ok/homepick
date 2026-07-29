@@ -443,8 +443,21 @@ function SearchHero({
           </div>
 
           <h1 className="mt-4 tracking-[-0.055em] sm:mt-6">
-            <span className="block text-[48px] font-black leading-none text-[#0F766E] drop-shadow-[0_3px_0_rgba(15,118,110,0.08)] sm:text-[76px] xl:text-[88px]">
-              집눈
+            <span className="flex items-center gap-3 sm:gap-4">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-[0_8px_24px_rgba(15,118,110,0.12)] sm:h-[72px] sm:w-[72px] xl:h-20 xl:w-20">
+                <Image
+                  src="/icon-512.png"
+                  alt="집눈 로고"
+                  width={64}
+                  height={64}
+                  priority
+                  className="h-10 w-10 object-contain sm:h-[58px] sm:w-[58px] xl:h-16 xl:w-16"
+                />
+              </span>
+
+              <span className="block text-[48px] font-black leading-none text-[#0F766E] drop-shadow-[0_3px_0_rgba(15,118,110,0.08)] sm:text-[76px] xl:text-[88px]">
+                집눈
+              </span>
             </span>
 
             <span className="mt-3 block break-keep text-[25px] font-black leading-[1.14] tracking-[-0.045em] text-[#111827] sm:mt-4 sm:text-[38px] xl:text-[44px]">
