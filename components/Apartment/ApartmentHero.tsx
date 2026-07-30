@@ -329,8 +329,38 @@ function ImagePlaceholder({
   label: string;
 }) {
   return (
-    <div className="flex h-full min-h-[220px] w-full items-center justify-center rounded-2xl border-2 border-dashed border-zinc-300 bg-zinc-100 px-6 text-center text-sm font-medium text-zinc-500 sm:min-h-[360px] sm:rounded-3xl">
-      {label}
+    <div className="relative flex h-full min-h-[220px] w-full items-center justify-center overflow-hidden rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-sky-50 px-6 text-center sm:min-h-[360px] sm:rounded-3xl">
+      <div
+        aria-hidden="true"
+        className="absolute -right-12 -top-16 h-48 w-48 rounded-full bg-emerald-100/60 blur-2xl"
+      />
+
+      <div
+        aria-hidden="true"
+        className="absolute -bottom-20 -left-10 h-52 w-52 rounded-full bg-sky-100/70 blur-2xl"
+      />
+
+      <div className="relative z-10 flex max-w-sm flex-col items-center">
+        <div className="relative h-20 w-20 sm:h-24 sm:w-24">
+          <Image
+            src="/icon-512.png"
+            alt=""
+            fill
+            priority
+            fetchPriority="high"
+            sizes="96px"
+            className="object-contain"
+          />
+        </div>
+
+        <p className="mt-4 break-keep text-base font-black text-[#132238] sm:text-lg">
+          {label}
+        </p>
+
+        <p className="mt-2 text-xs leading-5 text-zinc-500 sm:text-sm">
+          등록된 대표 이미지가 준비되면 자동으로 표시됩니다.
+        </p>
+      </div>
     </div>
   );
 }
@@ -452,10 +482,8 @@ export default function ApartmentHero({
               fill
               priority
               fetchPriority="high"
-              quality={76}
+              quality={74}
               sizes="
-                (max-width: 419px) 100vw,
-                (max-width: 639px) 100vw,
                 (max-width: 1023px) 100vw,
                 64vw
               "
