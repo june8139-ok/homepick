@@ -351,7 +351,7 @@ export default function RegionMapSection({
   }
 
   return (
-    <section className="relative z-0 isolate mt-4 overflow-hidden rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-5">
+    <section className="isolate mt-4 overflow-hidden rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-extrabold tracking-[0.14em] text-[#0F766E]">
@@ -401,7 +401,7 @@ export default function RegionMapSection({
       </div>
 
       <div className="mx-auto mt-4 grid w-full max-w-[1120px] gap-6 xl:grid-cols-[minmax(0,680px)_410px] xl:items-stretch xl:justify-center">
-        <div className="relative z-0 flex min-w-0 justify-center overflow-hidden [contain:paint]">
+        <div className="relative isolate flex min-w-0 justify-center overflow-hidden [contain:paint]">
           <KoreaMap
             regions={regions}
             selectedCity={
@@ -633,7 +633,7 @@ export default function RegionMapSection({
       </div>
 
       {/* 모바일·태블릿 지역 요약 카드 슬라이드 */}
-      <div className="relative z-10 mt-4 xl:hidden">
+      <div className="mt-4 xl:hidden">
         <div
           ref={mobileCardScrollerRef}
           className="-mx-4 overflow-x-auto px-4 pb-2 snap-x snap-mandatory scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:-mx-5 sm:px-5"

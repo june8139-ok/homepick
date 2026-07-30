@@ -410,7 +410,7 @@ export default function HomeClient({
         />
 
         {/* 지역 바로가기 */}
-        <section className="relative z-20 mt-3 rounded-2xl border border-zinc-200 bg-white px-3 py-4 shadow-sm sm:mt-4 sm:rounded-3xl sm:px-7 sm:py-5">
+        <section className="mt-3 rounded-2xl border border-zinc-200 bg-white px-3 py-4 shadow-sm sm:mt-4 sm:rounded-3xl sm:px-7 sm:py-5">
           <div className="flex items-center justify-between gap-3 sm:block lg:flex lg:items-center">
             <h2 className="text-base font-black text-[#111827] sm:text-lg">
               지역 바로가기
@@ -442,7 +442,9 @@ export default function HomeClient({
                     text-xs font-bold
                     text-zinc-600
                     transition-all
-                    active:scale-[0.98]
+                    active:scale-[0.97]
+                    active:bg-emerald-50
+                    active:text-emerald-700
                     focus-visible:outline-none
                     focus-visible:ring-2
                     focus-visible:ring-emerald-500
