@@ -149,8 +149,8 @@ export default function SiteFooter() {
     new Date().getFullYear();
 
   return (
-    <footer className="border-t border-zinc-200 bg-white">
-      <div className="mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
+    <footer className="relative z-30 isolate border-t border-zinc-200 bg-white">
+      <div className="pointer-events-auto mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
         <div className="grid gap-6 md:grid-cols-[1.05fr_0.7fr_1.35fr] md:items-start md:gap-8 lg:gap-10">
           {/* 브랜드 소개 */}
           <section>
