@@ -285,6 +285,11 @@ export default function ApartmentImageSections({
       Array<HTMLButtonElement | null>
     >([]);
 
+  const thumbnailScrollerRef =
+    useRef<HTMLDivElement | null>(
+      null
+    );
+
   useEffect(() => {
     if (
       activeImageIndex >=
@@ -343,14 +348,33 @@ export default function ApartmentImageSections({
         activeImageIndex
       ];
 
-    if (!activeThumbnail) {
+    const scroller =
+      thumbnailScrollerRef.current;
+
+    if (
+      !activeThumbnail ||
+      !scroller
+    ) {
       return;
     }
 
-    activeThumbnail.scrollIntoView({
+    /*
+     * scrollIntoView를 사용하면 상세페이지 전체가
+     * 썸네일 위치까지 세로로 내려갈 수 있습니다.
+     * 썸네일 컨테이너의 가로 스크롤만 이동합니다.
+     */
+    const targetLeft =
+      activeThumbnail.offsetLeft -
+      (scroller.clientWidth -
+        activeThumbnail.offsetWidth) /
+        2;
+
+    scroller.scrollTo({
+      left: Math.max(
+        0,
+        targetLeft
+      ),
       behavior: "smooth",
-      block: "nearest",
-      inline: "center",
     });
   }, [activeImageIndex]);
 
@@ -929,7 +953,10 @@ export default function ApartmentImageSections({
               )}
             </div>
 
-            <div className="-mx-3 mt-2 overflow-x-auto px-3 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:-mx-6 sm:mt-3 sm:px-6">
+            <div
+              ref={thumbnailScrollerRef}
+              className="-mx-3 mt-2 overflow-x-auto px-3 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:-mx-6 sm:mt-3 sm:px-6"
+            >
               <div className="flex min-w-max gap-2.5">
                 {thumbnailItems.map(
                   ({

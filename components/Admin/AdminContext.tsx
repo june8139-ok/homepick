@@ -138,6 +138,13 @@ type InitialApartment = {
 
   score?: Score;
 
+  /*
+   * 앞으로 평가 선택값 자체를 DB에 저장하게 되면
+   * 이 값을 가장 우선해서 복원합니다.
+   * 기존 데이터는 priceDetail과 condition에서 추론합니다.
+   */
+  evaluation?: Partial<EvaluationInput>;
+
   images?: {
     hero?: string | string[];
     location?: string | string[];
@@ -312,6 +319,173 @@ const defaultEvaluation: EvaluationInput = {
   riskLevel:
     "normal",
 };
+
+function normalizeContractText(
+  value: unknown
+) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/,/g, "");
+}
+
+function createInitialEvaluation(
+  apartment?: InitialApartment
+): EvaluationInput {
+  /*
+   * 신규 등록은 기존 기본값을 사용합니다.
+   */
+  if (!apartment) {
+    return {
+      ...defaultEvaluation,
+    };
+  }
+
+  /*
+   * 평가 선택값이 DB에 직접 저장돼 있다면
+   * 그 값을 최우선으로 복원합니다.
+   */
+  if (apartment.evaluation) {
+    return {
+      ...defaultEvaluation,
+      ...apartment.evaluation,
+    };
+  }
+
+  const contractText =
+    normalizeContractText(
+      apartment.priceDetail
+        ?.contractPrice
+    );
+
+  const middlePaymentText =
+    normalizeContractText(
+      apartment.priceDetail
+        ?.middlePayment
+    );
+
+  const balanceText =
+    normalizeContractText(
+      apartment.priceDetail
+        ?.balance
+    );
+
+  const optionText =
+    normalizeContractText(
+      [
+        ...(apartment.priceDetail
+          ?.options ?? []),
+        apartment.condition,
+      ]
+        .filter(Boolean)
+        .join(" ")
+    );
+
+  let contractType: EvaluationInput["contractType"] =
+    defaultEvaluation.contractType;
+
+  if (
+    contractText.includes("500만원") ||
+    contractText.includes("500만")
+  ) {
+    contractType = "fixed-500";
+  } else if (
+    contractText.includes("1000만원") ||
+    contractText.includes("1000만") ||
+    contractText.includes("천만원")
+  ) {
+    contractType = "fixed-1000";
+  } else if (
+    contractText.includes("5%")
+  ) {
+    contractType = "ratio-5";
+  } else if (
+    contractText.includes("10%")
+  ) {
+    contractType = "ratio-10";
+  }
+
+  let middlePaymentType: EvaluationInput["middlePaymentType"] =
+    defaultEvaluation.middlePaymentType;
+
+  if (
+    middlePaymentText.includes("일부무이자")
+  ) {
+    middlePaymentType = "partial-free";
+  } else if (
+    middlePaymentText.includes("무이자")
+  ) {
+    middlePaymentType = "free";
+  } else if (
+    middlePaymentText.includes("자납")
+  ) {
+    middlePaymentType = "self";
+  } else if (
+    middlePaymentText.includes("이자후불")
+  ) {
+    middlePaymentType = "interest-deferred";
+  }
+
+  let optionBenefitType: EvaluationInput["optionBenefitType"] =
+    defaultEvaluation.optionBenefitType;
+
+  if (
+    optionText.includes("풀옵션무상") ||
+    optionText.includes("풀옵션무료")
+  ) {
+    optionBenefitType =
+      "balcony-and-options-free";
+  } else if (
+    optionText.includes("발코니확장무상") ||
+    optionText.includes("발코니무상") ||
+    optionText.includes("발코니무료")
+  ) {
+    optionBenefitType =
+      "balcony-free";
+  } else if (
+    optionText.includes("발코니확장유상") ||
+    optionText.includes("발코니유상")
+  ) {
+    optionBenefitType = "paid";
+  }
+
+  let cashBenefitType: EvaluationInput["cashBenefitType"] =
+    defaultEvaluation.cashBenefitType;
+
+  if (
+    optionText.includes("2000만원이상")
+  ) {
+    cashBenefitType = "over-2000";
+  } else if (
+    optionText.includes("1000만원이상")
+  ) {
+    cashBenefitType = "over-1000";
+  } else if (
+    optionText.includes("1000만원미만")
+  ) {
+    cashBenefitType = "small";
+  } else if (
+    optionText.includes("현금성혜택없음")
+  ) {
+    cashBenefitType = "none";
+  }
+
+  const balanceSupport: EvaluationInput["balanceSupport"] =
+    balanceText.includes("유예") ||
+    balanceText.includes("입주지원")
+      ? "yes"
+      : "no";
+
+  return {
+    ...defaultEvaluation,
+    contractType,
+    middlePaymentType,
+    optionBenefitType,
+    cashBenefitType,
+    balanceSupport,
+  };
+}
 
 const AdminContext =
   createContext<
@@ -648,7 +822,9 @@ export function AdminProvider({
     evaluation,
     setEvaluationState,
   ] = useState<EvaluationInput>(
-    defaultEvaluation
+    createInitialEvaluation(
+      initialApartment
+    )
   );
 
   const [
