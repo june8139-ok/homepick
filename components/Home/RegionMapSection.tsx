@@ -372,7 +372,7 @@ export default function RegionMapSection({
         </button>
       </div>
 
-      <div className="mt-4 grid gap-5 xl:grid-cols-[minmax(0,1fr)_410px] xl:items-stretch">
+      <div className="mx-auto mt-4 grid w-full max-w-[1120px] gap-6 xl:grid-cols-[minmax(0,680px)_410px] xl:items-stretch xl:justify-center">
         <div className="flex min-w-0 justify-center">
           <KoreaMap
             regions={regions}
