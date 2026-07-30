@@ -2,11 +2,14 @@ import type {
   Metadata,
 } from "next";
 
+import Image from "next/image";
 import Link from "next/link";
 import {
   notFound,
   permanentRedirect,
 } from "next/navigation";
+
+import { cache } from "react";
 
 import {
   getApartments,
@@ -35,6 +38,8 @@ const SITE_URL =
     /\/$/,
     ""
   ) || "https://jibnun.com";
+
+export const revalidate = 300;
 
 type PageProps = {
   params: Promise<{
@@ -187,50 +192,58 @@ function getListingPriority(
   return 1;
 }
 
-async function getRegionData(
-  city: string
-) {
-  const normalizedCity =
-    normalizeRegionRoute(
-      city
-    );
+const getPublishedApartments =
+  cache(async () => {
+    return (
+      await getApartments({
+        publishedOnly: true,
+      })
+    ) as Apartment[];
+  });
 
-  const apartments =
-    (await getApartments({
-      publishedOnly: true,
-    })) as Apartment[];
+const getRegionData =
+  cache(async (
+    city: string
+  ) => {
+    const normalizedCity =
+      normalizeRegionRoute(
+        city
+      );
 
-  const regionApartments =
-    normalizedCity
-      ? apartments
-          .filter(
-            (apartment) =>
-              Boolean(
-                apartment.slug
-              ) &&
-              !isCompletedListing(
-                apartment
-              ) &&
-              isApartmentInRegion(
-                apartment,
-                normalizedCity
-              )
-          )
-          .sort(
-            (a, b) =>
-              getListingPriority(b) -
-              getListingPriority(a)
-          )
-      : [];
+    const apartments =
+      await getPublishedApartments();
 
-  return {
-    cityKey:
-      normalizedCity,
-    cityName:
-      normalizedCity,
-    regionApartments,
-  };
-}
+    const regionApartments =
+      normalizedCity
+        ? apartments
+            .filter(
+              (apartment) =>
+                Boolean(
+                  apartment.slug
+                ) &&
+                !isCompletedListing(
+                  apartment
+                ) &&
+                isApartmentInRegion(
+                  apartment,
+                  normalizedCity
+                )
+            )
+            .sort(
+              (a, b) =>
+                getListingPriority(b) -
+                getListingPriority(a)
+            )
+        : [];
+
+    return {
+      cityKey:
+        normalizedCity,
+      cityName:
+        normalizedCity,
+      regionApartments,
+    };
+  });
 
 export async function generateMetadata({
   params,
@@ -438,11 +451,17 @@ function ApartmentCard({
           "
         >
           {image ? (
-            <img
+            <Image
               src={image}
               alt={`${apartment.name} 대표 이미지`}
+              fill
               loading="lazy"
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              quality={68}
+              sizes="
+                (max-width: 639px) calc(100vw - 32px),
+                224px
+              "
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
             />
           ) : (
             <div className="flex h-full items-center justify-center text-sm font-semibold text-zinc-400">
@@ -534,6 +553,9 @@ function ApartmentCard({
                 text-sm font-bold
                 text-zinc-700
                 transition-all
+                active:scale-[0.98]
+                active:bg-emerald-50
+                active:text-emerald-700
                 hover:-translate-y-0.5
                 hover:border-emerald-300
                 hover:bg-emerald-50
