@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 import {
   useCallback,
   useEffect,
@@ -290,6 +292,9 @@ export default function ApartmentImageSections({
       null
     );
 
+  const hasMountedThumbnailScroll =
+    useRef(false);
+
   const moveImage =
     useCallback(
       (
@@ -339,6 +344,19 @@ export default function ApartmentImageSections({
    * 모바일 썸네일 목록에서도 선택된 항목이 보이도록 이동합니다.
    */
   useEffect(() => {
+    /*
+     * 첫 렌더에서는 썸네일 자동 스크롤을 실행하지 않습니다.
+     * Lighthouse 측정 중 불필요한 스크롤 애니메이션이 시작되거나
+     * 상세페이지의 초기 위치가 흔들리는 일을 막습니다.
+     */
+    if (
+      !hasMountedThumbnailScroll.current
+    ) {
+      hasMountedThumbnailScroll.current =
+        true;
+      return;
+    }
+
     const activeThumbnail =
       thumbnailRefs.current[
         resolvedActiveImageIndex
@@ -354,11 +372,6 @@ export default function ApartmentImageSections({
       return;
     }
 
-    /*
-     * scrollIntoView를 사용하면 상세페이지 전체가
-     * 썸네일 위치까지 세로로 내려갈 수 있습니다.
-     * 썸네일 컨테이너의 가로 스크롤만 이동합니다.
-     */
     const targetLeft =
       activeThumbnail.offsetLeft -
       (scroller.clientWidth -
@@ -370,7 +383,7 @@ export default function ApartmentImageSections({
         0,
         targetLeft
       ),
-      behavior: "smooth",
+      behavior: "auto",
     });
   }, [
     resolvedActiveImageIndex,
@@ -746,7 +759,7 @@ export default function ApartmentImageSections({
           "
         >
           <div className="relative flex h-[260px] items-center justify-center min-[420px]:h-[310px] sm:h-[430px] lg:h-[500px]">
-            <img
+            <Image
               key={
                 activeImage.id
               }
@@ -756,9 +769,17 @@ export default function ApartmentImageSections({
               alt={
                 activeImage.alt
               }
+              fill
               loading="lazy"
+              quality={78}
+              sizes="
+                (max-width: 419px) calc(100vw - 32px),
+                (max-width: 639px) calc(100vw - 40px),
+                (max-width: 1023px) calc(100vw - 64px),
+                1180px
+              "
               draggable={false}
-              className="pointer-events-none h-full w-full object-contain"
+              className="pointer-events-none object-contain"
             />
 
             {imageItems.length >
@@ -1000,17 +1021,24 @@ export default function ApartmentImageSections({
                         )}
                       >
                         <div className="relative aspect-[4/3] overflow-hidden bg-zinc-100">
-                          <img
+                          <Image
                             src={
                               image.url
                             }
                             alt=""
+                            fill
                             loading="lazy"
+                            quality={62}
+                            sizes="
+                              (max-width: 639px) 96px,
+                              (max-width: 1023px) 128px,
+                              144px
+                            "
                             draggable={
                               false
                             }
                             className={[
-                              "h-full w-full object-cover transition duration-300",
+                              "object-cover transition duration-300",
                               active
                                 ? "scale-[1.02]"
                                 : "group-hover:scale-105",
@@ -1141,17 +1169,22 @@ export default function ApartmentImageSections({
               sm:px-16
             "
           >
-            <img
-              key={`viewer-${activeImage.id}`}
-              src={
-                activeImage.url
-              }
-              alt={
-                activeImage.alt
-              }
-              draggable={false}
-              className="max-h-full max-w-full object-contain"
-            />
+            <div className="relative h-full w-full">
+              <Image
+                key={`viewer-${activeImage.id}`}
+                src={
+                  activeImage.url
+                }
+                alt={
+                  activeImage.alt
+                }
+                fill
+                quality={88}
+                sizes="100vw"
+                draggable={false}
+                className="object-contain"
+              />
+            </div>
 
             {imageItems.length >
               1 && (
