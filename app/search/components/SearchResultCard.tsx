@@ -1,6 +1,6 @@
+import Image from "next/image";
 import {
   forwardRef,
-  type KeyboardEvent,
   type MouseEvent,
 } from "react";
 
@@ -177,18 +177,6 @@ const SearchResultCard =
           2
         );
 
-      const handleKeyDown = (
-        event: KeyboardEvent<HTMLElement>
-      ) => {
-        if (
-          event.key === "Enter" ||
-          event.key === " "
-        ) {
-          event.preventDefault();
-          onSelect();
-        }
-      };
-
       const handleOpen = (
         event: MouseEvent<HTMLButtonElement>
       ) => {
@@ -196,26 +184,22 @@ const SearchResultCard =
         onOpen();
       };
 
+      const handleSelectButton = (
+        event: MouseEvent<HTMLButtonElement>
+      ) => {
+        event.stopPropagation();
+        onSelect();
+      };
+
       return (
         <article
           ref={ref}
-          role="button"
-          tabIndex={0}
-          aria-pressed={selected}
-          aria-label={`${apartment.name} 지도에서 보기`}
           onMouseEnter={onHover}
           onMouseLeave={onLeave}
-          onFocus={onHover}
-          onBlur={onLeave}
           onClick={onSelect}
-          onKeyDown={
-            handleKeyDown
-          }
           className={[
             "group cursor-pointer overflow-hidden rounded-3xl border bg-white shadow-sm",
             "transition-all duration-200",
-            "focus-visible:outline-none focus-visible:ring-2",
-            "focus-visible:ring-emerald-500 focus-visible:ring-offset-2",
             active
               ? "border-emerald-400 shadow-lg ring-2 ring-emerald-100"
               : "border-zinc-200 hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-md",
@@ -224,12 +208,14 @@ const SearchResultCard =
           <div className="grid sm:grid-cols-[160px_minmax(0,1fr)]">
             <div className="relative min-h-[190px] overflow-hidden bg-zinc-100">
               {image ? (
-                <img
+                <Image
                   src={image}
                   alt={`${apartment.name} 대표 이미지`}
-                  loading="lazy"
+                  fill
+                  sizes="(max-width: 639px) 100vw, 160px"
+                  quality={72}
                   className={[
-                    "h-full w-full object-cover transition-transform duration-500",
+                    "object-cover transition-transform duration-500",
                     active
                       ? "scale-105"
                       : "group-hover:scale-105",
@@ -330,12 +316,27 @@ const SearchResultCard =
                 )}
               </div>
 
-              <div className="mt-auto flex items-center justify-between gap-3 pt-4">
-                {!moveInText && (
-                  <span className="text-[11px] font-medium text-zinc-400">
-                    입주 일정 확인 중
-                  </span>
-                )}
+              <div className="mt-auto flex items-center justify-end gap-2 pt-4">
+                <button
+                  type="button"
+                  onClick={
+                    handleSelectButton
+                  }
+                  aria-label={`${apartment.name} 지도에서 보기`}
+                  className={[
+                    "inline-flex min-h-9 cursor-pointer items-center justify-center",
+                    "rounded-full border border-emerald-200 bg-white px-4 py-2",
+                    "text-xs font-bold text-emerald-700 transition-all",
+                    "hover:-translate-y-0.5 hover:bg-emerald-50 hover:shadow-sm",
+                    "focus-visible:outline-none focus-visible:ring-2",
+                    "focus-visible:ring-emerald-500 focus-visible:ring-offset-2",
+                    selected
+                      ? "border-emerald-500 bg-emerald-50"
+                      : "",
+                  ].join(" ")}
+                >
+                  지도에서 보기
+                </button>
 
                 <button
                   type="button"
@@ -343,7 +344,7 @@ const SearchResultCard =
                     handleOpen
                   }
                   className={[
-                    "ml-auto inline-flex min-h-9 cursor-pointer items-center justify-center",
+                    "inline-flex min-h-9 cursor-pointer items-center justify-center",
                     "rounded-full bg-zinc-900 px-4 py-2",
                     "text-xs font-bold text-white transition-all",
                     "hover:-translate-y-0.5 hover:bg-emerald-600 hover:shadow-md",
