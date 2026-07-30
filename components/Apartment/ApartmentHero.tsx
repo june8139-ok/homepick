@@ -428,17 +428,23 @@ export default function ApartmentHero({
       <div className="min-w-0">
         {heroImage ? (
           <div className="group relative h-[230px] overflow-hidden rounded-2xl bg-zinc-100 shadow-sm min-[420px]:h-[270px] sm:h-[360px] sm:rounded-3xl lg:h-full lg:min-h-[470px]">
-            {/* PC에서 이미지 비율이 달라도 빈 여백이 보이지 않도록
-                같은 이미지를 흐린 배경으로 깔고, 원본은 전체가 보이게 표시합니다. */}
+            {/* PC 여백은 저용량 최적화 이미지를 흐린 배경으로 채웁니다.
+                CSS background-image를 쓰지 않아 원본 파일의 중복 다운로드를 줄입니다. */}
             <div
               aria-hidden="true"
-              className="absolute inset-0 hidden bg-cover bg-center blur-xl lg:block lg:scale-110 lg:opacity-50"
-              style={{
-                backgroundImage: `url("${heroImage}")`,
-              }}
-            />
+              className="absolute inset-0 hidden overflow-hidden lg:block"
+            >
+              <Image
+                src={heroImage}
+                alt=""
+                fill
+                quality={28}
+                sizes="64vw"
+                className="scale-110 object-cover blur-2xl opacity-45"
+              />
+            </div>
 
-            <div className="pointer-events-none absolute inset-0 hidden bg-white/25 lg:block" />
+            <div className="pointer-events-none absolute inset-0 hidden bg-white/30 lg:block" />
 
             <Image
               src={heroImage}
@@ -446,6 +452,7 @@ export default function ApartmentHero({
               fill
               priority
               fetchPriority="high"
+              quality={76}
               sizes="
                 (max-width: 419px) 100vw,
                 (max-width: 639px) 100vw,

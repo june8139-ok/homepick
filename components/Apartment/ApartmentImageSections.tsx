@@ -290,18 +290,6 @@ export default function ApartmentImageSections({
       null
     );
 
-  useEffect(() => {
-    if (
-      activeImageIndex >=
-      imageItems.length
-    ) {
-      setActiveImageIndex(0);
-    }
-  }, [
-    activeImageIndex,
-    imageItems.length,
-  ]);
-
   const moveImage =
     useCallback(
       (
@@ -338,6 +326,14 @@ export default function ApartmentImageSections({
       [imageItems.length]
     );
 
+  const resolvedActiveImageIndex =
+    imageItems.length > 0
+      ? Math.min(
+          activeImageIndex,
+          imageItems.length - 1
+        )
+      : 0;
+
   /**
    * 화살표나 스와이프로 이미지가 변경되었을 때
    * 모바일 썸네일 목록에서도 선택된 항목이 보이도록 이동합니다.
@@ -345,7 +341,7 @@ export default function ApartmentImageSections({
   useEffect(() => {
     const activeThumbnail =
       thumbnailRefs.current[
-        activeImageIndex
+        resolvedActiveImageIndex
       ];
 
     const scroller =
@@ -376,7 +372,9 @@ export default function ApartmentImageSections({
       ),
       behavior: "smooth",
     });
-  }, [activeImageIndex]);
+  }, [
+    resolvedActiveImageIndex,
+  ]);
 
   useEffect(() => {
     const handleKeyDown = (
@@ -447,15 +445,9 @@ export default function ApartmentImageSections({
     };
   }, [viewerOpen]);
 
-  if (
-    imageItems.length === 0
-  ) {
-    return null;
-  }
-
   const activeImage =
     imageItems[
-      activeImageIndex
+      resolvedActiveImageIndex
     ] ?? imageItems[0];
 
   const thumbnailItems =
@@ -523,6 +515,13 @@ export default function ApartmentImageSections({
           )
       );
     }, [imageItems]);
+
+  if (
+    imageItems.length === 0 ||
+    !activeImage
+  ) {
+    return null;
+  }
 
   const resetPointer = () => {
     pointerStartX.current =
@@ -687,7 +686,7 @@ export default function ApartmentImageSections({
             </p>
 
             <p className="mt-0.5 text-[10px] font-extrabold text-zinc-400 sm:text-sm">
-              {activeImageIndex +
+              {resolvedActiveImageIndex +
                 1}{" "}
               /{" "}
               {
@@ -964,7 +963,7 @@ export default function ApartmentImageSections({
                     index,
                   }) => {
                     const active =
-                      activeImageIndex ===
+                      resolvedActiveImageIndex ===
                       index;
 
                     return (
@@ -1266,7 +1265,7 @@ export default function ApartmentImageSections({
                   activeImage.label
                 }{" "}
                 ·{" "}
-                {activeImageIndex +
+                {resolvedActiveImageIndex +
                   1}{" "}
                 /{" "}
                 {

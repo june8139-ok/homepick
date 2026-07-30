@@ -76,8 +76,19 @@ export default function DeferredRegionMapSection({
         window
       )
     ) {
-      setShouldLoad(true);
-      return;
+      const fallbackTimer =
+        setTimeout(
+          () => {
+            setShouldLoad(true);
+          },
+          0
+        );
+
+      return () => {
+        clearTimeout(
+          fallbackTimer
+        );
+      };
     }
 
     const observer =
