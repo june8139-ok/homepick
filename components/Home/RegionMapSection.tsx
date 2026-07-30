@@ -252,6 +252,11 @@ export default function RegionMapSection({
       Map<string, HTMLDivElement>
     >(new Map());
 
+  const mobileCardScrollerRef =
+    useRef<HTMLDivElement | null>(
+      null
+    );
+
   const selectedRegion =
     regions.find(
       (region) =>
@@ -275,7 +280,13 @@ export default function RegionMapSection({
     const city =
       selectedRegion?.city;
 
-    if (!city) {
+    const scroller =
+      mobileCardScrollerRef.current;
+
+    if (
+      !city ||
+      !scroller
+    ) {
       return;
     }
 
@@ -284,10 +295,27 @@ export default function RegionMapSection({
         city
       );
 
-    card?.scrollIntoView({
+    if (!card) {
+      return;
+    }
+
+    /*
+     * scrollIntoView는 지도가 늦게 로드될 때
+     * 홈페이지 전체를 지역지도 위치까지 세로로 이동시킬 수 있습니다.
+     * 모바일 카드 컨테이너의 가로 위치만 이동합니다.
+     */
+    const targetLeft =
+      card.offsetLeft -
+      (scroller.clientWidth -
+        card.offsetWidth) /
+        2;
+
+    scroller.scrollTo({
+      left: Math.max(
+        0,
+        targetLeft
+      ),
       behavior: "smooth",
-      block: "nearest",
-      inline: "center",
     });
   }, [selectedRegion?.city]);
 
@@ -426,6 +454,8 @@ export default function RegionMapSection({
                   `${selectedRegion?.cityName} 대표 단지`
                 }
                 fill
+                loading="lazy"
+                quality={68}
                 sizes="410px"
                 className="
                   object-cover
@@ -604,7 +634,10 @@ export default function RegionMapSection({
 
       {/* 모바일·태블릿 지역 요약 카드 슬라이드 */}
       <div className="mt-4 xl:hidden">
-        <div className="-mx-4 overflow-x-auto px-4 pb-2 snap-x snap-mandatory scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:-mx-5 sm:px-5">
+        <div
+          ref={mobileCardScrollerRef}
+          className="-mx-4 overflow-x-auto px-4 pb-2 snap-x snap-mandatory scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:-mx-5 sm:px-5"
+        >
           <div className="flex w-max gap-3">
             {regions.map(
               (region) => {

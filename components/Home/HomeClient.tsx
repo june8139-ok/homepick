@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import {
   useMemo,
@@ -903,14 +904,17 @@ function MobileApartmentCarousel({
                 >
                   <div className="relative h-28 overflow-hidden bg-zinc-100">
                     {image ? (
-                      <img
+                      <Image
                         src={image}
                         alt={
                           apartment.name
                         }
+                        fill
                         loading="lazy"
+                        quality={64}
+                        sizes="(max-width: 639px) 280px, 1px"
                         draggable={false}
-                        className="pointer-events-none h-full w-full object-cover"
+                        className="pointer-events-none object-cover"
                       />
                     ) : (
                       <div className="flex h-full items-center justify-center text-xs text-zinc-400">
@@ -1004,11 +1008,18 @@ function CompactApartmentCard({
     >
       <div className="relative h-28 overflow-hidden bg-zinc-100">
         {image ? (
-          <img
+          <Image
             src={image}
             alt={apartment.name}
+            fill
             loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            quality={64}
+            sizes="
+              (max-width: 639px) 1px,
+              (max-width: 1279px) 30vw,
+              180px
+            "
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
           <div className="flex h-full items-center justify-center text-xs font-medium text-zinc-400">
@@ -1083,16 +1094,19 @@ function RecentApartmentRow({
         className={[
           "shrink-0 overflow-hidden bg-zinc-100",
           compact
-            ? "h-14 w-14 rounded-xl"
-            : "h-16 w-16 rounded-xl",
+            ? "relative h-14 w-14 rounded-xl"
+            : "relative h-16 w-16 rounded-xl",
         ].join(" ")}
       >
         {image ? (
-          <img
+          <Image
             src={image}
             alt={apartment.name}
+            fill
             loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            quality={60}
+            sizes="64px"
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
           <div className="flex h-full items-center justify-center text-[10px] text-zinc-400">

@@ -39,7 +39,7 @@ function RegionMapFallback() {
 
       <div className="mt-2 h-5 w-full max-w-md animate-pulse rounded bg-zinc-100" />
 
-      <div className="mt-5 min-h-[360px] animate-pulse rounded-3xl bg-zinc-100 sm:min-h-[460px]" />
+      <div className="mt-5 min-h-[500px] animate-pulse rounded-3xl bg-zinc-100 sm:min-h-[620px] xl:min-h-[660px]" />
     </section>
   );
 }
@@ -106,7 +106,7 @@ export default function DeferredRegionMapSection({
         },
         {
           rootMargin:
-            "500px 0px",
+            "0px 0px",
         }
       );
 

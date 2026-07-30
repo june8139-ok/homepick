@@ -711,7 +711,9 @@ function SearchHero({
               alt={`${featuredApartment.name} 대표 이미지`}
               fill
               loading="lazy"
+              quality={72}
               sizes="
+                (max-width: 639px) 1px,
                 (max-width: 1023px) 100vw,
                 60vw
               "
