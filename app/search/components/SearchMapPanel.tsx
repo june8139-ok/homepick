@@ -41,6 +41,41 @@ const DEFAULT_CENTER = {
 
 const SELECTED_ZOOM = 16;
 
+
+function getListingStage(
+  apartment: Apartment
+): "subscription" | "firstCome" | "existing" | "completed" | "" {
+  const stage =
+    apartment.listingStage;
+
+  if (
+    stage === "subscription" ||
+    stage === "firstCome" ||
+    stage === "existing" ||
+    stage === "completed"
+  ) {
+    return stage;
+  }
+
+  if (
+    isFirstComeApartment(
+      apartment
+    )
+  ) {
+    return "firstCome";
+  }
+
+  if (
+    isSubscriptionApartment(
+      apartment
+    )
+  ) {
+    return "subscription";
+  }
+
+  return "";
+}
+
 function escapeHtml(value: unknown) {
   return String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -51,7 +86,12 @@ function escapeHtml(value: unknown) {
 }
 
 function statusInfo(apartment: Apartment) {
-  if (isSubscriptionApartment(apartment)) {
+  const stage =
+    getListingStage(
+      apartment
+    );
+
+  if (stage === "subscription") {
     return {
       label: apartment.status || "청약",
       color: "#2563eb",
@@ -60,7 +100,7 @@ function statusInfo(apartment: Apartment) {
     };
   }
 
-  if (isFirstComeApartment(apartment)) {
+  if (stage === "firstCome") {
     return {
       label: "선착순",
       color: "#059669",
@@ -322,6 +362,143 @@ async function geocodeAddress(
       }
     );
   });
+}
+
+
+function addressCandidates(
+  address: string
+) {
+  const normalized =
+    address
+      .replace(/\s+/g, " ")
+      .trim();
+
+  const withoutBlock =
+    normalized
+      .replace(
+        /\b[A-Za-z]*\d+\s*(?:BL|블록)\b/gi,
+        " "
+      )
+      .replace(
+        /\b(?:A|B|C|D|E|F)?\d+\s*(?:BL|블록)\b/gi,
+        " "
+      )
+      .replace(
+        /(?:도시개발구역|도시개발사업지구|공동주택용지|주택건설사업계획구역)/g,
+        " "
+      )
+      .replace(/\s+/g, " ")
+      .trim();
+
+  const administrative =
+    normalized.match(
+      /^(.+?(?:동|읍|면))(?:\s|$)/
+    )?.[1]?.trim();
+
+  return [
+    normalized,
+    withoutBlock,
+    administrative,
+  ].filter(
+    (
+      value,
+      index,
+      values
+    ): value is string =>
+      Boolean(value) &&
+      values.indexOf(value) === index
+  );
+}
+
+async function geocodeWithFallback(
+  address: string
+) {
+  const candidates =
+    addressCandidates(address);
+
+  for (const candidate of candidates) {
+    const result =
+      await geocodeAddress(
+        candidate
+      );
+
+    if (result) {
+      return result;
+    }
+  }
+
+  return null;
+}
+
+/*
+ * 같은 행정동 중심 좌표나 동일 블록 좌표가 겹치는 경우
+ * 마커가 완전히 포개지지 않도록 화면 표시 좌표만 아주 조금 분산합니다.
+ * 저장된 실제 좌표 데이터는 변경하지 않습니다.
+ */
+function spreadOverlappingMarkers(
+  apartments: LocatedApartment[]
+) {
+  const groups =
+    new Map<
+      string,
+      LocatedApartment[]
+    >();
+
+  apartments.forEach(
+    (apartment) => {
+      const key = [
+        apartment.latitude.toFixed(5),
+        apartment.longitude.toFixed(5),
+      ].join(":");
+
+      const group =
+        groups.get(key) ?? [];
+
+      group.push(apartment);
+      groups.set(key, group);
+    }
+  );
+
+  return apartments.map(
+    (apartment) => {
+      const key = [
+        apartment.latitude.toFixed(5),
+        apartment.longitude.toFixed(5),
+      ].join(":");
+
+      const group =
+        groups.get(key) ?? [];
+
+      if (group.length <= 1) {
+        return apartment;
+      }
+
+      const index =
+        group.findIndex(
+          (item) =>
+            item.slug ===
+            apartment.slug
+        );
+
+      const angle =
+        (Math.PI * 2 * index) /
+        group.length;
+
+      const radius = 0.00018;
+
+      return {
+        ...apartment,
+        latitude:
+          apartment.latitude +
+          Math.sin(angle) *
+            radius,
+        longitude:
+          apartment.longitude +
+          Math.cos(angle) *
+            radius,
+      };
+    }
+  );
 }
 
 function markerHtml(
@@ -721,7 +898,7 @@ export default function SearchMapPanel({
               }
 
               const geocoded =
-                await geocodeAddress(
+                await geocodeWithFallback(
                   address
                 );
 
@@ -739,11 +916,13 @@ export default function SearchMapPanel({
 
       if (!cancelled) {
         setLocatedApartments(
-          result.filter(
-            (
-              apartment
-            ): apartment is LocatedApartment =>
-              apartment !== null
+          spreadOverlappingMarkers(
+            result.filter(
+              (
+                apartment
+              ): apartment is LocatedApartment =>
+                apartment !== null
+            )
           )
         );
 

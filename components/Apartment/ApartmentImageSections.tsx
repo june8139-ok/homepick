@@ -27,6 +27,10 @@ type ImageCategory =
   | "community"
   | "gallery";
 
+type ThumbnailFilter =
+  | "all"
+  | ImageCategory;
+
 type ImageItem = {
   id: string;
   url: string;
@@ -256,6 +260,13 @@ export default function ApartmentImageSections({
     setViewerOpen,
   ] = useState(false);
 
+  const [
+    thumbnailFilter,
+    setThumbnailFilter,
+  ] = useState<ThumbnailFilter>(
+    "all"
+  );
+
   const pointerStartX =
     useRef<number | null>(
       null
@@ -332,12 +343,7 @@ export default function ApartmentImageSections({
         activeImageIndex
       ];
 
-    if (
-      !activeThumbnail ||
-      typeof window ===
-        "undefined" ||
-      window.innerWidth >= 1024
-    ) {
+    if (!activeThumbnail) {
       return;
     }
 
@@ -427,6 +433,72 @@ export default function ApartmentImageSections({
     imageItems[
       activeImageIndex
     ] ?? imageItems[0];
+
+  const thumbnailItems =
+    useMemo(
+      () =>
+        imageItems
+          .map((image, index) => ({
+            image,
+            index,
+          }))
+          .filter(
+            ({ image }) =>
+              thumbnailFilter ===
+                "all" ||
+              image.category ===
+                thumbnailFilter
+          ),
+      [
+        imageItems,
+        thumbnailFilter,
+      ]
+    );
+
+  const availableFilters =
+    useMemo(() => {
+      const categories =
+        new Set(
+          imageItems.map(
+            (image) =>
+              image.category
+          )
+        );
+
+      return (
+        [
+          {
+            value: "all",
+            label: "전체",
+          },
+          {
+            value: "location",
+            label: "입지",
+          },
+          {
+            value: "floorPlan",
+            label: "평면도",
+          },
+          {
+            value: "community",
+            label: "커뮤니티",
+          },
+          {
+            value: "gallery",
+            label: "단지사진",
+          },
+        ] as Array<{
+          value: ThumbnailFilter;
+          label: string;
+        }>
+      ).filter(
+        (filter) =>
+          filter.value === "all" ||
+          categories.has(
+            filter.value as ImageCategory
+          )
+      );
+    }, [imageItems]);
 
   const resetPointer = () => {
     pointerStartX.current =
@@ -797,13 +869,73 @@ export default function ApartmentImageSections({
         {imageItems.length >
           1 && (
           <div className="mt-3 sm:mt-5">
-            <div className="-mx-3 overflow-x-auto px-3 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:-mx-6 sm:px-6 lg:mx-0 lg:overflow-visible lg:px-0">
-              <div className="flex min-w-max gap-2.5 lg:grid lg:min-w-0 lg:grid-cols-5 xl:grid-cols-6">
-                {imageItems.map(
-                  (
+            <div className="flex min-w-0 gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-2">
+              {availableFilters.map(
+                (filter) => {
+                  const active =
+                    thumbnailFilter ===
+                    filter.value;
+
+                  return (
+                    <button
+                      key={
+                        filter.value
+                      }
+                      type="button"
+                      onClick={() => {
+                        setThumbnailFilter(
+                          filter.value
+                        );
+
+                        if (
+                          filter.value !==
+                          "all"
+                        ) {
+                          const firstIndex =
+                            imageItems.findIndex(
+                              (image) =>
+                                image.category ===
+                                filter.value
+                            );
+
+                          if (
+                            firstIndex >= 0
+                          ) {
+                            setActiveImageIndex(
+                              firstIndex
+                            );
+                          }
+                        }
+                      }}
+                      aria-pressed={
+                        active
+                      }
+                      className={[
+                        "h-8 shrink-0 cursor-pointer rounded-full border px-3 text-[11px] font-bold transition-all sm:h-9 sm:px-4 sm:text-xs",
+                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2",
+                        active
+                          ? "border-emerald-600 bg-emerald-600 text-white shadow-sm"
+                          : "border-zinc-200 bg-white text-zinc-600 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700",
+                      ].join(
+                        " "
+                      )}
+                    >
+                      {
+                        filter.label
+                      }
+                    </button>
+                  );
+                }
+              )}
+            </div>
+
+            <div className="-mx-3 mt-2 overflow-x-auto px-3 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:-mx-6 sm:mt-3 sm:px-6">
+              <div className="flex min-w-max gap-2.5">
+                {thumbnailItems.map(
+                  ({
                     image,
-                    index
-                  ) => {
+                    index,
+                  }) => {
                     const active =
                       activeImageIndex ===
                       index;
@@ -832,11 +964,11 @@ export default function ApartmentImageSections({
                           active
                         }
                         className={[
-                          "group relative w-28 shrink-0 cursor-pointer overflow-hidden rounded-xl border-2 bg-zinc-100 text-left transition-all duration-200 sm:w-36 sm:rounded-2xl lg:w-auto",
+                          "group relative w-24 shrink-0 cursor-pointer overflow-hidden rounded-xl border-2 bg-zinc-100 text-left transition-all duration-200 sm:w-32 sm:rounded-2xl lg:w-36",
                           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2",
                           active
                             ? "border-emerald-600 shadow-md ring-2 ring-emerald-100"
-                            : "border-transparent hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md",
+                            : "border-transparent opacity-80 hover:-translate-y-0.5 hover:border-emerald-300 hover:opacity-100 hover:shadow-md",
                         ].join(
                           " "
                         )}
@@ -861,27 +993,29 @@ export default function ApartmentImageSections({
                             )}
                           />
 
-                          <div className="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
-
-                          <span
-                            className={[
-                              "absolute left-1.5 top-1.5 rounded-md px-1.5 py-0.5 text-[9px] font-extrabold shadow-sm backdrop-blur sm:left-2 sm:top-2 sm:rounded-lg sm:px-2 sm:py-1 sm:text-[10px]",
-                              getCategoryBadgeClassName(
-                                image.category
-                              ),
-                            ].join(
-                              " "
-                            )}
-                          >
-                            {getCategoryBadge(
-                              image.category
-                            )}
-                          </span>
+                          <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
 
                           {active && (
-                            <span className="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-[11px] font-black text-white shadow-md sm:right-2 sm:top-2 sm:h-6 sm:w-6 sm:text-xs">
-                              ✓
-                            </span>
+                            <>
+                              <span
+                                className={[
+                                  "absolute left-1.5 top-1.5 rounded-md px-1.5 py-0.5 text-[9px] font-extrabold shadow-sm backdrop-blur sm:left-2 sm:top-2 sm:rounded-lg sm:px-2 sm:py-1 sm:text-[10px]",
+                                  getCategoryBadgeClassName(
+                                    image.category
+                                  ),
+                                ].join(
+                                  " "
+                                )}
+                              >
+                                {getCategoryBadge(
+                                  image.category
+                                )}
+                              </span>
+
+                              <span className="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-[11px] font-black text-white shadow-md sm:right-2 sm:top-2 sm:h-6 sm:w-6 sm:text-xs">
+                                ✓
+                              </span>
+                            </>
                           )}
 
                           <p className="absolute inset-x-2 bottom-1.5 truncate text-[10px] font-extrabold text-white drop-shadow sm:bottom-2 sm:text-xs">
@@ -899,10 +1033,8 @@ export default function ApartmentImageSections({
           </div>
         )}
 
-        <p className="mt-1 text-center text-[10px] leading-5 text-zinc-400 sm:hidden">
-          썸네일을 가로로 밀거나
-          큰 이미지를 좌우로
-          넘겨보세요.
+        <p className="mt-1 text-center text-[10px] leading-5 text-zinc-400">
+          카테고리를 선택하거나 썸네일을 좌우로 밀어 확인하세요.
         </p>
       </section>
 

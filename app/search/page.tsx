@@ -4,6 +4,9 @@ import { Suspense } from "react";
 import SearchClient from "./SearchClient";
 import { getApartments } from "../../lib/getApartments";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(
     /\/$/,

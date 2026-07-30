@@ -3,7 +3,9 @@
 import Image from "next/image";
 
 import {
+  useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
@@ -245,6 +247,11 @@ export default function RegionMapSection({
     setSelectedCity,
   ] = useState("");
 
+  const mobileCardRefs =
+    useRef<
+      Map<string, HTMLDivElement>
+    >(new Map());
+
   const selectedRegion =
     regions.find(
       (region) =>
@@ -263,6 +270,26 @@ export default function RegionMapSection({
     getHeroImage(
       selectedApartment
     );
+
+  useEffect(() => {
+    const city =
+      selectedRegion?.city;
+
+    if (!city) {
+      return;
+    }
+
+    const card =
+      mobileCardRefs.current.get(
+        city
+      );
+
+    card?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "center",
+    });
+  }, [selectedRegion?.city]);
 
   const openSelectedRegion =
     () => {
@@ -345,7 +372,7 @@ export default function RegionMapSection({
         </button>
       </div>
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-start">
+      <div className="mt-4 grid gap-5 xl:grid-cols-[minmax(0,1fr)_410px] xl:items-stretch">
         <div className="flex min-w-0 justify-center">
           <KoreaMap
             regions={regions}
@@ -363,7 +390,7 @@ export default function RegionMapSection({
             selectedRegion?.city
           }
           className="
-            hidden min-h-[520px]
+            hidden min-h-[560px] h-full
             min-w-0 animate-[fadeIn_220ms_ease-out]
             flex-col overflow-hidden xl:flex
             rounded-3xl border
@@ -378,7 +405,7 @@ export default function RegionMapSection({
             }
             className="
               group relative block
-              h-[210px] w-full
+              h-[230px] w-full
               shrink-0 cursor-pointer
               overflow-hidden bg-zinc-100
               text-left
@@ -399,7 +426,7 @@ export default function RegionMapSection({
                   `${selectedRegion?.cityName} 대표 단지`
                 }
                 fill
-                sizes="360px"
+                sizes="410px"
                 className="
                   object-cover
                   transition-transform
@@ -575,39 +602,168 @@ export default function RegionMapSection({
         </aside>
       </div>
 
-      <div className="mt-4 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden xl:hidden">
-        {regions.map(
-          (region) => {
-            const selected =
-              region.city ===
-              selectedRegion?.city;
+      {/* 모바일·태블릿 지역 요약 카드 슬라이드 */}
+      <div className="mt-4 xl:hidden">
+        <div className="-mx-4 overflow-x-auto px-4 pb-2 snap-x snap-mandatory scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:-mx-5 sm:px-5">
+          <div className="flex w-max gap-3">
+            {regions.map(
+              (region) => {
+                const selected =
+                  region.city ===
+                  selectedRegion?.city;
 
-            return (
-              <button
-                key={
-                  region.city
-                }
-                type="button"
-                onClick={() =>
-                  setSelectedCity(
-                    region.city
-                  )
-                }
-                className={[
-                  "shrink-0 cursor-pointer rounded-full border px-4 py-2 text-xs font-bold transition-all",
-                  selected
-                    ? "border-[#0F766E] bg-[#0F766E] text-white"
-                    : "border-zinc-200 bg-white text-zinc-600 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700",
-                ].join(" ")}
-              >
-                {region.cityName}{" "}
-                {region.count}
-              </button>
-            );
-          }
-        )}
+                const representative =
+                  region.representativeApartment;
+
+                return (
+                  <div
+                    key={region.city}
+                    ref={(element) => {
+                      if (element) {
+                        mobileCardRefs.current.set(
+                          region.city,
+                          element
+                        );
+                      } else {
+                        mobileCardRefs.current.delete(
+                          region.city
+                        );
+                      }
+                    }}
+                    className={[
+                      "w-[82vw] max-w-[330px] shrink-0 snap-center overflow-hidden rounded-2xl border bg-white p-4 shadow-sm transition-all sm:w-[360px]",
+                      selected
+                        ? "border-emerald-500 ring-2 ring-emerald-100"
+                        : "border-zinc-200",
+                    ].join(" ")}
+                  >
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setSelectedCity(
+                          region.city
+                        )
+                      }
+                      className="block w-full cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-xs font-bold text-zinc-400">
+                            선택 지역
+                          </p>
+
+                          <h3 className="mt-1 text-xl font-black text-[#111827]">
+                            {region.cityName}
+                          </h3>
+                        </div>
+
+                        <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-extrabold text-emerald-700">
+                          총 {region.count}개
+                        </span>
+                      </div>
+
+                      <div className="mt-3 grid grid-cols-3 gap-2">
+                        <MobileCountBox
+                          label="분양"
+                          count={
+                            region.saleCount
+                          }
+                          accent="amber"
+                        />
+
+                        <MobileCountBox
+                          label="청약"
+                          count={
+                            region.subscriptionCount
+                          }
+                          accent="blue"
+                        />
+
+                        <MobileCountBox
+                          label="선착순"
+                          count={
+                            region.firstComeCount
+                          }
+                          accent="emerald"
+                        />
+                      </div>
+
+                      <div className="mt-3 rounded-xl bg-[#F8FAF7] px-3 py-2.5">
+                        <p className="text-[10px] font-bold text-zinc-400">
+                          대표 단지
+                        </p>
+
+                        <p className="mt-1 line-clamp-1 text-sm font-black text-[#111827]">
+                          {representative?.name ||
+                            "등록 준비 중"}
+                        </p>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        router.push(
+                          `/region/${encodeURIComponent(
+                            region.city
+                          )}`
+                        )
+                      }
+                      className="mt-3 inline-flex min-h-10 w-full cursor-pointer items-center justify-center rounded-xl bg-[#0F766E] px-4 text-xs font-extrabold text-white transition hover:bg-emerald-600 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+                    >
+                      {region.cityName} 지역 보기 →
+                    </button>
+                  </div>
+                );
+              }
+            )}
+          </div>
+        </div>
+
+        <p className="mt-1 text-center text-[10px] leading-5 text-zinc-400">
+          지도 숫자를 누르거나 카드를 좌우로 밀어 지역 현황을 확인하세요.
+        </p>
       </div>
     </section>
+  );
+}
+
+function MobileCountBox({
+  label,
+  count,
+  accent,
+}: {
+  label: string;
+  count: number;
+  accent:
+    | "amber"
+    | "blue"
+    | "emerald";
+}) {
+  const style = {
+    amber:
+      "bg-amber-50 text-amber-800",
+    blue:
+      "bg-blue-50 text-blue-800",
+    emerald:
+      "bg-emerald-50 text-emerald-800",
+  }[accent];
+
+  return (
+    <div
+      className={[
+        "rounded-xl px-2 py-2.5 text-center",
+        style,
+      ].join(" ")}
+    >
+      <p className="text-[10px] font-bold opacity-75">
+        {label}
+      </p>
+
+      <p className="mt-0.5 text-lg font-black">
+        {count}
+      </p>
+    </div>
   );
 }
 

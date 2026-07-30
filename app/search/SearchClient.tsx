@@ -234,6 +234,41 @@ function contractPriority(
   return score;
 }
 
+
+function getListingStage(
+  apartment: Apartment
+): "subscription" | "firstCome" | "existing" | "completed" | "" {
+  const stage =
+    apartment.listingStage;
+
+  if (
+    stage === "subscription" ||
+    stage === "firstCome" ||
+    stage === "existing" ||
+    stage === "completed"
+  ) {
+    return stage;
+  }
+
+  if (
+    isFirstComeApartment(
+      apartment
+    )
+  ) {
+    return "firstCome";
+  }
+
+  if (
+    isSubscriptionApartment(
+      apartment
+    )
+  ) {
+    return "subscription";
+  }
+
+  return "";
+}
+
 function statusMatch(
   apartment: Apartment,
   status: SearchFilterState["status"]
@@ -242,23 +277,17 @@ function statusMatch(
     return true;
   }
 
-  const subscription =
-    isSubscriptionApartment(
-      apartment
-    );
-
-  const firstCome =
-    !subscription &&
-    isFirstComeApartment(
+  const stage =
+    getListingStage(
       apartment
     );
 
   if (status === "청약") {
-    return subscription;
+    return stage === "subscription";
   }
 
   if (status === "선착순") {
-    return firstCome;
+    return stage === "firstCome";
   }
 
   return true;
@@ -396,11 +425,12 @@ function getHeroImage(
 function getStatusInfo(
   apartment: Apartment
 ) {
-  if (
-    isSubscriptionApartment(
+  const stage =
+    getListingStage(
       apartment
-    )
-  ) {
+    );
+
+  if (stage === "subscription") {
     return {
       label:
         apartment.status ||
@@ -410,11 +440,7 @@ function getStatusInfo(
     };
   }
 
-  if (
-    isFirstComeApartment(
-      apartment
-    )
-  ) {
+  if (stage === "firstCome") {
     return {
       label: "선착순",
       className:
@@ -702,25 +728,18 @@ export default function SearchClient({
     selectedSlug,
   ]);
 
+  /*
+   * 검색 결과 목록은 지도 이동·확대와 분리합니다.
+   * 지도 범위는 숫자 안내에만 사용하고,
+   * 사용자가 검색하거나 필터링한 결과는 목록에서 사라지지 않습니다.
+   */
   const listResults =
-    useMemo(() => {
-      if (
-        visibleSlugs === null
-      ) {
-        return filteredResults;
-      }
+    filteredResults;
 
-      const visible =
-        new Set(visibleSlugs);
-
-      return filteredResults.filter(
-        (item) =>
-          visible.has(item.slug)
-      );
-    }, [
-      filteredResults,
-      visibleSlugs,
-    ]);
+  const mapVisibleCount =
+    visibleSlugs === null
+      ? filteredResults.length
+      : visibleSlugs.length;
 
   const selectedApartment =
     filteredResults.find(
@@ -1162,12 +1181,12 @@ export default function SearchClient({
           <div className="mt-4 flex items-center justify-between px-1">
             <div>
               <h2 className="text-base font-black">
-                지도 안 단지
+                검색 결과 단지
               </h2>
 
               <p className="mt-0.5 text-xs text-zinc-500">
-                카드를 누르면 지도에서
-                해당 위치로 이동합니다.
+                검색 결과는 지도 이동과 관계없이
+                그대로 유지됩니다.
               </p>
             </div>
 
@@ -1198,6 +1217,7 @@ export default function SearchClient({
 
               <p className="text-sm text-zinc-500">
                 지도 안{" "}
+                {mapVisibleCount}개 / 전체{" "}
                 {listResults.length}개
               </p>
             </div>
@@ -1265,13 +1285,13 @@ export default function SearchClient({
                 0 && (
                 <div className="rounded-3xl border border-zinc-200 bg-white p-10 text-center">
                   <h3 className="text-xl font-bold">
-                    현재 지도 안에 단지가
+                    검색 조건에 맞는 단지가
                     없습니다.
                   </h3>
 
                   <p className="mt-2 text-sm text-zinc-500">
-                    지도를 이동하거나
-                    필터를 초기화해보세요.
+                    검색어 또는 필터를
+                    다시 확인해보세요.
                   </p>
                 </div>
               )}

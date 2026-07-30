@@ -428,6 +428,18 @@ export default function ApartmentHero({
       <div className="min-w-0">
         {heroImage ? (
           <div className="group relative h-[230px] overflow-hidden rounded-2xl bg-zinc-100 shadow-sm min-[420px]:h-[270px] sm:h-[360px] sm:rounded-3xl lg:h-full lg:min-h-[470px]">
+            {/* PC에서 이미지 비율이 달라도 빈 여백이 보이지 않도록
+                같은 이미지를 흐린 배경으로 깔고, 원본은 전체가 보이게 표시합니다. */}
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 hidden bg-cover bg-center blur-xl lg:block lg:scale-110 lg:opacity-50"
+              style={{
+                backgroundImage: `url("${heroImage}")`,
+              }}
+            />
+
+            <div className="pointer-events-none absolute inset-0 hidden bg-white/25 lg:block" />
+
             <Image
               src={heroImage}
               alt={`${apartment.name} 대표 이미지`}
@@ -440,7 +452,7 @@ export default function ApartmentHero({
                 (max-width: 1023px) 100vw,
                 64vw
               "
-              className="object-cover transition-transform duration-500 lg:object-contain sm:group-hover:scale-[1.02]"
+              className="relative z-[1] object-cover object-center transition-transform duration-500 lg:object-contain sm:group-hover:scale-[1.02]"
             />
 
             <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-24 bg-gradient-to-t from-black/45 to-transparent sm:h-28" />
