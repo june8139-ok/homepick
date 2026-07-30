@@ -3,6 +3,9 @@ import { Suspense } from "react";
 import CompareClient from "./CompareClient";
 import { getApartments } from "../../lib/getApartments";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 function CompareLoading() {
   return (
     <main className="min-h-screen bg-zinc-50">

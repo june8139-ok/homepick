@@ -179,16 +179,26 @@ function getHeroImage(
 function getSalePrice(
   apartment: Apartment
 ) {
+  const manualSalePrice =
+    apartment.priceDetail
+      ?.salePrice?.trim();
+
+  if (manualSalePrice) {
+    return manualSalePrice;
+  }
+
+  const legacyManualPrice =
+    apartment.price?.trim();
+
+  if (legacyManualPrice) {
+    return legacyManualPrice;
+  }
+
   return (
     getStructuredSalePrice(
       apartment
     ) ||
-    textOrFallback(
-      apartment.priceDetail
-        ?.salePrice ||
-        apartment.price,
-      "분양가 확인 중"
-    )
+    "분양가 확인 중"
   );
 }
 
@@ -277,9 +287,18 @@ function StatusBadge({
 }: {
   apartment: Apartment;
 }) {
-  const status =
+  const rawStatus =
     apartment.status?.trim() ||
     "정보 확인 중";
+
+  const status =
+    apartment.listingStage ===
+    "firstCome"
+      ? "선착순 분양"
+      : apartment.listingStage ===
+          "completed"
+        ? "노출 종료"
+        : rawStatus;
 
   const isFirstCome =
     apartment.listingStage ===

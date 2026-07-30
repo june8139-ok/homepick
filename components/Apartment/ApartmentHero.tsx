@@ -440,7 +440,7 @@ export default function ApartmentHero({
                 (max-width: 1023px) 100vw,
                 64vw
               "
-              className="object-cover transition-transform duration-500 sm:group-hover:scale-[1.02]"
+              className="object-cover transition-transform duration-500 lg:object-contain sm:group-hover:scale-[1.02]"
             />
 
             <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-24 bg-gradient-to-t from-black/45 to-transparent sm:h-28" />

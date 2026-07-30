@@ -439,7 +439,7 @@ export default function RelatedApartments({
     event: PointerEvent<HTMLDivElement>
   ) => {
     if (
-      event.pointerType !== "mouse" ||
+      event.pointerType === "mouse" &&
       event.button !== 0
     ) {
       return;
@@ -471,10 +471,7 @@ export default function RelatedApartments({
   const handlePointerMove = (
     event: PointerEvent<HTMLDivElement>
   ) => {
-    if (
-      !draggingRef.current ||
-      event.pointerType !== "mouse"
-    ) {
+    if (!draggingRef.current) {
       return;
     }
 
@@ -503,12 +500,6 @@ export default function RelatedApartments({
   const finishPointer = (
     event: PointerEvent<HTMLDivElement>
   ) => {
-    if (
-      event.pointerType !== "mouse"
-    ) {
-      return;
-    }
-
     draggingRef.current = false;
     setIsDragging(false);
 
@@ -623,7 +614,7 @@ export default function RelatedApartments({
           className={[
             "overflow-x-auto px-8 pb-2",
             "snap-x snap-mandatory scroll-smooth",
-            "touch-pan-y select-none",
+            "touch-pan-y select-none overscroll-x-contain",
             "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
             isDragging
               ? "cursor-grabbing scroll-auto"

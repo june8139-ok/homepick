@@ -192,41 +192,61 @@ function getInformationCards(
       apartment
     );
 
+  const locationInfo =
+    apartment.locationInfo;
+
+  const hasManualLocationInfo =
+    Object.values(
+      locationInfo ?? {}
+    ).some((value) =>
+      Boolean(
+        typeof value === "string" &&
+        value.trim()
+      )
+    );
+
   const info = {
     transport:
-      apartment.locationInfo
-        ?.transport?.trim() ||
-      fallback.transport,
+      hasManualLocationInfo
+        ? locationInfo?.transport?.trim() ??
+          ""
+        : fallback.transport,
 
     education:
-      apartment.locationInfo
-        ?.education?.trim() ||
-      fallback.education,
+      hasManualLocationInfo
+        ? locationInfo?.education?.trim() ??
+          ""
+        : fallback.education,
 
     living:
-      apartment.locationInfo
-        ?.living?.trim() ||
-      fallback.living,
+      hasManualLocationInfo
+        ? locationInfo?.living?.trim() ??
+          ""
+        : fallback.living,
 
     jobAccess:
-      apartment.locationInfo
-        ?.jobAccess?.trim() ||
-      fallback.jobAccess,
+      hasManualLocationInfo
+        ? locationInfo?.jobAccess?.trim() ??
+          ""
+        : fallback.jobAccess,
 
     nature:
-      apartment.locationInfo
-        ?.nature?.trim() ||
-      fallback.nature,
+      hasManualLocationInfo
+        ? locationInfo?.nature?.trim() ??
+          ""
+        : fallback.nature,
 
     futureValue:
-      apartment.locationInfo
-        ?.futureValue?.trim() ||
-      fallback.futureValue,
+      hasManualLocationInfo
+        ? locationInfo?.futureValue?.trim() ??
+          ""
+        : fallback.futureValue,
 
     cautions:
-      apartment.locationInfo
-        ?.cautions?.trim() ||
-      fallback.cautions,
+      hasManualLocationInfo
+        ? locationInfo?.cautions?.trim() ??
+          ""
+        : fallback.cautions,
   };
 
   const cards: InformationCardItem[] =

@@ -18,6 +18,48 @@ import {
   useAdmin,
 } from "./AdminContext";
 
+function uniqueStrings(values: string[]) {
+  return [...new Set(values.map((value) => value.trim()).filter(Boolean))];
+}
+
+/**
+ * 도시개발구역·블록명처럼 지도 검색이 어려운 문구가 포함된 경우를 대비해
+ * 전체 주소부터 행정동 주소까지 순서대로 검색 후보를 만듭니다.
+ * 입력한 원문 주소는 변경하지 않고, 지도 좌표 검색에만 사용합니다.
+ */
+function createGeocodeCandidates(address: string) {
+  const normalized = address
+    .trim()
+    .replace(/\s+/g, " ");
+
+  const withoutBlock = normalized
+    .replace(
+      /\s+(?:공동주택용지|주상복합용지|도시개발구역|지구단위계획구역|개발구역)?\s*[A-Z]?[0-9]+(?:-[0-9]+)?\s*(?:BL|블록|BLOCK)\b.*$/i,
+      ""
+    )
+    .replace(
+      /\s+(?:공동주택용지|주상복합용지|도시개발구역|지구단위계획구역|개발구역)\b.*$/i,
+      ""
+    )
+    .trim();
+
+  const tokens = normalized.split(" ");
+  const dongIndex = tokens.findIndex((token) =>
+    /(?:동|읍|면|리)$/.test(token)
+  );
+
+  const administrativeAddress =
+    dongIndex >= 0
+      ? tokens.slice(0, dongIndex + 1).join(" ")
+      : "";
+
+  return uniqueStrings([
+    normalized,
+    withoutBlock,
+    administrativeAddress,
+  ]);
+}
+
 export default function BasicInfoSection() {
   const {
     basicInfo,
@@ -60,10 +102,40 @@ export default function BasicInfoSection() {
       setLocationMessage("");
 
       try {
-        const coordinates =
-          await geocodeAddress(
+        const candidates =
+          createGeocodeCandidates(
             basicInfo.region
           );
+
+        let coordinates:
+          | Awaited<ReturnType<typeof geocodeAddress>>
+          | null = null;
+
+        let matchedAddress = "";
+        let lastError: unknown = null;
+
+        for (const candidate of candidates) {
+          try {
+            coordinates =
+              await geocodeAddress(
+                candidate
+              );
+
+            matchedAddress = candidate;
+            break;
+          } catch (error) {
+            lastError = error;
+          }
+        }
+
+        if (!coordinates) {
+          throw (
+            lastError ??
+            new Error(
+              "주소의 위치를 찾지 못했습니다."
+            )
+          );
+        }
 
         setBasicInfo({
           ...basicInfo,
@@ -75,14 +147,22 @@ export default function BasicInfoSection() {
             coordinates.longitude,
         });
 
+        const usedFallback =
+          matchedAddress !==
+          basicInfo.region
+            .trim()
+            .replace(/\s+/g, " ");
+
         setLocationMessage(
-          "주소의 지도 위치를 확인했습니다."
+          usedFallback
+            ? `전체 주소를 찾지 못해 '${matchedAddress}' 기준 위치를 표시했습니다. 지도 핀을 실제 사업지로 옮겨 확인해주세요.`
+            : "주소의 지도 위치를 확인했습니다."
         );
       } catch (error) {
         setLocationMessage(
           error instanceof Error
-            ? error.message
-            : "위치를 찾지 못했습니다."
+            ? `${error.message} 주소를 동·읍·면 단위로 줄여 검색하거나 지도에서 직접 위치를 선택해주세요.`
+            : "위치를 찾지 못했습니다. 지도에서 직접 위치를 선택해주세요."
         );
       } finally {
         setIsFindingLocation(
