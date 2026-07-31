@@ -285,7 +285,7 @@ export default function MobileSearchCarousel({
                 key={apartment.slug}
                 onClick={handleCardClick}
                 className={[
-                  "w-[82vw] max-w-[360px] shrink-0 snap-center",
+                  "w-[86vw] max-w-[380px] shrink-0 snap-center",
                   "cursor-pointer overflow-hidden rounded-2xl border bg-white shadow-sm",
                   "transition-all duration-200",
                   selected
@@ -293,27 +293,27 @@ export default function MobileSearchCarousel({
                     : "border-zinc-200",
                 ].join(" ")}
               >
-                <div className="grid grid-cols-[112px_minmax(0,1fr)]">
-                  <div className="relative min-h-[190px] overflow-hidden bg-zinc-100">
+                <div>
+                  <div className="relative aspect-[16/8] min-h-[150px] overflow-hidden bg-zinc-100">
                     {image ? (
                       <Image
                         src={image}
                         alt={`${apartment.name} 대표 이미지`}
                         fill
-                        sizes="112px"
-                        quality={70}
+                        sizes="(max-width: 639px) 86vw, 380px"
+                        quality={72}
                         draggable={false}
-                        className="pointer-events-none object-cover"
+                        className="pointer-events-none object-contain"
                       />
                     ) : (
-                      <div className="flex h-full min-h-[190px] items-center justify-center px-2 text-center text-xs font-medium text-zinc-600">
+                      <div className="flex h-full min-h-[150px] items-center justify-center px-3 text-center text-xs font-medium text-zinc-600">
                         이미지 준비 중
                       </div>
                     )}
 
                     <span
                       className={[
-                        "absolute left-2 top-2 rounded-full px-2 py-1 text-[10px] font-bold shadow-sm",
+                        "absolute left-2 top-2 rounded-full px-2.5 py-1 text-[10px] font-bold shadow-sm",
                         status.className,
                       ].join(" ")}
                     >
@@ -321,14 +321,14 @@ export default function MobileSearchCarousel({
                     </span>
 
                     {distance && (
-                      <span className="absolute bottom-2 left-2 rounded-full bg-white px-2 py-1 text-[10px] font-extrabold text-blue-700 shadow-sm">
-                        {distance}
+                      <span className="absolute bottom-2 left-2 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-extrabold text-blue-700 shadow-sm">
+                        내 위치에서 {distance}
                       </span>
                     )}
                   </div>
 
-                  <div className="flex min-w-0 flex-col p-3">
-                    <div className="flex items-center justify-between gap-2">
+                  <div className="p-3.5">
+                    <div className="flex min-w-0 items-center justify-between gap-2">
                       <p className="min-w-0 truncate text-[11px] font-bold text-emerald-700">
                         {apartment.cityName || apartment.city || "지역 확인 중"}
                       </p>
@@ -340,41 +340,43 @@ export default function MobileSearchCarousel({
                       )}
                     </div>
 
-                    <h3 className="mt-1 line-clamp-2 break-keep text-sm font-black leading-5 text-zinc-950">
+                    <h3 className="mt-1 line-clamp-1 break-keep text-base font-black leading-6 text-zinc-950">
                       {apartment.name}
                     </h3>
 
-                    <p className="mt-1 truncate text-[11px] text-zinc-600">
+                    <p className="mt-0.5 truncate text-[11px] text-zinc-600">
                       {apartment.region || "주소 확인 중"}
                     </p>
 
-                    <div className="mt-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2">
-                      <p className="text-[10px] font-bold text-emerald-800">
-                        {representativePrice.label}
-                      </p>
-                      <p className="mt-0.5 truncate text-xs font-black text-zinc-950">
-                        {representativePrice.text}
-                      </p>
-                    </div>
+                    <div className="mt-2.5 flex items-center justify-between gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5">
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-bold text-emerald-800">
+                          {representativePrice.label}
+                        </p>
+                        <p className="mt-0.5 truncate text-sm font-black text-zinc-950">
+                          {representativePrice.text}
+                        </p>
+                      </div>
 
-                    <div className="mt-2">
-                      {benefits.length > 0 ? (
-                        <div className="flex flex-wrap gap-1">
+                      {benefits.length > 0 && (
+                        <div className="flex max-w-[48%] flex-wrap justify-end gap-1">
                           {benefits.map((benefit) => (
                             <span
                               key={benefit}
-                              className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-800"
+                              className="max-w-full truncate rounded-full border border-emerald-200 bg-white px-2 py-1 text-[9px] font-bold text-emerald-800"
                             >
                               {benefit}
                             </span>
                           ))}
                         </div>
-                      ) : (
-                        <p className="line-clamp-1 text-[11px] font-semibold text-zinc-600">
-                          {apartment.condition || "계약조건 확인 필요"}
-                        </p>
                       )}
                     </div>
+
+                    {benefits.length === 0 && (
+                      <p className="mt-2 line-clamp-1 text-[11px] font-semibold text-zinc-600">
+                        {apartment.condition || "계약조건 확인 필요"}
+                      </p>
+                    )}
 
                     {!moveInText && (
                       <p className="mt-2 text-[10px] font-medium text-zinc-600">
@@ -382,7 +384,7 @@ export default function MobileSearchCarousel({
                       </p>
                     )}
 
-                    <div className="mt-auto grid grid-cols-2 gap-2 pt-3">
+                    <div className="mt-3 grid grid-cols-2 gap-2">
                       <button
                         type="button"
                         onClick={handleSelectButton}

@@ -1208,7 +1208,7 @@ export default function SearchClient({
           />
         </div>
         {/* PC: 기존 목록 + 지도 구조 유지 */}
-        <div className="hidden gap-5 lg:grid lg:grid-cols-[minmax(410px,0.62fr)_minmax(700px,1.38fr)]">
+        <div className="hidden gap-4 lg:grid lg:grid-cols-[minmax(360px,420px)_minmax(0,1fr)]">
           <div>
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-bold">
