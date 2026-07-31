@@ -12,7 +12,6 @@ import {
   useSearchParams,
 } from "next/navigation";
 
-import { supabase } from "../../../lib/supabase";
 import { parseSubscriptionDate } from "../../../lib/subscriptionVisibility";
 
 type ListingStage =
@@ -434,47 +433,60 @@ function AdminApartmentsPageContent() {
     async function fetchApartments() {
       setLoading(true);
 
-      const { data, error } =
-        await supabase
-          .from("apartments")
-          .select("*")
-          /*
-           * 수동 등록 단지는 sync_status가 NULL일 수 있습니다.
-           * PostgreSQL에서 NULL은 neq("excluded") 조건에 포함되지 않으므로,
-           * NULL 또는 excluded가 아닌 단지를 모두 조회합니다.
-           */
-          .or(
-            "sync_status.is.null,sync_status.neq.excluded"
-          )
-          .order("updated_at", {
-            ascending: false,
-          });
+      try {
+        const response =
+          await fetch(
+            "/api/admin/apartments/list",
+            {
+              method: "GET",
+              cache: "no-store",
+            }
+          );
 
-      if (!mounted) {
-        return;
-      }
+        const result =
+          (await response.json()) as {
+            message?: string;
+            apartments?: AdminApartmentRow[];
+          };
 
-      if (error) {
+        if (!mounted) {
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(
+            result.message ||
+              "단지 목록을 불러오지 못했습니다."
+          );
+        }
+
+        setApartments(
+          result.apartments ?? []
+        );
+      } catch (error) {
+        if (!mounted) {
+          return;
+        }
+
         console.error(
-          "Supabase 목록 조회 오류:",
+          "관리자 단지 목록 조회 오류:",
           error
         );
 
         alert(
-          `단지 목록을 불러오지 못했습니다.\n\n${error.message}`
+          `단지 목록을 불러오지 못했습니다.\n\n${
+            error instanceof Error
+              ? error.message
+              : "알 수 없는 오류"
+          }`
         );
 
         setApartments([]);
-        setLoading(false);
-        return;
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
       }
-
-      setApartments(
-        (data ??
-          []) as AdminApartmentRow[]
-      );
-
-      setLoading(false);
     }
 
     fetchApartments();
