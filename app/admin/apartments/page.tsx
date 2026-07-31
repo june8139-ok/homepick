@@ -438,9 +438,13 @@ function AdminApartmentsPageContent() {
         await supabase
           .from("apartments")
           .select("*")
-          .neq(
-            "sync_status",
-            "excluded"
+          /*
+           * 수동 등록 단지는 sync_status가 NULL일 수 있습니다.
+           * PostgreSQL에서 NULL은 neq("excluded") 조건에 포함되지 않으므로,
+           * NULL 또는 excluded가 아닌 단지를 모두 조회합니다.
+           */
+          .or(
+            "sync_status.is.null,sync_status.neq.excluded"
           )
           .order("updated_at", {
             ascending: false,
@@ -1670,3 +1674,4 @@ export default function AdminApartmentsPage() {
     </Suspense>
   );
 }
+
