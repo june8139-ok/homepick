@@ -47,6 +47,173 @@ type PageProps = {
   }>;
 };
 
+type RegionDescription = {
+  title: string;
+  paragraphs: [
+    string,
+    string,
+  ];
+};
+
+const REGION_DESCRIPTIONS: Record<
+  string,
+  RegionDescription
+> = {
+  서울: {
+    title:
+      "서울 분양시장 한눈에 보기",
+    paragraphs: [
+      "서울은 도심 생활권과 재개발·재건축 사업지를 중심으로 신규 공급이 이어지는 지역입니다. 같은 서울 안에서도 교통, 학군, 업무지구 접근성과 공급 방식에 따라 단지별 조건 차이가 크게 나타날 수 있습니다.",
+      "집눈에서는 서울 지역의 청약·선착순 분양 단지를 모아 분양가, 계약조건, 입주 예정일과 주요 생활환경을 한눈에 확인하고 관심단지 저장과 비교 기능까지 이용할 수 있습니다.",
+    ],
+  },
+  부산: {
+    title:
+      "부산 분양시장 한눈에 보기",
+    paragraphs: [
+      "부산은 해운대·수영권을 비롯해 동부산과 서부산, 원도심 정비사업지까지 생활권별 특성이 뚜렷한 지역입니다. 교통망과 바다 조망, 상권 접근성, 정비사업 진행 상황을 함께 살펴보는 것이 중요합니다.",
+      "집눈에서는 부산 지역의 청약·선착순 분양 단지를 모아 분양가와 계약조건, 입주 예정일, 교통·교육·생활환경을 단지별로 비교할 수 있습니다.",
+    ],
+  },
+  대구: {
+    title:
+      "대구 분양시장 한눈에 보기",
+    paragraphs: [
+      "대구는 수성권과 도심권, 달서·북구 생활권 등 지역별 주거환경과 공급 여건이 구분되는 시장입니다. 역세권 여부와 학군, 생활 인프라, 입주 시점에 따라 단지별 체감 가치가 달라질 수 있습니다.",
+      "집눈에서는 대구 지역의 분양 단지를 모아 분양가, 계약금, 중도금 조건과 입주 예정일을 확인하고 관심단지 저장과 비교 기능으로 조건을 나란히 살펴볼 수 있습니다.",
+    ],
+  },
+  인천: {
+    title:
+      "인천 분양시장 한눈에 보기",
+    paragraphs: [
+      "인천은 송도·청라·검단 등 신도시 생활권과 기존 도심 정비사업지가 함께 형성된 지역입니다. 서울 접근성, 철도 계획, 업무지구와 생활 인프라를 단지별로 구분해 확인하는 것이 중요합니다.",
+      "집눈에서는 인천 지역의 청약·선착순 분양 단지를 모아 분양가와 계약조건, 입지, 입주 예정일을 확인하고 두 단지를 같은 기준으로 비교할 수 있습니다.",
+    ],
+  },
+  광주: {
+    title:
+      "광주 분양시장 한눈에 보기",
+    paragraphs: [
+      "광주는 도심 재정비 지역과 택지개발 생활권을 중심으로 신규 주거 공급이 이어지는 지역입니다. 생활권별 교통, 교육환경과 주변 신축 공급량을 함께 비교해보는 것이 좋습니다.",
+      "집눈에서는 광주 지역의 현재 공개된 분양 단지를 모아 분양가, 계약조건, 입주 일정과 주요 생활환경을 단지별로 확인할 수 있습니다.",
+    ],
+  },
+  대전: {
+    title:
+      "대전 분양시장 한눈에 보기",
+    paragraphs: [
+      "대전은 도안·유성 생활권과 중구·동구의 도심 정비사업지를 중심으로 신규 분양과 선착순 공급이 함께 나타나는 지역입니다. 생활권에 따라 교통, 학군, 연구·업무지역 접근성의 차이를 비교할 필요가 있습니다.",
+      "집눈에서는 대전 지역의 분양가와 계약조건, 입주 예정일, 교통·교육·생활환경을 단지별로 확인하고 관심단지 저장과 비교 기능까지 이용할 수 있습니다.",
+    ],
+  },
+  울산: {
+    title:
+      "울산 분양시장 한눈에 보기",
+    paragraphs: [
+      "울산은 남구 중심 생활권과 북구·울주군의 신규 주거지역이 함께 형성된 시장입니다. 산업단지 접근성, 도심 생활 인프라, 교통망과 입주 시점을 단지별로 비교해보는 것이 중요합니다.",
+      "집눈에서는 울산 지역의 청약·선착순 분양 단지를 모아 분양가, 계약조건, 주차와 입주 정보를 한눈에 확인할 수 있습니다.",
+    ],
+  },
+  세종: {
+    title:
+      "세종 분양시장 한눈에 보기",
+    paragraphs: [
+      "세종은 행정중심복합도시 생활권을 중심으로 주거·업무·교육 인프라가 계획적으로 배치된 지역입니다. 생활권 위치와 BRT 접근성, 학교와 상업시설 이용 여건을 함께 확인하는 것이 좋습니다.",
+      "집눈에서는 세종 지역의 현재 공개된 분양 단지를 모아 청약 일정, 분양가, 입주 예정일과 입지 정보를 단지별로 비교할 수 있습니다.",
+    ],
+  },
+  경기: {
+    title:
+      "경기 분양시장 한눈에 보기",
+    paragraphs: [
+      "경기도는 서울 인접 지역과 수도권 신도시, 산업도시와 외곽 생활권까지 주거환경이 매우 다양합니다. 같은 경기도라도 서울 접근성, 철도망, 자족시설과 공급 규모에 따라 단지별 조건 차이가 큽니다.",
+      "집눈에서는 경기 지역의 청약·선착순 분양 단지를 모아 분양가, 계약조건, 입주 예정일과 주요 입지를 확인하고 관심단지 저장과 비교 기능까지 이용할 수 있습니다.",
+    ],
+  },
+  강원: {
+    title:
+      "강원 분양시장 한눈에 보기",
+    paragraphs: [
+      "강원은 춘천·원주·강릉 등 주요 도시를 중심으로 생활권과 교통 여건이 구분되는 지역입니다. 수도권 접근성, 지역 내 산업·관광 수요와 생활 인프라를 단지별로 살펴볼 필요가 있습니다.",
+      "집눈에서는 강원 지역의 현재 공개된 분양 단지를 모아 분양가, 계약조건, 입주 예정일과 생활환경을 한눈에 확인할 수 있습니다.",
+    ],
+  },
+  충북: {
+    title:
+      "충북 분양시장 한눈에 보기",
+    paragraphs: [
+      "충북은 청주 생활권을 중심으로 충주·음성·진천 등 산업단지 배후 주거지역의 공급이 함께 나타나는 지역입니다. 직주근접성, 광역교통망과 생활 인프라를 단지별로 비교하는 것이 중요합니다.",
+      "집눈에서는 충북 지역의 청약·선착순 분양 단지를 모아 분양가와 계약조건, 입주 일정, 교통·교육환경을 한눈에 확인할 수 있습니다.",
+    ],
+  },
+  충남: {
+    title:
+      "충남 분양시장 한눈에 보기",
+    paragraphs: [
+      "충남은 천안·아산 생활권과 내포신도시, 서해안 산업도시 등 다양한 주거시장이 형성된 지역입니다. 산업단지 접근성, 철도와 고속도로, 신도시 생활 인프라를 함께 살펴보는 것이 좋습니다.",
+      "집눈에서는 충남 지역의 분양 단지를 모아 분양가, 계약금과 중도금 조건, 입주 예정일을 확인하고 두 단지를 같은 기준으로 비교할 수 있습니다.",
+    ],
+  },
+  전북: {
+    title:
+      "전북 분양시장 한눈에 보기",
+    paragraphs: [
+      "전북은 전주 생활권을 중심으로 익산·군산 등 주요 도시의 신규 공급이 함께 나타나는 지역입니다. 도심 접근성, 산업단지와 교통망, 주변 신축 공급을 단지별로 확인하는 것이 중요합니다.",
+      "집눈에서는 전북 지역의 현재 공개된 분양 단지를 모아 분양가, 계약조건, 입주 일정과 주요 생활환경을 비교할 수 있습니다.",
+    ],
+  },
+  전남: {
+    title:
+      "전남 분양시장 한눈에 보기",
+    paragraphs: [
+      "전남은 순천·여수·광양과 나주 등 도시별 산업과 생활권 특성이 뚜렷한 지역입니다. 직주근접성, 교통망과 지역 내 생활 인프라를 단지별로 구분해 살펴보는 것이 좋습니다.",
+      "집눈에서는 전남 지역의 청약·선착순 분양 단지를 모아 분양가, 계약조건, 입주 예정일과 입지 정보를 한눈에 확인할 수 있습니다.",
+    ],
+  },
+  경북: {
+    title:
+      "경북 분양시장 한눈에 보기",
+    paragraphs: [
+      "경북은 포항·구미·경산 등 주요 도시와 산업단지 배후 생활권을 중심으로 신규 공급이 이루어지는 지역입니다. 산업 접근성, 대구 생활권 연계와 교통 여건을 단지별로 비교할 필요가 있습니다.",
+      "집눈에서는 경북 지역의 현재 공개된 분양 단지를 모아 분양가, 계약조건, 입주 일정과 주요 생활환경을 확인할 수 있습니다.",
+    ],
+  },
+  경남: {
+    title:
+      "경남 분양시장 한눈에 보기",
+    paragraphs: [
+      "경남은 창원·김해·양산·진주 등 도시별 생활권과 산업 기반이 뚜렷한 지역입니다. 부산·울산 접근성, 산업단지와 도심 인프라를 단지별로 나누어 살펴보는 것이 중요합니다.",
+      "집눈에서는 경남 지역의 청약·선착순 분양 단지를 모아 분양가와 계약조건, 입주 예정일, 교통·교육·생활환경을 비교할 수 있습니다.",
+    ],
+  },
+  제주: {
+    title:
+      "제주 분양시장 한눈에 보기",
+    paragraphs: [
+      "제주는 제주시와 서귀포시를 중심으로 생활권과 공급 여건이 구분되는 지역입니다. 도심 접근성, 관광·업무 수요, 교통과 생활 인프라를 단지별로 확인하는 것이 중요합니다.",
+      "집눈에서는 제주 지역의 현재 공개된 분양 단지를 모아 분양가, 계약조건, 입주 예정일과 주요 입지 정보를 한눈에 확인할 수 있습니다.",
+    ],
+  },
+};
+
+function getRegionDescription(
+  cityName: string
+): RegionDescription {
+  return (
+    REGION_DESCRIPTIONS[
+      cityName
+    ] ?? {
+      title:
+        `${cityName} 분양시장 한눈에 보기`,
+      paragraphs: [
+        `${cityName} 지역의 신규 분양과 청약·선착순 공급은 생활권, 교통, 교육환경과 입주 시점에 따라 단지별 차이가 나타날 수 있습니다.`,
+        `집눈에서는 ${cityName} 지역의 분양가, 계약조건, 입주 예정일과 주요 입지를 단지별로 확인하고 관심단지 저장과 비교 기능까지 이용할 수 있습니다.`,
+      ],
+    }
+  );
+}
+
 function decodeRouteValue(
   value: string
 ) {
@@ -843,6 +1010,33 @@ export default async function RegionPage({
       hasLowInitialContract
     );
 
+  const regionDescription =
+    getRegionDescription(
+      safeCityName
+    );
+
+  const currentStatusSummary = [
+    `${safeCityName} 지역에서 현재 ${regionApartments.length}개 단지를 확인할 수 있습니다.`,
+    subscriptionApartments.length >
+    0
+      ? `청약 단지는 ${subscriptionApartments.length}개입니다.`
+      : "",
+    firstComeApartments.length >
+    0
+      ? `선착순 분양 단지는 ${firstComeApartments.length}개입니다.`
+      : "",
+    freeMiddlePaymentApartments.length >
+    0
+      ? `중도금 무이자 조건이 확인된 단지는 ${freeMiddlePaymentApartments.length}개입니다.`
+      : "",
+    lowInitialContractApartments.length >
+    0
+      ? `초기 계약금 부담이 낮은 단지는 ${lowInitialContractApartments.length}개입니다.`
+      : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   const pageUrl =
     cityKey
       ? `${SITE_URL}/region/${encodeURIComponent(
@@ -1201,6 +1395,82 @@ export default async function RegionPage({
             emptyMessage=""
           />
         )}
+
+        <section className="mt-8 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm sm:mt-10 sm:rounded-3xl sm:p-7 lg:p-8">
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
+            <div>
+              <p className="text-xs font-extrabold text-emerald-600 sm:text-sm">
+                REGION GUIDE
+              </p>
+
+              <h2 className="mt-1 break-keep text-2xl font-black tracking-tight text-[#132238] sm:text-3xl">
+                {
+                  regionDescription.title
+                }
+              </h2>
+
+              <div className="mt-4 space-y-3 break-keep text-sm leading-7 text-zinc-600 sm:text-base sm:leading-8">
+                {regionDescription.paragraphs.map(
+                  (
+                    paragraph
+                  ) => (
+                    <p
+                      key={
+                        paragraph
+                      }
+                    >
+                      {
+                        paragraph
+                      }
+                    </p>
+                  )
+                )}
+              </div>
+
+              <div className="mt-5 rounded-xl bg-emerald-50 px-4 py-4 sm:rounded-2xl sm:px-5">
+                <p className="text-xs font-black text-emerald-700 sm:text-sm">
+                  현재 등록 현황
+                </p>
+
+                <p className="mt-1.5 break-keep text-xs leading-6 text-emerald-900/80 sm:text-sm sm:leading-7">
+                  {
+                    currentStatusSummary
+                  }
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 sm:p-5">
+              <p className="text-sm font-black text-[#132238]">
+                {safeCityName} 단지 더 찾아보기
+              </p>
+
+              <p className="mt-2 break-keep text-xs leading-5 text-zinc-500">
+                지도검색에서 위치와 목록을
+                함께 확인하거나 전국 지역
+                허브로 이동할 수 있습니다.
+              </p>
+
+              <div className="mt-4 grid gap-2">
+                <Link
+                  href={`/search?q=${encodeURIComponent(
+                    safeCityName
+                  )}`}
+                  className="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl bg-[#132238] px-4 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-emerald-600 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+                >
+                  {safeCityName} 지도검색 →
+                </Link>
+
+                <Link
+                  href="/region"
+                  className="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl border border-zinc-200 bg-white px-4 text-sm font-bold text-zinc-700 transition-all hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+                >
+                  전국 지역별 보기
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
 
         <section className="mt-8 sm:mt-10">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">

@@ -4,6 +4,8 @@ import type {
 
 import Link from "next/link";
 
+import RegionSearch from "../../components/Region/RegionSearch";
+
 import {
   getApartments,
 } from "../../lib/getApartments";
@@ -93,6 +95,14 @@ type CitySummary = {
 
   latestApartment:
     Apartment;
+};
+
+type RegionSearchApartment = {
+  slug: string;
+  name: string;
+  region: string;
+  parentRegion: string;
+  status: string;
 };
 
 function getHeroImage(
@@ -425,6 +435,39 @@ export default async function RegionIndexPage() {
         )
     ).length;
 
+  const regionSearchApartments:
+    RegionSearchApartment[] =
+    publicApartments.map(
+      (apartment) => ({
+        slug:
+          apartment.slug,
+        name:
+          apartment.name,
+        region:
+          apartment.region ||
+          "",
+        parentRegion:
+          getApartmentRegionKey(
+            apartment
+          ),
+        status:
+          apartment.status ||
+          "",
+      })
+    );
+
+  const regionSearchCities =
+    cities.map((city) => ({
+      name:
+        city.cityName,
+      href:
+        `/region/${encodeURIComponent(
+          city.city
+        )}`,
+      count:
+        city.totalCount,
+    }));
+
   const breadcrumbJsonLd = {
     "@context":
       "https://schema.org",
@@ -597,6 +640,15 @@ export default async function RegionIndexPage() {
             </div>
           </div>
         </section>
+
+        <RegionSearch
+          apartments={
+            regionSearchApartments
+          }
+          regions={
+            regionSearchCities
+          }
+        />
 
         <section className="mt-8 sm:mt-10">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
