@@ -8,6 +8,13 @@ import {
   useAdmin,
 } from "./AdminContext";
 
+const dateTypeOptions = [
+  ["changed", "변경일"],
+  ["checked", "확인일"],
+  ["month-only", "연월만 확인"],
+  ["unknown", "날짜 미확인"],
+] as const;
+
 const contractOptions = [
   ["unknown", "확인 필요"],
   ["fixed-500", "계약금 500만원"],
@@ -48,6 +55,7 @@ const balanceSupportOptions = [
 
 function createEmptyBlock(): ApartmentConditionHistoryItem {
   return {
+    dateType: "checked",
     date: "",
     title: "",
     description: "",
@@ -140,6 +148,11 @@ export default function ConditionHistorySection() {
             블록처럼 추가하고 순서를
             변경할 수 있습니다.
           </p>
+
+          <p className="mt-2 break-keep text-xs leading-5 text-amber-700">
+            실제 변경일이 확실하지 않으면
+            ‘확인일’을 선택하세요.
+          </p>
         </div>
 
         <button
@@ -225,7 +238,27 @@ export default function ConditionHistorySection() {
                   </div>
                 </div>
 
-                <div className="mt-4 grid gap-3 sm:grid-cols-[180px_minmax(0,1fr)]">
+                <div className="mt-4 grid gap-3 sm:grid-cols-[160px_180px_minmax(0,1fr)]">
+                  <SelectField
+                    label="날짜 구분"
+                    value={
+                      item.dateType ??
+                      "checked"
+                    }
+                    options={
+                      dateTypeOptions
+                    }
+                    onChange={(value) =>
+                      updateBlock(
+                        index,
+                        {
+                          dateType:
+                            value as ApartmentConditionHistoryItem["dateType"],
+                        }
+                      )
+                    }
+                  />
+
                   <Field label="날짜">
                     <input
                       type="text"
@@ -240,8 +273,20 @@ export default function ConditionHistorySection() {
                           }
                         )
                       }
-                      placeholder="예: 2026.08.01"
-                      className={inputClass}
+                      disabled={
+                        item.dateType ===
+                        "unknown"
+                      }
+                      placeholder={
+                        item.dateType ===
+                        "month-only"
+                          ? "예: 2026.08"
+                          : item.dateType ===
+                              "unknown"
+                            ? "날짜 입력 불필요"
+                            : "예: 2026.08.01"
+                      }
+                      className={`${inputClass} disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400`}
                     />
                   </Field>
 
@@ -259,7 +304,7 @@ export default function ConditionHistorySection() {
                           }
                         )
                       }
-                      placeholder="예: 계약축하금 적용 조건 변경"
+                      placeholder="예: 선착순 분양 전환 확인"
                       className={inputClass}
                     />
                   </Field>

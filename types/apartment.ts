@@ -70,7 +70,14 @@ export type ApartmentPriceInfo = {
   note?: string | null;
 };
 
+export type ApartmentConditionHistoryDateType =
+  | "changed"
+  | "checked"
+  | "month-only"
+  | "unknown";
+
 export type ApartmentConditionHistoryItem = {
+  dateType?: ApartmentConditionHistoryDateType;
   date: string;
   title: string;
   description: string;

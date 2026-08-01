@@ -12,6 +12,34 @@ type Props = {
   items?: ApartmentConditionHistoryItem[];
 };
 
+function getDateLabel(
+  item: ApartmentConditionHistoryItem
+) {
+  const date =
+    item.date?.trim();
+
+  switch (item.dateType) {
+    case "changed":
+      return date
+        ? `변경일 ${date}`
+        : "변경일 확인 필요";
+
+    case "month-only":
+      return date
+        ? `${date} 기준 확인`
+        : "연월 확인 필요";
+
+    case "unknown":
+      return "날짜 미확인";
+
+    case "checked":
+    default:
+      return date
+        ? `확인일 ${date}`
+        : "확인일 입력 필요";
+  }
+}
+
 function getContractLabel(
   value?: string
 ) {
@@ -124,8 +152,9 @@ export default function ConditionHistory({
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-xs font-bold text-zinc-500 sm:text-sm">
-                    {item.date ||
-                      "날짜 확인 필요"}
+                    {getDateLabel(
+                      item
+                    )}
                   </p>
 
                   <h3 className="mt-1 text-base font-extrabold text-[#132238] sm:text-lg">
