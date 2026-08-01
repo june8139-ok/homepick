@@ -170,6 +170,121 @@ function getConditionText(
   );
 }
 
+function normalizeConditionText(
+  apartment: Apartment
+) {
+  return [
+    apartment.condition,
+    apartment.priceDetail
+      ?.contractPrice,
+    apartment.priceDetail
+      ?.middlePayment,
+    apartment.priceDetail
+      ?.balance,
+    ...(apartment.priceDetail
+      ?.options ?? []),
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .replace(/\s+/g, "")
+    .replace(/,/g, "")
+    .toLowerCase();
+}
+
+function hasFreeMiddlePayment(
+  apartment: Apartment
+) {
+  if (
+    apartment.evaluation
+      ?.middlePaymentType ===
+    "free"
+  ) {
+    return true;
+  }
+
+  const text =
+    normalizeConditionText(
+      apartment
+    );
+
+  return (
+    text.includes(
+      "중도금무이자"
+    ) &&
+    !text.includes(
+      "일부무이자"
+    )
+  );
+}
+
+function hasFixed500Contract(
+  apartment: Apartment
+) {
+  if (
+    apartment.evaluation
+      ?.contractType ===
+    "fixed-500"
+  ) {
+    return true;
+  }
+
+  const text =
+    normalizeConditionText(
+      apartment
+    );
+
+  return (
+    text.includes(
+      "계약금500만원"
+    ) ||
+    text.includes(
+      "계약금500만"
+    )
+  );
+}
+
+function hasLowInitialContract(
+  apartment: Apartment
+) {
+  const contractType =
+    apartment.evaluation
+      ?.contractType;
+
+  if (
+    contractType ===
+      "fixed-500" ||
+    contractType ===
+      "fixed-1000" ||
+    contractType ===
+      "ratio-5"
+  ) {
+    return true;
+  }
+
+  const text =
+    normalizeConditionText(
+      apartment
+    );
+
+  return (
+    text.includes(
+      "계약금500만원"
+    ) ||
+    text.includes(
+      "계약금500만"
+    ) ||
+    text.includes(
+      "계약금1000만원"
+    ) ||
+    text.includes(
+      "계약금1000만"
+    ) ||
+    text.includes(
+      "계약금5%"
+    )
+  );
+}
+
 function getListingPriority(
   apartment: Apartment
 ) {
@@ -597,6 +712,64 @@ function ApartmentCard({
   );
 }
 
+
+function ApartmentGroupSection({
+  eyebrow,
+  title,
+  description,
+  apartments,
+  emptyMessage,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+  apartments: Apartment[];
+  emptyMessage: string;
+}) {
+  return (
+    <section className="mt-8 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:mt-10 sm:rounded-3xl sm:p-6">
+      <div>
+        <p className="text-xs font-extrabold text-emerald-600 sm:text-sm">
+          {eyebrow}
+        </p>
+
+        <h2 className="mt-1 text-2xl font-black tracking-tight text-[#132238] sm:text-3xl">
+          {title}
+        </h2>
+
+        <p className="mt-2 break-keep text-xs leading-5 text-zinc-500 sm:text-sm sm:leading-6">
+          {description}
+        </p>
+      </div>
+
+      {apartments.length > 0 ? (
+        <div className="mt-5 grid gap-4">
+          {apartments
+            .slice(0, 4)
+            .map(
+              (
+                apartment
+              ) => (
+                <ApartmentCard
+                  key={
+                    apartment.slug
+                  }
+                  apartment={
+                    apartment
+                  }
+                />
+              )
+            )}
+        </div>
+      ) : (
+        <div className="mt-5 rounded-xl bg-zinc-50 px-4 py-8 text-center text-sm text-zinc-500 sm:rounded-2xl">
+          {emptyMessage}
+        </div>
+      )}
+    </section>
+  );
+}
+
 export default async function RegionPage({
   params,
 }: PageProps) {
@@ -654,15 +827,20 @@ export default async function RegionPage({
         )
     );
 
-  const saleApartments =
+
+  const freeMiddlePaymentApartments =
     regionApartments.filter(
-      (apartment) =>
-        !isSubscriptionApartment(
-          apartment
-        ) &&
-        !isFirstComeApartment(
-          apartment
-        )
+      hasFreeMiddlePayment
+    );
+
+  const fixed500Apartments =
+    regionApartments.filter(
+      hasFixed500Contract
+    );
+
+  const lowInitialContractApartments =
+    regionApartments.filter(
+      hasLowInitialContract
     );
 
   const pageUrl =
@@ -930,17 +1108,17 @@ export default async function RegionPage({
           </div>
         </section>
 
-        <section className="mt-8 grid grid-cols-3 gap-2 sm:mt-10 sm:gap-4">
+        <section className="mt-8 grid grid-cols-2 gap-2 sm:mt-10 sm:grid-cols-3 sm:gap-4 xl:grid-cols-5">
           <SummaryBox
-            label="청약 단지"
+            label="현재 분양 중"
             count={
-              subscriptionApartments.length
+              regionApartments.length
             }
-            className="border-blue-100 bg-blue-50 text-blue-700"
+            className="border-zinc-200 bg-white text-[#132238]"
           />
 
           <SummaryBox
-            label="선착순 단지"
+            label="선착순"
             count={
               firstComeApartments.length
             }
@@ -948,13 +1126,59 @@ export default async function RegionPage({
           />
 
           <SummaryBox
-            label="기타 분양"
+            label="청약"
             count={
-              saleApartments.length
+              subscriptionApartments.length
+            }
+            className="border-blue-100 bg-blue-50 text-blue-700"
+          />
+
+          <SummaryBox
+            label="중도금 무이자"
+            count={
+              freeMiddlePaymentApartments.length
+            }
+            className="border-violet-100 bg-violet-50 text-violet-700"
+          />
+
+          <SummaryBox
+            label="계약금 500만원"
+            count={
+              fixed500Apartments.length
             }
             className="border-amber-100 bg-amber-50 text-amber-700"
           />
         </section>
+
+        <ApartmentGroupSection
+          eyebrow="FIRST COME"
+          title={`${cityName} 선착순 분양`}
+          description="현재 동·호수 지정 방식으로 확인할 수 있는 단지를 모았습니다."
+          apartments={
+            firstComeApartments
+          }
+          emptyMessage="현재 공개된 선착순 분양 단지가 없습니다."
+        />
+
+        <ApartmentGroupSection
+          eyebrow="LOW INITIAL COST"
+          title="계약금 부담이 낮은 단지"
+          description="계약금 500만원·1,000만원 또는 계약금 5% 조건이 등록된 단지입니다."
+          apartments={
+            lowInitialContractApartments
+          }
+          emptyMessage="현재 계약금 부담이 낮은 조건으로 등록된 단지가 없습니다."
+        />
+
+        <ApartmentGroupSection
+          eyebrow="INTEREST FREE"
+          title="중도금 무이자 단지"
+          description="등록된 계약조건 기준으로 중도금 전액 무이자가 확인되는 단지입니다."
+          apartments={
+            freeMiddlePaymentApartments
+          }
+          emptyMessage="현재 중도금 무이자 조건으로 등록된 단지가 없습니다."
+        />
 
         <section className="mt-8 sm:mt-10">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
