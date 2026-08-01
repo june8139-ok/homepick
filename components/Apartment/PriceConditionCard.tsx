@@ -191,24 +191,25 @@ function createBenefits(
   }
 
   const freeOptionCondition =
-    findCondition(
-      conditionItems,
-      [
-        "발코니",
-        "풀옵션",
-        "옵션 무상",
-        "시스템에어컨",
-        "무상옵션",
-      ]
-    );
-
-  const freeOptionFromList =
-    apartment.priceDetail
-      ?.options?.find(
-        (item) =>
+    conditionItems.find(
+      (item) =>
+        (
           item.includes("무상") ||
           item.includes("무료")
-      );
+        ) &&
+        !item.includes("유상")
+    ) ?? "";
+
+    const freeOptionFromList =
+      apartment.priceDetail
+        ?.options?.find(
+          (item) =>
+            (
+              item.includes("무상") ||
+              item.includes("무료")
+            ) &&
+            !item.includes("유상")
+        );
 
   const freeOptionValue =
     freeOptionCondition ||
