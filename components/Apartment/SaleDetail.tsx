@@ -314,6 +314,10 @@ function getInformationCards(
 function getJibnunSummary(
   apartment: Apartment
 ) {
+  if (apartment.jibnunSummary?.trim()) {
+    return apartment.jibnunSummary.trim();
+  }
+
   if (
     apartment.aiReview
       .summary?.trim()
@@ -564,6 +568,24 @@ export default function SaleDetail({
               >["apartment"]
             }
           />
+
+          {apartment.source === "applyhome" && (
+            <p className="mt-3 rounded-xl bg-blue-50 px-3 py-2.5 text-[10px] leading-5 text-blue-800 sm:text-xs sm:leading-6">
+              청약홈 공개자료는 타입별 최고 공급금액을 중심으로 제공될 수 있습니다. 실제 계약 가능한 동·호수별 공급금액은 최신 안내를 확인해주세요.
+            </p>
+          )}
+
+          {apartment.contractDetails?.trim() && (
+            <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50/70 p-4 sm:mt-4 sm:p-5">
+              <p className="text-xs font-extrabold text-amber-800 sm:text-sm">
+                계약조건·혜택 상세
+              </p>
+
+              <p className="mt-2 whitespace-pre-line break-keep text-xs font-semibold leading-6 text-amber-950/80 sm:text-sm sm:leading-7">
+                {apartment.contractDetails}
+              </p>
+            </div>
+          )}
         </div>
       </section>
 

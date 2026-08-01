@@ -601,6 +601,94 @@ function RelatedContentFallback() {
   );
 }
 
+function getApartmentPriceNumber(
+  apartment: Apartment
+) {
+  const structuredValues = [
+    apartment.priceInfo?.minimumPrice,
+    apartment.priceInfo?.maximumPrice,
+  ].filter(
+    (value): value is number =>
+      typeof value === "number" &&
+      Number.isFinite(value) &&
+      value > 0
+  );
+
+  if (structuredValues.length > 0) {
+    return (
+      structuredValues.reduce(
+        (sum, value) => sum + value,
+        0
+      ) / structuredValues.length
+    );
+  }
+
+  const priceText =
+    apartment.priceDetail?.salePrice ||
+    apartment.price ||
+    "";
+
+  const eokMatch = priceText.match(
+    /(\d+(?:\.\d+)?)\s*억/
+  );
+
+  if (!eokMatch) {
+    return null;
+  }
+
+  return Number(eokMatch[1]) * 10000;
+}
+
+function getRelatedApartmentScore(
+  current: Apartment,
+  candidate: Apartment
+) {
+  let score = 0;
+
+  const currentStage =
+    getListingStage(current);
+  const candidateStage =
+    getListingStage(candidate);
+
+  if (candidateStage === "firstCome") {
+    score += 100;
+  }
+
+  if (candidateStage === currentStage) {
+    score += 50;
+  }
+
+  if (
+    candidate.region &&
+    current.region &&
+    candidate.region === current.region
+  ) {
+    score += 40;
+  }
+
+  const currentPrice =
+    getApartmentPriceNumber(current);
+  const candidatePrice =
+    getApartmentPriceNumber(candidate);
+
+  if (
+    currentPrice &&
+    candidatePrice
+  ) {
+    const differenceRatio =
+      Math.abs(
+        currentPrice - candidatePrice
+      ) / currentPrice;
+
+    score += Math.max(
+      0,
+      30 - differenceRatio * 30
+    );
+  }
+
+  return score;
+}
+
 async function RelatedApartmentContent({
   apartment,
 }: {
@@ -620,30 +708,31 @@ async function RelatedApartmentContent({
   const relatedApartments =
     apartments
       .filter((item) => {
-        if (
-          item.slug ===
-          apartment.slug
-        ) {
+        if (item.slug === apartment.slug) {
           return false;
         }
 
-        if (
-          item.city !==
-          apartment.city
-        ) {
+        if (item.city !== apartment.city) {
           return false;
         }
 
-        if (
-          isCompletedListing(
-            item
-          )
-        ) {
+        if (isCompletedListing(item)) {
           return false;
         }
 
         return true;
       })
+      .sort(
+        (left, right) =>
+          getRelatedApartmentScore(
+            apartment,
+            right
+          ) -
+          getRelatedApartmentScore(
+            apartment,
+            left
+          )
+      )
       .slice(0, 6);
 
   const relatedBriefings =

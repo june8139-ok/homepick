@@ -12,6 +12,12 @@ export default function ContractSection() {
   const {
     evaluation,
     setEvaluation,
+
+    contractDetails,
+    setContractDetails,
+
+    jibnunSummary,
+    setJibnunSummary,
   } = useAdmin();
 
   return (
@@ -192,18 +198,23 @@ export default function ContractSection() {
           }
         />
 
-        <div className="rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3">
-          <p className="text-sm font-extrabold text-amber-800">
-            기타 계약조건 입력 예정
-          </p>
+        <TextAreaField
+          title="계약조건·혜택 상세"
+          description="축하금, 상품권, 일부 세대 제외 등 선택 항목만으로 표현하기 어려운 실제 조건을 입력하세요."
+          placeholder="예: 계약축하금 지원, 28층 이상 일부 세대 제외, 국민관광상품권 30만원 지급. 실제 적용 조건은 동·호수별 확인 필요"
+          value={contractDetails}
+          onChange={setContractDetails}
+          maximumLength={1200}
+        />
 
-          <p className="mt-1 break-keep text-xs leading-5 text-amber-800/75">
-            시스템에어컨 무상, 계약금 분납,
-            일부 세대 한정처럼 개별 조건을
-            저장할 수 있는 입력칸은 다음
-            데이터 정리 단계에서 추가합니다.
-          </p>
-        </div>
+        <TextAreaField
+          title="집눈 한눈 정리"
+          description="가격·상품 구성, 계약조건, 입지 장점과 계약 전 확인할 점을 자연스러운 문장으로 정리하세요. 비워두면 기존 정보로 자동 요약합니다."
+          placeholder="예: 문수로 라티에르 673은 울산 남구 신정동에 공급되는 아파트·오피스텔 복합단지입니다..."
+          value={jibnunSummary}
+          onChange={setJibnunSummary}
+          maximumLength={1800}
+        />
       </div>
     </section>
   );
@@ -296,5 +307,48 @@ function OptionGroup({
         )}
       </div>
     </fieldset>
+  );
+}
+
+function TextAreaField({
+  title,
+  description,
+  placeholder,
+  value,
+  onChange,
+  maximumLength,
+}: {
+  title: string;
+  description: string;
+  placeholder: string;
+  value: string;
+  onChange: (value: string) => void;
+  maximumLength: number;
+}) {
+  return (
+    <label className="block">
+      <span className="text-base font-extrabold text-[#132238]">
+        {title}
+      </span>
+
+      <span className="mt-1 block break-keep text-xs leading-5 text-zinc-400">
+        {description}
+      </span>
+
+      <textarea
+        value={value}
+        onChange={(event) =>
+          onChange(event.target.value)
+        }
+        maxLength={maximumLength}
+        rows={6}
+        placeholder={placeholder}
+        className="mt-3 min-h-36 w-full resize-y rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-medium leading-7 text-zinc-700 outline-none transition placeholder:text-zinc-300 hover:border-emerald-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+      />
+
+      <span className="mt-1 block text-right text-[10px] text-zinc-400">
+        {value.length.toLocaleString()} / {maximumLength.toLocaleString()}자
+      </span>
+    </label>
   );
 }

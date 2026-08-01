@@ -99,6 +99,8 @@ type InitialApartment = {
 
   status?: string;
   condition?: string;
+  contractDetails?: string;
+  jibnunSummary?: string;
   listingStage?: ListingStage;
 
   source?:
@@ -137,6 +139,10 @@ type InitialApartment = {
   locationInfo?: Partial<LocationInfo>;
 
   score?: Score;
+
+  aiReview?: {
+    summary?: string;
+  };
 
   /*
    * 앞으로 평가 선택값 자체를 DB에 저장하게 되면
@@ -206,6 +212,12 @@ type AdminContextType = {
   ) => void;
 
   savedScore?: Score;
+
+  contractDetails: string;
+  setContractDetails: (value: string) => void;
+
+  jibnunSummary: string;
+  setJibnunSummary: (value: string) => void;
 
   isDirty: boolean;
   setIsDirty: (
@@ -828,6 +840,22 @@ export function AdminProvider({
   );
 
   const [
+    contractDetails,
+    setContractDetailsState,
+  ] = useState(
+    initialApartment?.contractDetails ?? ""
+  );
+
+  const [
+    jibnunSummary,
+    setJibnunSummaryState,
+  ] = useState(
+    initialApartment?.jibnunSummary ??
+      initialApartment?.aiReview?.summary ??
+      ""
+  );
+
+  const [
     isDirty,
     setIsDirty,
   ] = useState(false);
@@ -897,6 +925,20 @@ export function AdminProvider({
     setIsDirty(true);
   };
 
+  const setContractDetails = (
+    value: string
+  ) => {
+    setContractDetailsState(value);
+    setIsDirty(true);
+  };
+
+  const setJibnunSummary = (
+    value: string
+  ) => {
+    setJibnunSummaryState(value);
+    setIsDirty(true);
+  };
+
   return (
     <AdminContext.Provider
       value={{
@@ -927,6 +969,12 @@ export function AdminProvider({
 
         savedScore:
           initialApartment?.score,
+
+        contractDetails,
+        setContractDetails,
+
+        jibnunSummary,
+        setJibnunSummary,
 
         isDirty,
         setIsDirty,

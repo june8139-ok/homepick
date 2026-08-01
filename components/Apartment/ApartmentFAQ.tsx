@@ -68,17 +68,40 @@ function getMoveInText(apartment: Apartment) {
 }
 
 function getSupplyText(apartment: Apartment) {
-  if (
+  const totalHouseholds = cleanText(
+    apartment.projectInfo?.totalHouseholds
+  );
+
+  const saleHouseholds = cleanText(
+    apartment.projectInfo?.saleHouseholds
+  );
+
+  const totalSupply =
     typeof apartment.totalSupply === "number" &&
     apartment.totalSupply > 0
+      ? `${apartment.totalSupply.toLocaleString()}세대`
+      : "";
+
+  const total =
+    totalHouseholds || totalSupply;
+
+  if (
+    total &&
+    saleHouseholds &&
+    total !== saleHouseholds
   ) {
-    return `${apartment.totalSupply.toLocaleString()}세대`;
+    return `전체 규모는 ${total}이며, 등록된 일반분양 물량은 ${saleHouseholds}입니다`;
   }
 
-  return cleanText(
-    apartment.projectInfo?.totalHouseholds ||
-      apartment.projectInfo?.saleHouseholds
-  );
+  if (total) {
+    return `전체 규모는 ${total}입니다`;
+  }
+
+  if (saleHouseholds) {
+    return `등록된 일반분양 물량은 ${saleHouseholds}입니다`;
+  }
+
+  return "";
 }
 
 function getFloorPlanText(apartment: Apartment) {
@@ -190,7 +213,7 @@ function createSubscriptionFaqs(
   ) {
     const parts = [
       supply
-        ? `공급 규모는 ${supply}입니다`
+        ? supply
         : "",
       floorPlans
         ? `확인 가능한 평형·타입은 ${floorPlans}입니다`
@@ -247,6 +270,8 @@ function createSaleFaqs(
     "분양 정보 확인 중";
   const condition =
     cleanText(apartment.condition);
+  const contractDetails =
+    cleanText(apartment.contractDetails);
   const price =
     getPriceText(apartment);
   const contract =
@@ -276,6 +301,9 @@ function createSaleFaqs(
         (condition
           ? ` 등록된 핵심 계약조건은 '${condition}'입니다.`
           : "") +
+        (contractDetails
+          ? ` 상세 조건은 ${contractDetails}`
+          : "") +
         " 잔여세대와 계약 가능한 동·호수는 수시로 바뀔 수 있으므로 방문 또는 상담 전 최신 현황을 확인해주세요.",
     });
   } else {
@@ -285,6 +313,9 @@ function createSaleFaqs(
         `${name}은 집눈 등록 정보 기준으로 현재 '${status}' 상태입니다.` +
         (condition
           ? ` 등록된 핵심 조건은 '${condition}'입니다.`
+          : "") +
+        (contractDetails
+          ? ` 상세 조건은 ${contractDetails}`
           : "") +
         " 실제 계약 가능 여부와 잔여세대는 최신 안내를 기준으로 확인해주세요.",
     });
@@ -354,7 +385,7 @@ function createSaleFaqs(
   ) {
     const parts = [
       supply
-        ? `총 세대수는 ${supply}입니다`
+        ? supply
         : "",
       floorPlans
         ? `확인 가능한 평형·타입은 ${floorPlans}입니다`

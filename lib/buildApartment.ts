@@ -527,24 +527,39 @@ function createKeywords(
 
 function createSummary(
   locationInfo: LocationInfo,
-  condition: string
+  condition: string,
+  jibnunSummary?: string
 ) {
+  const manualSummary =
+    jibnunSummary?.trim();
+
+  if (manualSummary) {
+    return manualSummary;
+  }
+
   const information = [
     condition,
     locationInfo.transport,
-    locationInfo.education,
     locationInfo.living,
-    locationInfo.futureValue,
-  ].filter(Boolean);
+    locationInfo.cautions,
+  ]
+    .map((value) => value?.trim())
+    .filter(
+      (value): value is string =>
+        Boolean(value)
+    );
 
-  if (
-    information.length === 0
-  ) {
+  if (information.length === 0) {
     return "분양가와 계약조건, 입지와 생활환경을 함께 비교해볼 수 있는 단지입니다.";
   }
 
   return information
-    .slice(0, 2)
+    .slice(0, 4)
+    .map((value) =>
+      /[.!?。]$/.test(value)
+        ? value
+        : `${value}.`
+    )
     .join(" ");
 }
 
@@ -552,7 +567,11 @@ export function buildApartment(
   basicInfo: BasicInfo,
   evaluation: EvaluationInput,
   locationInfo: LocationInfo,
-  priceInfo: ApartmentPriceInfo
+  priceInfo: ApartmentPriceInfo,
+  content?: {
+    contractDetails?: string;
+    jibnunSummary?: string;
+  }
 ) {
   /*
    * 기존 타입과 상세페이지 호환을 위해
@@ -657,6 +676,14 @@ export function buildApartment(
 
     condition,
 
+    contractDetails:
+      content?.contractDetails?.trim() ||
+      "",
+
+    jibnunSummary:
+      content?.jibnunSummary?.trim() ||
+      "",
+
     conditionHistory: [],
 
     priceDetail: {
@@ -711,7 +738,8 @@ export function buildApartment(
       summary:
         createSummary(
           locationInfo,
-          condition
+          condition,
+          content?.jibnunSummary
         ),
 
       liveScore: 0,

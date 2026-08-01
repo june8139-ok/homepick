@@ -98,6 +98,39 @@ function getRegionText(
   );
 }
 
+
+function getRecommendationReasons(
+  currentApartment: Apartment,
+  apartment: Apartment
+) {
+  const reasons: string[] = [];
+
+  if (apartment.status?.includes("선착순")) {
+    reasons.push("선착순 분양 중");
+  }
+
+  if (
+    apartment.listingStage &&
+    apartment.listingStage ===
+      currentApartment.listingStage
+  ) {
+    reasons.push("같은 분양 단계");
+  }
+
+  if (
+    getRegionText(apartment) ===
+    getRegionText(currentApartment)
+  ) {
+    reasons.push(`같은 ${getRegionText(apartment)}`);
+  }
+
+  if (reasons.length === 0) {
+    reasons.push("같은 지역 비교");
+  }
+
+  return reasons.slice(0, 2);
+}
+
 function MobileRelatedCard({
   currentApartment,
   apartment,
@@ -156,6 +189,20 @@ function MobileRelatedCard({
         <h3 className="line-clamp-2 min-h-10 break-keep text-sm font-black leading-5 text-[#132238]">
           {apartment.name}
         </h3>
+
+        <div className="mt-2 flex flex-wrap gap-1">
+          {getRecommendationReasons(
+            currentApartment,
+            apartment
+          ).map((reason) => (
+            <span
+              key={reason}
+              className="rounded-full bg-emerald-50 px-2 py-1 text-[9px] font-bold text-emerald-700"
+            >
+              {reason}
+            </span>
+          ))}
+        </div>
 
         <p className="mt-1 line-clamp-1 text-[10px] text-zinc-500">
           {apartment.region ||
@@ -289,6 +336,20 @@ function DesktopRelatedCard({
             <h3 className="mt-3 break-keep text-xl font-extrabold leading-tight text-[#132238]">
               {apartment.name}
             </h3>
+
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {getRecommendationReasons(
+                currentApartment,
+                apartment
+              ).map((reason) => (
+                <span
+                  key={reason}
+                  className="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700"
+                >
+                  {reason}
+                </span>
+              ))}
+            </div>
 
             <p className="mt-2 line-clamp-1 text-sm text-zinc-500">
               {apartment.region ||
@@ -526,12 +587,11 @@ export default function RelatedApartments({
           </p>
 
           <h2 className="mt-1 text-xl font-extrabold tracking-tight text-[#132238] sm:text-2xl">
-            같은 지역 다른 단지
+            함께 비교할 만한 단지
           </h2>
 
           <p className="mt-1 text-xs leading-5 text-zinc-500 sm:mt-2 sm:text-sm sm:leading-6">
-            {getRegionText(apartment)}에서
-            함께 비교해볼 단지입니다.
+            분양 단계와 지역, 가격대를 함께 고려해 비교할 만한 단지입니다.
           </p>
         </div>
 

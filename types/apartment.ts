@@ -100,6 +100,8 @@ export type Apartment = {
   listingStage?: ListingStage;
   price: string;
   condition: string;
+  contractDetails?: string;
+  jibnunSummary?: string;
   source?: "manual" | "applyhome";
   applyHomeId?: string | null;
   applyHomeUrl?: string | null;
