@@ -247,7 +247,14 @@ export default function RegionSearch({
           )}
 
           {query && (
-            <div className="absolute inset-x-0 top-[calc(100%+8px)] overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl sm:rounded-3xl">
+            <div
+              className={[
+                "overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl sm:rounded-3xl",
+                compact
+                  ? "relative mt-2"
+                  : "absolute inset-x-0 top-[calc(100%+8px)]",
+              ].join(" ")}
+            >
               {hasResults ? (
                 <div className="max-h-[70vh] overflow-y-auto p-3 sm:p-4">
                   {(matchedRegions.length >
