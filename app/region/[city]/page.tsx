@@ -1166,35 +1166,41 @@ export default async function RegionPage({
           />
         </section>
 
-        <ApartmentGroupSection
-          eyebrow="FIRST COME"
-          title={`${cityName} 선착순 분양`}
-          description="현재 동·호수 지정 방식으로 확인할 수 있는 단지를 모았습니다."
-          apartments={
-            firstComeApartments
-          }
-          emptyMessage="현재 공개된 선착순 분양 단지가 없습니다."
-        />
+        {firstComeApartments.length > 0 && (
+          <ApartmentGroupSection
+            eyebrow="FIRST COME"
+            title={`${cityName} 선착순 분양`}
+            description="현재 동·호수 지정 방식으로 확인할 수 있는 단지를 모았습니다."
+            apartments={
+              firstComeApartments
+            }
+            emptyMessage=""
+          />
+        )}
 
-        <ApartmentGroupSection
-          eyebrow="LOW INITIAL COST"
-          title="계약금 부담이 낮은 단지"
-          description="계약금 500만원·1,000만원 또는 계약금 5% 조건이 등록된 단지입니다."
-          apartments={
-            lowInitialContractApartments
-          }
-          emptyMessage="현재 계약금 부담이 낮은 조건으로 등록된 단지가 없습니다."
-        />
+        {lowInitialContractApartments.length > 0 && (
+          <ApartmentGroupSection
+            eyebrow="LOW INITIAL COST"
+            title="계약금 부담이 낮은 단지"
+            description="계약금 500만원·1,000만원 또는 계약금 5% 조건이 등록된 단지입니다."
+            apartments={
+              lowInitialContractApartments
+            }
+            emptyMessage=""
+          />
+        )}
 
-        <ApartmentGroupSection
-          eyebrow="INTEREST FREE"
-          title="중도금 무이자 단지"
-          description="등록된 계약조건 기준으로 중도금 전액 무이자가 확인되는 단지입니다."
-          apartments={
-            freeMiddlePaymentApartments
-          }
-          emptyMessage="현재 중도금 무이자 조건으로 등록된 단지가 없습니다."
-        />
+        {freeMiddlePaymentApartments.length > 0 && (
+          <ApartmentGroupSection
+            eyebrow="INTEREST FREE"
+            title="중도금 무이자 단지"
+            description="등록된 계약조건 기준으로 중도금 전액 무이자가 확인되는 단지입니다."
+            apartments={
+              freeMiddlePaymentApartments
+            }
+            emptyMessage=""
+          />
+        )}
 
         <section className="mt-8 sm:mt-10">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -1259,4 +1265,3 @@ export default async function RegionPage({
     </main>
   );
 }
-

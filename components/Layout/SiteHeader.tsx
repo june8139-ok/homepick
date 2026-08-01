@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   usePathname,
@@ -28,6 +28,11 @@ const menuItems = [
   {
     label: "지역별 보기",
     href: "/region",
+    query: "",
+  },
+  {
+    label: "관심단지",
+    href: "/favorites",
     query: "",
   },
   {
@@ -151,6 +156,59 @@ export default function SiteHeader() {
     searchKeyword,
     setSearchKeyword,
   ] = useState("");
+
+  const [
+    favoriteCount,
+    setFavoriteCount,
+  ] = useState(0);
+
+  useEffect(() => {
+    const updateCount = () => {
+      try {
+        const raw =
+          window.localStorage.getItem(
+            "jibnun-favorite-apartments"
+          );
+
+        const slugs =
+          raw
+            ? JSON.parse(raw)
+            : [];
+
+        setFavoriteCount(
+          Array.isArray(slugs)
+            ? slugs.length
+            : 0
+        );
+      } catch {
+        setFavoriteCount(0);
+      }
+    };
+
+    updateCount();
+
+    window.addEventListener(
+      "jibnun:favorites-changed",
+      updateCount
+    );
+
+    window.addEventListener(
+      "storage",
+      updateCount
+    );
+
+    return () => {
+      window.removeEventListener(
+        "jibnun:favorites-changed",
+        updateCount
+      );
+
+      window.removeEventListener(
+        "storage",
+        updateCount
+      );
+    };
+  }, []);
 
   const currentQuery =
     searchParams.get("q") ?? "";
@@ -293,6 +351,17 @@ export default function SiteHeader() {
                   )}
                 >
                   {item.label}
+
+                  {item.href ===
+                    "/favorites" &&
+                    favoriteCount >
+                      0 && (
+                    <span className="ml-1.5 inline-flex min-w-5 items-center justify-center rounded-full bg-emerald-600 px-1.5 py-0.5 text-[10px] font-black text-white">
+                      {
+                        favoriteCount
+                      }
+                    </span>
+                  )}
                 </Link>
               );
             }
@@ -526,9 +595,22 @@ export default function SiteHeader() {
                         " "
                       )}
                     >
-                      {
-                        item.label
-                      }
+                      <span>
+                        {
+                          item.label
+                        }
+                      </span>
+
+                      {item.href ===
+                        "/favorites" &&
+                        favoriteCount >
+                          0 && (
+                        <span className="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-emerald-600 px-1.5 py-0.5 text-[10px] font-black text-white">
+                          {
+                            favoriteCount
+                          }
+                        </span>
+                      )}
                     </Link>
                   );
                 }

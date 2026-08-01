@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { formatMoveInDate } from "../../lib/apartmentDisplay";
+import FavoriteButton from "./FavoriteButton";
 
 type ListingStage =
   | "subscription"
@@ -544,9 +545,18 @@ export default function ApartmentHero({
             "지역 정보 준비 중"}
         </p>
 
-        <h1 className="mt-3 break-keep text-[25px] font-black leading-[1.25] tracking-[-0.035em] text-[#132238] sm:mt-4 sm:text-3xl">
-          {apartment.name}
-        </h1>
+        <div className="mt-3 flex items-start justify-between gap-3 sm:mt-4">
+          <h1 className="min-w-0 break-keep text-[25px] font-black leading-[1.25] tracking-[-0.035em] text-[#132238] sm:text-3xl">
+            {apartment.name}
+          </h1>
+
+          <FavoriteButton
+            slug={apartment.slug}
+            apartmentName={
+              apartment.name
+            }
+          />
+        </div>
 
         {isSubscription ? (
           <>
