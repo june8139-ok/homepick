@@ -22,6 +22,7 @@ type RegionSearchItem = {
 type Props = {
   apartments: ApartmentSearchItem[];
   regions: RegionSearchItem[];
+  compact?: boolean;
 };
 
 function normalize(
@@ -61,6 +62,7 @@ function getMunicipalityLabel(
 export default function RegionSearch({
   apartments,
   regions,
+  compact = false,
 }: Props) {
   const [
     keyword,
@@ -152,25 +154,60 @@ export default function RegionSearch({
       0;
 
   return (
-    <section className="relative z-20 mt-8 sm:mt-10">
-      <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-6">
-        <div className="max-w-3xl">
-          <p className="text-xs font-extrabold text-emerald-600 sm:text-sm">
-            빠른 지역·단지 검색
-          </p>
+    <section
+      className={[
+        "relative z-20",
+        compact
+          ? "mt-6 sm:mt-8"
+          : "mt-8 sm:mt-10",
+      ].join(" ")}
+    >
+      <div
+        className={
+          compact
+            ? "rounded-2xl border border-emerald-100 bg-white/90 p-3 shadow-sm backdrop-blur sm:p-4"
+            : "rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-6"
+        }
+      >
+        {!compact && (
+          <div className="max-w-3xl">
+            <p className="text-xs font-extrabold text-emerald-600 sm:text-sm">
+              빠른 지역·단지 검색
+            </p>
 
-          <h2 className="mt-1 break-keep text-2xl font-black tracking-tight text-[#132238] sm:text-3xl">
-            지역명이나 단지명을 검색하세요
-          </h2>
+            <h2 className="mt-1 break-keep text-2xl font-black tracking-tight text-[#132238] sm:text-3xl">
+              지역명이나 단지명을 검색하세요
+            </h2>
 
-          <p className="mt-2 break-keep text-xs leading-5 text-zinc-500 sm:text-sm sm:leading-6">
-            청주·천안·평택처럼 시·군을
-            입력하면 관련 단지와 상위
-            지역페이지를 함께 보여줍니다.
-          </p>
-        </div>
+            <p className="mt-2 break-keep text-xs leading-5 text-zinc-500 sm:text-sm sm:leading-6">
+              청주·천안·평택처럼 시·군을
+              입력하면 관련 단지와 상위
+              지역페이지를 함께 보여줍니다.
+            </p>
+          </div>
+        )}
 
-        <div className="relative mt-5">
+        {compact && (
+          <div className="mb-2 flex items-center justify-between gap-3 px-1">
+            <div>
+              <p className="text-[11px] font-black text-emerald-700 sm:text-xs">
+                빠른 지역·단지 검색
+              </p>
+
+              <p className="mt-0.5 text-[11px] text-zinc-500 sm:text-xs">
+                청주·평택·단지명을 바로 찾아보세요.
+              </p>
+            </div>
+          </div>
+        )}
+
+        <div
+          className={
+            compact
+              ? "relative"
+              : "relative mt-5"
+          }
+        >
           <span
             aria-hidden="true"
             className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-lg text-zinc-400"
@@ -188,7 +225,12 @@ export default function RegionSearch({
             placeholder="예: 청주, 평택, 하늘채"
             aria-label="지역명 또는 아파트명 검색"
             autoComplete="off"
-            className="h-14 w-full rounded-2xl border border-zinc-200 bg-zinc-50 pl-12 pr-12 text-sm font-bold text-[#132238] outline-none transition-all placeholder:font-medium placeholder:text-zinc-400 hover:border-emerald-300 hover:bg-white focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 sm:h-16 sm:text-base"
+            className={[
+              "w-full rounded-2xl border border-zinc-200 bg-zinc-50 pl-12 pr-12 font-bold text-[#132238] outline-none transition-all placeholder:font-medium placeholder:text-zinc-400 hover:border-emerald-300 hover:bg-white focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10",
+              compact
+                ? "h-12 text-sm sm:h-14 sm:text-base"
+                : "h-14 text-sm sm:h-16 sm:text-base",
+            ].join(" ")}
           />
 
           {query && (

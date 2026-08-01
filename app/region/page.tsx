@@ -638,17 +638,18 @@ export default async function RegionIndexPage() {
                 </p>
               </div>
             </div>
+
+            <RegionSearch
+              apartments={
+                regionSearchApartments
+              }
+              regions={
+                regionSearchCities
+              }
+              compact
+            />
           </div>
         </section>
-
-        <RegionSearch
-          apartments={
-            regionSearchApartments
-          }
-          regions={
-            regionSearchCities
-          }
-        />
 
         <section className="mt-8 sm:mt-10">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
