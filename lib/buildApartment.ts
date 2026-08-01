@@ -4,6 +4,7 @@ import {
 } from "../data/scoring";
 
 import type {
+  ApartmentConditionHistoryItem,
   ApartmentPriceInfo,
   UnitPrice,
 } from "../types/apartment";
@@ -554,7 +555,8 @@ export function buildApartment(
   locationInfo: LocationInfo,
   priceInfo: ApartmentPriceInfo,
   contractDetails = "",
-  jibnunSummary = ""
+  jibnunSummary = "",
+  conditionHistory: ApartmentConditionHistoryItem[] = []
 ) {
   /*
    * 기존 타입과 상세페이지 호환을 위해
@@ -673,7 +675,23 @@ export function buildApartment(
       ...evaluation,
     },
 
-    conditionHistory: [],
+    conditionHistory:
+      conditionHistory
+        .map((item) => ({
+          ...item,
+          date: item.date.trim(),
+          title: item.title.trim(),
+          description:
+            item.description.trim(),
+        }))
+        .filter(
+          (item) =>
+            Boolean(
+              item.date ||
+              item.title ||
+              item.description
+            )
+        ),
 
     priceDetail: {
       salePrice:

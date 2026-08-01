@@ -12,6 +12,7 @@ import type {
 } from "../../data/scoring";
 
 import type {
+  ApartmentConditionHistoryItem,
   ApartmentPriceInfo,
   ListingStage,
   UnitPrice,
@@ -101,6 +102,7 @@ type InitialApartment = {
   condition?: string;
   contractDetails?: string;
   jibnunSummary?: string;
+  conditionHistory?: ApartmentConditionHistoryItem[];
   listingStage?: ListingStage;
 
   source?:
@@ -195,6 +197,11 @@ type AdminContextType = {
   jibnunSummary: string;
   setJibnunSummary: (
     value: string
+  ) => void;
+
+  conditionHistory: ApartmentConditionHistoryItem[];
+  setConditionHistory: (
+    value: ApartmentConditionHistoryItem[]
   ) => void;
 
   images: ApartmentImages;
@@ -752,6 +759,16 @@ function createInitialLocationInfo(
   };
 }
 
+function cloneConditionHistory(
+  items?: ApartmentConditionHistoryItem[]
+): ApartmentConditionHistoryItem[] {
+  return (
+    items?.map((item) => ({
+      ...item,
+    })) ?? []
+  );
+}
+
 function createInitialImages(
   apartment?: InitialApartment
 ): ApartmentImages {
@@ -853,6 +870,18 @@ export function AdminProvider({
   );
 
   const [
+    conditionHistory,
+    setConditionHistoryState,
+  ] = useState<
+    ApartmentConditionHistoryItem[]
+  >(
+    cloneConditionHistory(
+      initialApartment
+        ?.conditionHistory
+    )
+  );
+
+  const [
     images,
     setImagesState,
   ] = useState<ApartmentImages>(
@@ -940,6 +969,18 @@ export function AdminProvider({
     setIsDirty(true);
   };
 
+  const setConditionHistory = (
+    value: ApartmentConditionHistoryItem[]
+  ) => {
+    setConditionHistoryState(
+      cloneConditionHistory(
+        value
+      )
+    );
+
+    setIsDirty(true);
+  };
+
   const setImages = (
     nextImages: ApartmentImages
   ) => {
@@ -984,6 +1025,9 @@ export function AdminProvider({
         jibnunSummary,
         setJibnunSummary,
 
+        conditionHistory,
+        setConditionHistory,
+
         images,
         setImages,
 
@@ -1020,4 +1064,3 @@ export function useAdmin() {
 
   return context;
 }
-

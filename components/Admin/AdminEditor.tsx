@@ -3,6 +3,7 @@
 import BasicInfoSection from "./BasicInfoSection";
 import PriceInfoSection from "./PriceInfoSection";
 import ContractSection from "./ContractSection";
+import ConditionHistorySection from "./ConditionHistorySection";
 import LocationSection from "./LocationSection";
 import ImageSection from "./ImageSection";
 import RegisterButton from "./RegisterButton";
@@ -21,6 +22,8 @@ export default function AdminEditor({
         <PriceInfoSection />
 
         <ContractSection />
+
+        <ConditionHistorySection />
 
         <LocationSection />
 

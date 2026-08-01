@@ -4,6 +4,7 @@ import type {
 
 import type {
   Apartment,
+  ApartmentConditionHistoryItem,
   LocationInfo,
 } from "../../types/apartment";
 
@@ -11,16 +12,6 @@ import PriceConditionCard from "./PriceConditionCard";
 import ConditionHistory from "./ConditionHistory";
 import ApartmentImageSections from "./ApartmentImageSections";
 import ReservationCard from "./ReservationCard";
-
-type ConditionHistoryData = {
-  apartmentSlug: string;
-
-  items?: {
-    date: string;
-    title: string;
-    description: string;
-  }[];
-};
 
 type InformationCardItem = {
   icon: string;
@@ -516,7 +507,7 @@ export default function SaleDetail({
   conditionHistory,
 }: {
   apartment: Apartment;
-  conditionHistory?: ConditionHistoryData;
+  conditionHistory?: ApartmentConditionHistoryItem[];
 }) {
   const informationCards =
     getInformationCards(
@@ -589,7 +580,8 @@ export default function SaleDetail({
         </div>
       </section>
 
-      {conditionHistory && (
+      {conditionHistory &&
+        conditionHistory.length > 0 && (
         <section>
           <SectionHeader
             eyebrow="CONDITION HISTORY"
@@ -600,10 +592,8 @@ export default function SaleDetail({
 
           <div className="mt-3 sm:mt-5">
             <ConditionHistory
-              conditionHistory={
-                conditionHistory as ComponentProps<
-                  typeof ConditionHistory
-                >["conditionHistory"]
+              items={
+                conditionHistory
               }
             />
           </div>

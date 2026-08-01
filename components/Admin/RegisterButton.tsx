@@ -105,6 +105,7 @@ export default function RegisterButton({
 
     contractDetails,
     jibnunSummary,
+    conditionHistory,
 
     evaluation,
     images,
@@ -181,7 +182,8 @@ export default function RegisterButton({
             locationInfo,
             priceInfo,
             contractDetails,
-            jibnunSummary
+            jibnunSummary,
+            conditionHistory
           );
 
         /*
@@ -489,6 +491,20 @@ export default function RegisterButton({
           </strong>
         </StatusRow>
 
+        <StatusRow label="변경 이력">
+          <strong
+            className={
+              conditionHistory.length > 0
+                ? "text-emerald-600"
+                : "text-zinc-500"
+            }
+          >
+            {conditionHistory.length > 0
+              ? `${conditionHistory.length}개 블록`
+              : "입력 없음"}
+          </strong>
+        </StatusRow>
+
         <StatusRow label="등록 이미지">
           <strong className="text-[#132238]">
             {images.hero.length +
@@ -552,4 +568,3 @@ function StatusRow({
     </div>
   );
 }
-

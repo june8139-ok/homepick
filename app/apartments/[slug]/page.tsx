@@ -829,12 +829,19 @@ export default async function ApartmentDetailPage({
     );
   }
 
-  const conditionHistory =
+  const legacyConditionHistory =
     conditionHistories.find(
       (item) =>
         item.apartmentSlug ===
         apartment.slug
     );
+
+  const conditionHistory =
+    apartment.conditionHistory
+      ?.length > 0
+      ? apartment.conditionHistory
+      : legacyConditionHistory
+          ?.history ?? [];
 
   const cityName =
     apartment.cityName ||

@@ -70,6 +70,17 @@ export type ApartmentPriceInfo = {
   note?: string | null;
 };
 
+export type ApartmentConditionHistoryItem = {
+  date: string;
+  title: string;
+  description: string;
+  contractType?: EvaluationInput["contractType"];
+  middlePaymentType?: EvaluationInput["middlePaymentType"];
+  optionBenefitType?: EvaluationInput["optionBenefitType"];
+  cashBenefitType?: EvaluationInput["cashBenefitType"];
+  balanceSupport?: EvaluationInput["balanceSupport"];
+};
+
 export type ListingStage =
   | "subscription"
   | "firstCome"
@@ -123,11 +134,7 @@ export type Apartment = {
   projectInfo?: ProjectInfo;
   locationInfo?: LocationInfo;
   applyHome?: Record<string, unknown>;
-  conditionHistory: {
-    date: string;
-    title: string;
-    description: string;
-  }[];
+  conditionHistory: ApartmentConditionHistoryItem[];
   priceInfo?: ApartmentPriceInfo;
   priceDetail: {
     salePrice: string;
@@ -156,4 +163,3 @@ export type Apartment = {
   pros: string[];
   cons: string[];
 };
-
