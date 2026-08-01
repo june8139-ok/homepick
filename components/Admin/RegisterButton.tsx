@@ -103,14 +103,14 @@ export default function RegisterButton({
 
     locationInfo,
 
+    contractDetails,
+    jibnunSummary,
+
     evaluation,
     images,
 
     listingStage,
     editingSlug,
-
-    contractDetails,
-    jibnunSummary,
 
     setIsDirty,
   } = useAdmin();
@@ -180,10 +180,8 @@ export default function RegisterButton({
             evaluation,
             locationInfo,
             priceInfo,
-            {
-              contractDetails,
-              jibnunSummary,
-            }
+            contractDetails,
+            jibnunSummary
           );
 
         /*
@@ -322,8 +320,6 @@ export default function RegisterButton({
               data?: {
                 listingStage?: ListingStage;
                 priceInfo?: ApartmentPriceInfo;
-                contractDetails?: string;
-                jibnunSummary?: string;
               };
             };
           };
@@ -367,26 +363,6 @@ export default function RegisterButton({
         ) {
           throw new Error(
             "분양가 정보가 DB에 정상적으로 저장되지 않았습니다."
-          );
-        }
-
-        if (
-          contractDetails.trim() &&
-          result.apartment?.data?.contractDetails !==
-            contractDetails.trim()
-        ) {
-          throw new Error(
-            "계약조건 상세가 DB에 정상적으로 저장되지 않았습니다."
-          );
-        }
-
-        if (
-          jibnunSummary.trim() &&
-          result.apartment?.data?.jibnunSummary !==
-            jibnunSummary.trim()
-        ) {
-          throw new Error(
-            "집눈 한눈 정리가 DB에 정상적으로 저장되지 않았습니다."
           );
         }
 
@@ -576,3 +552,4 @@ function StatusRow({
     </div>
   );
 }
+

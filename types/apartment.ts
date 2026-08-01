@@ -1,3 +1,5 @@
+import type { EvaluationInput } from "../data/scoring";
+
 export type SubscriptionSchedule = {
   announcementDate?: string | null;
   specialSupplyStartDate?: string | null;
@@ -100,8 +102,15 @@ export type Apartment = {
   listingStage?: ListingStage;
   price: string;
   condition: string;
+
   contractDetails?: string;
   jibnunSummary?: string;
+
+  /*
+   * 관리자 계약조건 선택값 원본입니다.
+   */
+  evaluation?: Partial<EvaluationInput>;
+
   source?: "manual" | "applyhome";
   applyHomeId?: string | null;
   applyHomeUrl?: string | null;
@@ -147,3 +156,4 @@ export type Apartment = {
   pros: string[];
   cons: string[];
 };
+

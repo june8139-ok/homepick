@@ -140,10 +140,6 @@ type InitialApartment = {
 
   score?: Score;
 
-  aiReview?: {
-    summary?: string;
-  };
-
   /*
    * 앞으로 평가 선택값 자체를 DB에 저장하게 되면
    * 이 값을 가장 우선해서 복원합니다.
@@ -191,6 +187,16 @@ type AdminContextType = {
     locationInfo: LocationInfo
   ) => void;
 
+  contractDetails: string;
+  setContractDetails: (
+    value: string
+  ) => void;
+
+  jibnunSummary: string;
+  setJibnunSummary: (
+    value: string
+  ) => void;
+
   images: ApartmentImages;
   setImages: (
     images: ApartmentImages
@@ -212,12 +218,6 @@ type AdminContextType = {
   ) => void;
 
   savedScore?: Score;
-
-  contractDetails: string;
-  setContractDetails: (value: string) => void;
-
-  jibnunSummary: string;
-  setJibnunSummary: (value: string) => void;
 
   isDirty: boolean;
   setIsDirty: (
@@ -367,20 +367,35 @@ function createInitialEvaluation(
 
   const contractText =
     normalizeContractText(
-      apartment.priceDetail
-        ?.contractPrice
+      [
+        apartment.priceDetail
+          ?.contractPrice,
+        apartment.condition,
+      ]
+        .filter(Boolean)
+        .join(" ")
     );
 
   const middlePaymentText =
     normalizeContractText(
-      apartment.priceDetail
-        ?.middlePayment
+      [
+        apartment.priceDetail
+          ?.middlePayment,
+        apartment.condition,
+      ]
+        .filter(Boolean)
+        .join(" ")
     );
 
   const balanceText =
     normalizeContractText(
-      apartment.priceDetail
-        ?.balance
+      [
+        apartment.priceDetail
+          ?.balance,
+        apartment.condition,
+      ]
+        .filter(Boolean)
+        .join(" ")
     );
 
   const optionText =
@@ -822,6 +837,22 @@ export function AdminProvider({
   );
 
   const [
+    contractDetails,
+    setContractDetailsState,
+  ] = useState(
+    initialApartment
+      ?.contractDetails ?? ""
+  );
+
+  const [
+    jibnunSummary,
+    setJibnunSummaryState,
+  ] = useState(
+    initialApartment
+      ?.jibnunSummary ?? ""
+  );
+
+  const [
     images,
     setImagesState,
   ] = useState<ApartmentImages>(
@@ -837,22 +868,6 @@ export function AdminProvider({
     createInitialEvaluation(
       initialApartment
     )
-  );
-
-  const [
-    contractDetails,
-    setContractDetailsState,
-  ] = useState(
-    initialApartment?.contractDetails ?? ""
-  );
-
-  const [
-    jibnunSummary,
-    setJibnunSummaryState,
-  ] = useState(
-    initialApartment?.jibnunSummary ??
-      initialApartment?.aiReview?.summary ??
-      ""
   );
 
   const [
@@ -905,6 +920,26 @@ export function AdminProvider({
     setIsDirty(true);
   };
 
+  const setContractDetails = (
+    value: string
+  ) => {
+    setContractDetailsState(
+      value
+    );
+
+    setIsDirty(true);
+  };
+
+  const setJibnunSummary = (
+    value: string
+  ) => {
+    setJibnunSummaryState(
+      value
+    );
+
+    setIsDirty(true);
+  };
+
   const setImages = (
     nextImages: ApartmentImages
   ) => {
@@ -922,20 +957,6 @@ export function AdminProvider({
       nextEvaluation
     );
 
-    setIsDirty(true);
-  };
-
-  const setContractDetails = (
-    value: string
-  ) => {
-    setContractDetailsState(value);
-    setIsDirty(true);
-  };
-
-  const setJibnunSummary = (
-    value: string
-  ) => {
-    setJibnunSummaryState(value);
     setIsDirty(true);
   };
 
@@ -957,6 +978,12 @@ export function AdminProvider({
         locationInfo,
         setLocationInfo,
 
+        contractDetails,
+        setContractDetails,
+
+        jibnunSummary,
+        setJibnunSummary,
+
         images,
         setImages,
 
@@ -969,12 +996,6 @@ export function AdminProvider({
 
         savedScore:
           initialApartment?.score,
-
-        contractDetails,
-        setContractDetails,
-
-        jibnunSummary,
-        setJibnunSummary,
 
         isDirty,
         setIsDirty,
@@ -999,3 +1020,4 @@ export function useAdmin() {
 
   return context;
 }
+

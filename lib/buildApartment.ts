@@ -527,39 +527,24 @@ function createKeywords(
 
 function createSummary(
   locationInfo: LocationInfo,
-  condition: string,
-  jibnunSummary?: string
+  condition: string
 ) {
-  const manualSummary =
-    jibnunSummary?.trim();
-
-  if (manualSummary) {
-    return manualSummary;
-  }
-
   const information = [
     condition,
     locationInfo.transport,
+    locationInfo.education,
     locationInfo.living,
-    locationInfo.cautions,
-  ]
-    .map((value) => value?.trim())
-    .filter(
-      (value): value is string =>
-        Boolean(value)
-    );
+    locationInfo.futureValue,
+  ].filter(Boolean);
 
-  if (information.length === 0) {
+  if (
+    information.length === 0
+  ) {
     return "분양가와 계약조건, 입지와 생활환경을 함께 비교해볼 수 있는 단지입니다.";
   }
 
   return information
-    .slice(0, 4)
-    .map((value) =>
-      /[.!?。]$/.test(value)
-        ? value
-        : `${value}.`
-    )
+    .slice(0, 2)
     .join(" ");
 }
 
@@ -568,10 +553,8 @@ export function buildApartment(
   evaluation: EvaluationInput,
   locationInfo: LocationInfo,
   priceInfo: ApartmentPriceInfo,
-  content?: {
-    contractDetails?: string;
-    jibnunSummary?: string;
-  }
+  contractDetails = "",
+  jibnunSummary = ""
 ) {
   /*
    * 기존 타입과 상세페이지 호환을 위해
@@ -677,12 +660,18 @@ export function buildApartment(
     condition,
 
     contractDetails:
-      content?.contractDetails?.trim() ||
-      "",
+      contractDetails.trim(),
 
     jibnunSummary:
-      content?.jibnunSummary?.trim() ||
-      "",
+      jibnunSummary.trim(),
+
+    /*
+     * 관리자 계약조건 버튼 선택값 원본을 저장합니다.
+     * 수정 화면에서 선택 상태를 그대로 복원합니다.
+     */
+    evaluation: {
+      ...evaluation,
+    },
 
     conditionHistory: [],
 
@@ -738,8 +727,7 @@ export function buildApartment(
       summary:
         createSummary(
           locationInfo,
-          condition,
-          content?.jibnunSummary
+          condition
         ),
 
       liveScore: 0,
