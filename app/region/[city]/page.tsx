@@ -1284,37 +1284,6 @@ export default async function RegionPage({
               한눈에 확인해보세요.
             </p>
 
-            <div className="mt-6 grid grid-cols-3 gap-2 sm:mt-8 sm:max-w-2xl sm:gap-3">
-              <div className="rounded-xl border border-zinc-200 bg-white/90 px-3 py-3 shadow-sm backdrop-blur sm:rounded-2xl sm:px-4 sm:py-4">
-                <p className="text-[10px] font-bold text-zinc-500 sm:text-xs">
-                  전체 단지
-                </p>
-
-                <p className="mt-1 text-xl font-black text-[#132238] sm:text-2xl">
-                  {regionApartments.length}
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-blue-100 bg-blue-50/90 px-3 py-3 shadow-sm backdrop-blur sm:rounded-2xl sm:px-4 sm:py-4">
-                <p className="text-[10px] font-bold text-blue-600 sm:text-xs">
-                  청약
-                </p>
-
-                <p className="mt-1 text-xl font-black text-blue-700 sm:text-2xl">
-                  {subscriptionApartments.length}
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-emerald-100 bg-emerald-50/90 px-3 py-3 shadow-sm backdrop-blur sm:rounded-2xl sm:px-4 sm:py-4">
-                <p className="text-[10px] font-bold text-emerald-600 sm:text-xs">
-                  선착순
-                </p>
-
-                <p className="mt-1 text-xl font-black text-emerald-700 sm:text-2xl">
-                  {firstComeApartments.length}
-                </p>
-              </div>
-            </div>
           </div>
         </section>
 

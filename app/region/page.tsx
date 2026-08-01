@@ -103,6 +103,9 @@ type RegionSearchApartment = {
   region: string;
   parentRegion: string;
   status: string;
+  image: string;
+  price: string;
+  condition: string;
 };
 
 function getHeroImage(
@@ -453,6 +456,20 @@ export default async function RegionIndexPage() {
         status:
           apartment.status ||
           "",
+        image:
+          getHeroImage(
+            apartment
+          ),
+        price:
+          apartment.priceDetail
+            ?.salePrice ||
+          apartment.price ||
+          "분양가 확인 중",
+        condition:
+          apartment.condition ||
+          apartment.priceDetail
+            ?.contractPrice ||
+          "계약조건 확인 중",
       })
     );
 
