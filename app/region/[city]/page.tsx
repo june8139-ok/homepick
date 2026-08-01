@@ -1058,52 +1058,68 @@ export default async function RegionPage({
           </span>
         </nav>
 
-        <section className="mt-5 overflow-hidden rounded-2xl bg-[#132238] p-5 text-white shadow-sm sm:mt-6 sm:rounded-3xl sm:p-8 lg:p-10">
-          <p className="text-xs font-bold tracking-wide text-emerald-300 sm:text-sm">
-            집눈 지역별 분양정보
-          </p>
+        <section className="relative mt-5 overflow-hidden rounded-2xl border border-emerald-100 bg-[linear-gradient(135deg,#ffffff_0%,#f4fbf8_60%,#fff4ef_100%)] p-5 shadow-sm sm:mt-6 sm:rounded-3xl sm:p-8 lg:p-10">
+          <div
+            aria-hidden="true"
+            className="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-emerald-100/70 blur-3xl"
+          />
 
-          <h1 className="mt-2 break-keep text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl">
-            {cityName} 분양 아파트
-          </h1>
+          <div
+            aria-hidden="true"
+            className="absolute -bottom-24 left-1/3 h-48 w-48 rounded-full bg-orange-100/70 blur-3xl"
+          />
 
-          <p className="mt-3 max-w-3xl break-keep text-sm leading-6 text-zinc-300 sm:mt-4 sm:text-base sm:leading-8">
-            {cityName} 지역에서 공개
-            중인 청약 아파트와 선착순
-            분양 단지의 분양가,
-            계약조건과 입지 정보를
-            한눈에 확인해보세요.
-          </p>
+          <div className="relative">
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white/90 px-3 py-1.5 shadow-sm backdrop-blur">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
 
-          <div className="mt-6 grid grid-cols-3 gap-2 sm:mt-8 sm:max-w-xl sm:gap-3">
-            <div className="rounded-xl bg-white/10 px-3 py-3 backdrop-blur sm:rounded-2xl sm:px-4 sm:py-4">
-              <p className="text-[10px] font-bold text-zinc-300 sm:text-xs">
-                전체 단지
-              </p>
-
-              <p className="mt-1 text-xl font-black sm:text-2xl">
-                {regionApartments.length}
+              <p className="text-xs font-extrabold tracking-wide text-emerald-700 sm:text-sm">
+                집눈 지역별 분양정보
               </p>
             </div>
 
-            <div className="rounded-xl bg-blue-500/15 px-3 py-3 backdrop-blur sm:rounded-2xl sm:px-4 sm:py-4">
-              <p className="text-[10px] font-bold text-blue-200 sm:text-xs">
-                청약
-              </p>
+            <h1 className="mt-4 break-keep text-3xl font-black tracking-tight text-[#132238] sm:text-4xl lg:text-5xl">
+              {cityName} 분양 아파트
+            </h1>
 
-              <p className="mt-1 text-xl font-black sm:text-2xl">
-                {subscriptionApartments.length}
-              </p>
-            </div>
+            <p className="mt-3 max-w-3xl break-keep text-sm leading-6 text-zinc-600 sm:mt-4 sm:text-base sm:leading-8">
+              {cityName} 지역에서 공개
+              중인 청약 아파트와 선착순
+              분양 단지의 분양가,
+              계약조건과 입지 정보를
+              한눈에 확인해보세요.
+            </p>
 
-            <div className="rounded-xl bg-emerald-500/15 px-3 py-3 backdrop-blur sm:rounded-2xl sm:px-4 sm:py-4">
-              <p className="text-[10px] font-bold text-emerald-200 sm:text-xs">
-                선착순
-              </p>
+            <div className="mt-6 grid grid-cols-3 gap-2 sm:mt-8 sm:max-w-2xl sm:gap-3">
+              <div className="rounded-xl border border-zinc-200 bg-white/90 px-3 py-3 shadow-sm backdrop-blur sm:rounded-2xl sm:px-4 sm:py-4">
+                <p className="text-[10px] font-bold text-zinc-500 sm:text-xs">
+                  전체 단지
+                </p>
 
-              <p className="mt-1 text-xl font-black sm:text-2xl">
-                {firstComeApartments.length}
-              </p>
+                <p className="mt-1 text-xl font-black text-[#132238] sm:text-2xl">
+                  {regionApartments.length}
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-blue-100 bg-blue-50/90 px-3 py-3 shadow-sm backdrop-blur sm:rounded-2xl sm:px-4 sm:py-4">
+                <p className="text-[10px] font-bold text-blue-600 sm:text-xs">
+                  청약
+                </p>
+
+                <p className="mt-1 text-xl font-black text-blue-700 sm:text-2xl">
+                  {subscriptionApartments.length}
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-emerald-100 bg-emerald-50/90 px-3 py-3 shadow-sm backdrop-blur sm:rounded-2xl sm:px-4 sm:py-4">
+                <p className="text-[10px] font-bold text-emerald-600 sm:text-xs">
+                  선착순
+                </p>
+
+                <p className="mt-1 text-xl font-black text-emerald-700 sm:text-2xl">
+                  {firstComeApartments.length}
+                </p>
+              </div>
             </div>
           </div>
         </section>
@@ -1243,3 +1259,4 @@ export default async function RegionPage({
     </main>
   );
 }
+
