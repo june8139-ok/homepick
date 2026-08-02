@@ -202,8 +202,8 @@ export default function HomeClient({
           />
 
           <SummaryCard
-            label="최근 등록"
-            mobileLabel="최근등록"
+            label="최근 업데이트"
+            mobileLabel="업데이트"
             value={
               recentApartments.length
             }
@@ -270,7 +270,7 @@ export default function HomeClient({
         {/* 모바일 최근 등록 */}
         <div className="mt-3 sm:hidden">
           <MobileDashboardPanel
-            title="최근 등록"
+            title="최근 업데이트 단지"
             href="/search"
           >
             {recentApartments.length >
@@ -297,7 +297,7 @@ export default function HomeClient({
               </div>
             ) : (
               <EmptyMessage
-                text="최근 등록 단지가 없습니다."
+                text="최근 업데이트된 단지가 없습니다."
                 compact
               />
             )}
@@ -373,7 +373,7 @@ export default function HomeClient({
           </DashboardPanel>
 
           <DashboardPanel
-            title="최근 등록"
+            title="최근 업데이트 단지"
             href="/search"
           >
             {recentApartments.length >
@@ -398,7 +398,7 @@ export default function HomeClient({
                 )}
               </div>
             ) : (
-              <EmptyMessage text="최근 등록 단지가 없습니다." />
+              <EmptyMessage text="최근 업데이트된 단지가 없습니다." />
             )}
           </DashboardPanel>
         </section>

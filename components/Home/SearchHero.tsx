@@ -191,6 +191,10 @@ function SearchHero({
   const [keyword, setKeyword] =
     useState("");
 
+  const closeSearchKeyboard = () => {
+    inputRef.current?.blur();
+  };
+
   const [
     isFocused,
     setIsFocused,
@@ -298,6 +302,7 @@ function SearchHero({
     setKeyword(apartment.name);
     setIsFocused(false);
     setActiveIndex(-1);
+    closeSearchKeyboard();
 
     router.push(
       `/apartments/${apartment.slug}`
@@ -317,6 +322,7 @@ function SearchHero({
 
     setIsFocused(false);
     setActiveIndex(-1);
+    closeSearchKeyboard();
 
     router.push(
       `/search?q=${encodeURIComponent(
@@ -528,7 +534,7 @@ function SearchHero({
                 }
                 aria-controls="home-search-results"
                 aria-autocomplete="list"
-                className="h-[50px] w-full min-w-0 rounded-xl bg-white pl-10 pr-[58px] text-xs font-semibold text-[#111827] outline-none placeholder:font-medium placeholder:text-zinc-400 sm:h-[60px] sm:pl-14 sm:pr-20 sm:text-base"
+                className="h-[50px] w-full min-w-0 rounded-xl bg-white pl-10 pr-[58px] text-base font-semibold text-[#111827] outline-none placeholder:font-medium placeholder:text-zinc-400 sm:h-[60px] sm:pl-14 sm:pr-20 sm:text-base"
               />
 
               <button

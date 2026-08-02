@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import {
+  useRef,
   useState,
 } from "react";
 
@@ -45,10 +46,19 @@ export default function RegionSearch({
   regions,
   compact = false,
 }: Props) {
+  const inputRef =
+    useRef<HTMLInputElement>(
+      null
+    );
+
   const [
     keyword,
     setKeyword,
   ] = useState("");
+
+  const closeSearchKeyboard = () => {
+    inputRef.current?.blur();
+  };
 
   const query =
     keyword.trim();
@@ -201,6 +211,7 @@ export default function RegionSearch({
           </span>
 
           <input
+            ref={inputRef}
             value={keyword}
             onChange={(event) =>
               setKeyword(
@@ -213,8 +224,8 @@ export default function RegionSearch({
             className={[
               "w-full rounded-2xl border border-zinc-200 bg-zinc-50 pl-12 pr-12 font-bold text-[#132238] outline-none transition-all placeholder:font-medium placeholder:text-zinc-400 hover:border-emerald-300 hover:bg-white focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10",
               compact
-                ? "h-12 text-sm sm:h-14 sm:text-base"
-                : "h-14 text-sm sm:h-16 sm:text-base",
+                ? "h-12 text-base sm:h-14 sm:text-base"
+                : "h-14 text-base sm:h-16 sm:text-base",
             ].join(" ")}
           />
 
@@ -252,6 +263,9 @@ export default function RegionSearch({
                             }
                             href={
                               region.href
+                            }
+                            onClick={
+                              closeSearchKeyboard
                             }
                             className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-bold text-[#132238] transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                           >
@@ -304,6 +318,9 @@ export default function RegionSearch({
                         href={`/search?q=${encodeURIComponent(
                           query
                         )}`}
+                        onClick={
+                          closeSearchKeyboard
+                        }
                         className="shrink-0 text-xs font-bold text-emerald-700 transition hover:text-emerald-600"
                       >
                         전체 검색 →
@@ -320,6 +337,9 @@ export default function RegionSearch({
                               apartment.slug
                             }
                             href={`/apartments/${apartment.slug}`}
+                            onClick={
+                              closeSearchKeyboard
+                            }
                             className="group overflow-hidden rounded-2xl border border-zinc-200 bg-white transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                           >
                             <div className="flex min-h-[118px]">
@@ -397,6 +417,9 @@ export default function RegionSearch({
                   href={`/search?q=${encodeURIComponent(
                     query
                   )}`}
+                  onClick={
+                    closeSearchKeyboard
+                  }
                   className="mt-4 inline-flex min-h-11 items-center justify-center rounded-xl bg-[#132238] px-5 text-sm font-bold text-white transition hover:bg-emerald-600"
                 >
                   ‘{query}’ 전체 검색

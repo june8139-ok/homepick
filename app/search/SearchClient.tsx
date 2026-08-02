@@ -571,6 +571,11 @@ export default function SearchClient({
     setSuggestionIndex,
   ] = useState(-1);
 
+  const searchInputRef =
+    useRef<HTMLInputElement>(
+      null
+    );
+
   const desktopCardRefs =
     useRef<
       Map<string, HTMLElement>
@@ -848,6 +853,7 @@ export default function SearchClient({
     value?: string,
     slug?: string
   ) => {
+    searchInputRef.current?.blur();
     const next = (
       value ?? keyword
     ).trim();
@@ -957,6 +963,7 @@ export default function SearchClient({
     }, []);
 
   const clearAll = () => {
+    searchInputRef.current?.blur();
     setKeyword("");
     setFilters(
       DEFAULT_FILTERS
@@ -1002,6 +1009,7 @@ export default function SearchClient({
           <div className="relative mt-5 max-w-4xl sm:mt-6">
             <div className="flex gap-2 rounded-2xl border border-zinc-200 bg-white p-2 shadow-sm sm:gap-3 sm:p-3">
               <input
+                ref={searchInputRef}
                 value={keyword}
                 onChange={(event) =>
                   setKeyword(
@@ -1071,7 +1079,7 @@ export default function SearchClient({
                 }}
                 placeholder="단지명, 지역, 계약조건 검색"
                 autoComplete="off"
-                className="h-11 min-w-0 flex-1 rounded-xl border border-zinc-200 px-3 text-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 sm:h-12 sm:px-4 sm:text-base"
+                className="h-11 min-w-0 flex-1 rounded-xl border border-zinc-200 px-3 text-base outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 sm:h-12 sm:px-4 sm:text-base"
               />
 
               <button
