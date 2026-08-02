@@ -713,11 +713,34 @@ export async function fetchAPTList<
       unknown
     >(url);
 
-  return normalizeResponse<T>(
-    payload,
-    page,
-    perPage
+  const result =
+    normalizeResponse<T>(
+      payload,
+      page,
+      perPage
+    );
+
+  console.log(
+    "[청약홈 목록 API 조회]",
+    {
+      page:
+        result.page,
+      perPage:
+        result.perPage,
+      currentCount:
+        result.currentCount,
+      matchCount:
+        result.matchCount,
+      totalCount:
+        result.totalCount,
+      firstRowExists:
+        Boolean(
+          result.data[0]
+        ),
+    }
   );
+
+  return result;
 }
 
 /**

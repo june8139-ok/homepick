@@ -819,6 +819,18 @@ async function candidateRows() {
 
   const response = firstPage as unknown as Record<string, unknown>;
 
+  if (
+    firstPageData.length ===
+      0 &&
+    Number(
+      firstPage.totalCount
+    ) === 0
+  ) {
+    throw new Error(
+      "청약홈 목록 API가 0건을 반환했습니다. 공공데이터 서비스 상태와 인증키를 확인한 뒤 다시 실행해주세요."
+    );
+  }
+
   const totalCount =
     numberOrNull(response.totalCount) ??
     numberOrNull(response.total_count) ??
