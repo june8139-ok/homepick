@@ -151,6 +151,19 @@ function lowestValidPrice(values: unknown[]) {
     : null;
 }
 
+function highestValidPrice(values: unknown[]) {
+  const prices = values
+    .map(numberFromUnknown)
+    .filter(
+      (price): price is number =>
+        validPrice(price)
+    );
+
+  return prices.length > 0
+    ? Math.max(...prices)
+    : null;
+}
+
 /*
  * priceInfo.units 안에 types가 있으면 세부 타입을 펼쳐서 반환합니다.
  * 검색카드의 84㎡ 대표가격이 평형 최고가가 아니라
@@ -354,7 +367,7 @@ export function getRepresentativePrice(
    * 청약홈 자동 데이터:
    * 84A·84B·84C의 최고 공급가 중 가장 낮은 값입니다.
    */
-  const type84Maximum = lowestValidPrice(
+  const type84Maximum = highestValidPrice(
     type84Rows.map(rowMaximumPrice)
   );
 
@@ -401,7 +414,7 @@ export function getRepresentativePrice(
     };
   }
 
-  const allMaximum = lowestValidPrice(
+  const allMaximum = highestValidPrice(
     rows.map(rowMaximumPrice)
   );
 

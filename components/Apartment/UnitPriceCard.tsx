@@ -379,7 +379,7 @@ export default function UnitPriceCard({
         </h2>
 
         <p className="mt-1 break-keep text-xs leading-5 text-zinc-500 sm:mt-2 sm:text-sm sm:leading-6">
-          관리자가 최저가를 입력한 평형은 최저 공급가를,
+          관리자가 최저가를 입력한 평형은 최저 분양가를,
           청약홈 최고가만 있는 평형은 최고 공급가를 보여줍니다.
           펼치면 타입별 가격 범위를 확인할 수 있습니다.
         </p>

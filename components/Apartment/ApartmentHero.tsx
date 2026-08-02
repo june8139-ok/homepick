@@ -1,5 +1,14 @@
 import Image from "next/image";
-import { formatMoveInDate } from "../../lib/apartmentDisplay";
+
+import type {
+  Apartment,
+} from "../../types/apartment";
+
+import {
+  getMoveInText,
+  getRepresentativePrice,
+} from "../../lib/apartmentDisplay";
+
 import FavoriteButton from "./FavoriteButton";
 
 type ListingStage =
@@ -104,7 +113,10 @@ function isSubscriptionApartment(
     "1순위",
     "2순위",
     "청약중",
+    "당첨자 발표 예정",
+    "당첨자 발표",
     "당첨자발표",
+    "계약 예정",
     "계약중",
     "청약마감",
   ];
@@ -184,8 +196,15 @@ function getSubscriptionDescription(
     case "청약중":
       return "현재 청약 접수가 진행 중인 단지입니다.";
 
+    case "당첨자 발표 예정":
+      return "청약 접수가 끝나 당첨자 발표를 기다리는 단계입니다.";
+
+    case "당첨자 발표":
     case "당첨자발표":
       return "당첨자 발표와 서류 일정을 확인할 단계입니다.";
+
+    case "계약 예정":
+      return "당첨자 계약 시작을 앞두고 있는 단계입니다.";
 
     case "계약중":
       return "당첨자 계약 일정이 진행 중입니다.";
@@ -276,8 +295,15 @@ function getSubscriptionBadge(
     case "청약중":
       return "청약 진행 중";
 
+    case "당첨자 발표 예정":
+      return "당첨자 발표 예정";
+
+    case "당첨자 발표":
     case "당첨자발표":
       return "당첨자 발표";
+
+    case "계약 예정":
+      return "계약 예정";
 
     case "계약중":
       return "계약 진행 중";
@@ -447,12 +473,38 @@ export default function ApartmentHero({
           ?.totalHouseholds ||
         "정보 확인 중";
 
+  const displayApartment =
+    apartment as unknown as Apartment;
+
+  const representativePrice =
+    getRepresentativePrice(
+      displayApartment
+    );
+
+  const moveInText =
+    getMoveInText(
+      displayApartment
+    );
+
+  const moveInCompleted =
+    moveInText.includes(
+      "입주 완료"
+    );
+
   const moveInDateText =
-    formatMoveInDate(
-      apartment.projectInfo
-        ?.moveInDate
-    ) ||
+    moveInText
+      .replace(
+        /\s입주\s(?:예정|완료)$/,
+        ""
+      ) ||
+    apartment.projectInfo
+      ?.moveInDate ||
     "정보 확인 중";
+
+  const moveInLabel =
+    moveInCompleted
+      ? "입주 완료"
+      : "입주 예정";
 
   return (
     <section className="mt-4 grid gap-3 sm:mt-5 sm:gap-6 lg:grid-cols-[1.4fr_0.8fr]">
@@ -596,7 +648,9 @@ export default function ApartmentHero({
               />
 
               <SummaryInfoCard
-                label="입주 예정"
+                label={
+                  moveInLabel
+                }
                 value={
                   moveInDateText
                 }
@@ -626,12 +680,15 @@ export default function ApartmentHero({
               <div className="grid gap-3 min-[420px]:grid-cols-[0.72fr_1.28fr] min-[420px]:items-start">
                 <div>
                   <p className="text-[10px] font-bold text-zinc-500 sm:text-xs">
-                    분양가
+                    {
+                      representativePrice.label
+                    }
                   </p>
 
                   <p className="mt-1.5 break-keep text-lg font-black text-[#132238] sm:mt-2 sm:text-xl">
-                    {apartment.price ||
-                      "분양가 확인 중"}
+                    {
+                      representativePrice.text
+                    }
                   </p>
                 </div>
 
@@ -660,7 +717,9 @@ export default function ApartmentHero({
               />
 
               <SummaryInfoCard
-                label="입주 예정"
+                label={
+                  moveInLabel
+                }
                 value={
                   moveInDateText
                 }
