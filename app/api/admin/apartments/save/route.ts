@@ -11,6 +11,11 @@ import {
   supabaseAdmin,
 } from "../../../../../lib/supabaseAdmin";
 
+import {
+  buildIndexNowUrls,
+  submitIndexNow,
+} from "../../../../../lib/indexNow";
+
 type JsonRecord = Record<
   string,
   unknown
@@ -298,6 +303,39 @@ function mergeApartmentData(
   return mergedData;
 }
 
+async function notifySavedApartment({
+  slug,
+  region,
+  isPublished,
+}: {
+  slug: string;
+  region?: string | null;
+  isPublished: boolean;
+}) {
+  if (!isPublished) {
+    return;
+  }
+
+  const result =
+    await submitIndexNow(
+      buildIndexNowUrls({
+        slug,
+        region,
+      })
+    );
+
+  if (
+    !result.skipped &&
+    result.submitted ===
+      0
+  ) {
+    console.error(
+      "관리자 저장 후 IndexNow 전송 실패:",
+      result
+    );
+  }
+}
+
 export async function POST(
   request: NextRequest
 ) {
@@ -573,6 +611,21 @@ export async function POST(
         );
       }
 
+      await notifySavedApartment({
+        slug:
+          updatedApartment.slug,
+        region:
+          typeof mergedData.cityName ===
+            "string"
+            ? mergedData.cityName
+            : payload.city ??
+              payload.region,
+        isPublished:
+          Boolean(
+            updatedApartment.is_published
+          ),
+      });
+
       return NextResponse.json({
         message:
           "단지 정보가 수정되었습니다.",
@@ -660,6 +713,27 @@ export async function POST(
               : 500,
         }
       );
+    }
+
+    /*
+     * 관리자 신규 단지는 기본적으로 비공개로 저장되므로
+     * 공개 전에는 IndexNow에 전송하지 않습니다.
+     * 공개 처리 API에서 전송해야 합니다.
+     */
+    if (
+      createdApartment.is_published
+    ) {
+      await notifySavedApartment({
+        slug:
+          createdApartment.slug,
+        region:
+          typeof createdData.cityName ===
+            "string"
+            ? createdData.cityName
+            : payload.city ??
+              payload.region,
+        isPublished: true,
+      });
     }
 
     return NextResponse.json({

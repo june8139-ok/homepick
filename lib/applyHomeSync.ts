@@ -4,6 +4,11 @@ import {
 } from "./apiDataGo";
 import { supabaseAdmin } from "./supabaseAdmin";
 
+import {
+  buildIndexNowUrls,
+  submitIndexNow,
+} from "./indexNow";
+
 type Row = Record<string, unknown>;
 
 function isRecord(
@@ -84,6 +89,8 @@ export type ApplyHomeSyncResult = {
   failed: number;
   priceSynced: number;
   priceMissing: number;
+  changed: number;
+  indexNowSubmitted: number;
   errors: string[];
 };
 
@@ -187,7 +194,11 @@ function koreaToday() {
 
 function addDays(date: Date, days: number) {
   const result = new Date(date);
-  result.setDate(result.getDate() + days);
+
+  result.setDate(
+    result.getDate() + days
+  );
+
   return result;
 }
 
@@ -1001,6 +1012,91 @@ function newApartmentData(
   };
 }
 
+function normalizeComparable(
+  value: unknown
+): unknown {
+  if (
+    Array.isArray(value)
+  ) {
+    return value.map(
+      normalizeComparable
+    );
+  }
+
+  if (!isRecord(value)) {
+    return value;
+  }
+
+  const excludedKeys =
+    new Set([
+      "updatedAt",
+      "lastSyncedAt",
+      "last_synced_at",
+    ]);
+
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(
+        ([key]) =>
+          !excludedKeys.has(
+            key
+          )
+      )
+      .sort(
+        ([first], [second]) =>
+          first.localeCompare(
+            second
+          )
+      )
+      .map(
+        ([key, item]) => [
+          key,
+          normalizeComparable(
+            item
+          ),
+        ]
+      )
+  );
+}
+
+function hasMeaningfulChange(
+  existing: Row,
+  nextData: Row,
+  nextStatus: string
+) {
+  const existingData =
+    isRecord(
+      existing.data
+    )
+      ? existing.data
+      : {};
+
+  const dataChanged =
+    JSON.stringify(
+      normalizeComparable(
+        existingData
+      )
+    ) !==
+    JSON.stringify(
+      normalizeComparable(
+        nextData
+      )
+    );
+
+  const statusChanged =
+    text(
+      existing.status
+    ) !==
+    text(
+      nextStatus
+    );
+
+  return (
+    dataChanged ||
+    statusChanged
+  );
+}
+
 async function insertApartment(
   apartment: NormalizedApartment,
   priceInfo: PriceInfo | null,
@@ -1126,6 +1222,13 @@ async function updateApartment(
     },
   };
 
+  const changed =
+    hasMeaningfulChange(
+      existing,
+      nextData,
+      apartment.status
+    );
+
   const payload: Record<string, unknown> = {
     source: "applyhome",
     applyhome_house_manage_no: apartment.houseManageNo,
@@ -1151,6 +1254,8 @@ async function updateApartment(
     .eq("applyhome_id", apartment.applyHomeId);
 
   if (error) throw error;
+
+  return changed;
 }
 
 export async function syncApplyHomeApartments():
@@ -1175,8 +1280,13 @@ export async function syncApplyHomeApartments():
     failed: 0,
     priceSynced: 0,
     priceMissing: 0,
+    changed: 0,
+    indexNowSubmitted: 0,
     errors: [],
   };
+
+  const changedUrls =
+    new Set<string>();
 
   for (const apartment of targets) {
     try {
@@ -1224,20 +1334,52 @@ export async function syncApplyHomeApartments():
       }
 
       if (existing) {
-        await updateApartment(
-          existing,
-          apartment,
-          priceInfo,
-          modelRows
-        );
+        const changed =
+          await updateApartment(
+            existing,
+            apartment,
+            priceInfo,
+            modelRows
+          );
+
         result.updated += 1;
+
+        if (changed) {
+          result.changed += 1;
+
+          buildIndexNowUrls({
+            slug:
+              apartment.slug,
+            region:
+              apartment.cityName,
+          }).forEach(
+            (url) =>
+              changedUrls.add(
+                url
+              )
+          );
+        }
       } else {
         await insertApartment(
           apartment,
           priceInfo,
           modelRows
         );
+
         result.inserted += 1;
+        result.changed += 1;
+
+        buildIndexNowUrls({
+          slug:
+            apartment.slug,
+          region:
+            apartment.cityName,
+        }).forEach(
+          (url) =>
+            changedUrls.add(
+              url
+            )
+        );
       }
     } catch (error) {
       result.failed += 1;
@@ -1247,6 +1389,28 @@ export async function syncApplyHomeApartments():
             ? error.message
             : "알 수 없는 오류"
         }`
+      );
+    }
+  }
+
+  if (
+    changedUrls.size > 0
+  ) {
+    const indexNowResult =
+      await submitIndexNow(
+        [...changedUrls]
+      );
+
+    result.indexNowSubmitted =
+      indexNowResult.submitted;
+
+    if (
+      !indexNowResult.skipped &&
+      indexNowResult.submitted ===
+        0
+    ) {
+      result.errors.push(
+        `IndexNow: ${indexNowResult.message}`
       );
     }
   }
