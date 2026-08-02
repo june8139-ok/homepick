@@ -2,6 +2,11 @@ import type { Apartment } from "../../types/apartment";
 
 import { getListingStage } from "../../lib/listingStage";
 
+import {
+  getMoveInText as getDisplayMoveInText,
+  getRepresentativePrice,
+} from "../../lib/apartmentDisplay";
+
 export type ApartmentFaqItem = {
   question: string;
   answer: string;
@@ -37,9 +42,13 @@ function getCityName(apartment: Apartment) {
 }
 
 function getPriceText(apartment: Apartment) {
+  const representative =
+    getRepresentativePrice(
+      apartment
+    );
+
   return cleanText(
-    apartment.priceDetail?.salePrice ||
-      apartment.price
+    representative.text
   );
 }
 
@@ -63,7 +72,9 @@ function getBalanceText(apartment: Apartment) {
 
 function getMoveInText(apartment: Apartment) {
   return cleanText(
-    apartment.projectInfo?.moveInDate
+    getDisplayMoveInText(
+      apartment
+    )
   );
 }
 
@@ -171,9 +182,9 @@ function createSubscriptionFaqs(
     getCityName(apartment);
 
   faqs.push({
-    question: `${name}의 현재 청약 단계는 어떻게 되나요?`,
+    question: `${name}, 현재 청약 단계는 어떻게 되나요?`,
     answer:
-      `${name}은 집눈 등록 정보 기준으로 현재 '${status}' 단계입니다. ` +
+      `집눈 등록 정보 기준으로 현재 '${status}' 단계입니다. ` +
       "청약 일정과 공급 내용은 변경될 수 있으므로 신청 전 청약홈 또는 사업주체의 최신 모집공고문을 확인해주세요.",
   });
 
@@ -191,7 +202,7 @@ function createSubscriptionFaqs(
     ].filter(Boolean);
 
     faqs.push({
-      question: `${name}의 모집공고와 당첨자 발표 일정은 언제인가요?`,
+      question: `${name}, 모집공고와 당첨자 발표 일정은 언제인가요?`,
       answer:
         `${parts.join(". ")}. ` +
         "접수일과 계약일 등 나머지 일정은 최신 모집공고문을 기준으로 확인해주세요.",
@@ -200,9 +211,9 @@ function createSubscriptionFaqs(
 
   if (price) {
     faqs.push({
-      question: `${name}의 분양가는 얼마인가요?`,
+      question: `${name}, 분양가는 얼마인가요?`,
       answer:
-        `${name}의 현재 등록된 대표 분양가는 ${price}입니다. ` +
+        `현재 등록된 대표 분양가는 ${price}입니다. ` +
         "주택형, 동·호수, 층에 따라 실제 공급금액이 달라질 수 있으므로 타입별 분양가표를 함께 확인해주세요.",
     });
   }
@@ -221,7 +232,7 @@ function createSubscriptionFaqs(
     ].filter(Boolean);
 
     faqs.push({
-      question: `${name}의 공급 세대수와 평형 타입은 어떻게 되나요?`,
+      question: `${name}, 공급 세대수와 평형 타입은 어떻게 되나요?`,
       answer:
         `${parts.join(". ")}. ` +
         "타입별 공급 물량은 모집공고문과 상세 공급정보를 기준으로 확인해주세요.",
@@ -233,9 +244,9 @@ function createSubscriptionFaqs(
     moveIn
   ) {
     faqs.push({
-      question: `${name}의 입주 예정 시기는 언제인가요?`,
+      question: `${name}, 입주 시기는 언제인가요?`,
       answer:
-        `${name}의 현재 등록된 입주 예정 시기는 ${moveIn}입니다. ` +
+        `현재 등록된 입주 정보는 ${moveIn}입니다. ` +
         "공사 진행과 사업 일정에 따라 변경될 수 있습니다.",
     });
   }
@@ -245,9 +256,9 @@ function createSubscriptionFaqs(
     city
   ) {
     faqs.push({
-      question: `${name}은 어느 지역에 공급되나요?`,
+      question: `${name}, 어느 지역에 공급되나요?`,
       answer:
-        `${name}은 ${cleanText(
+        `사업지는 ${cleanText(
           apartment.region
         ) || city}에 공급되는 단지입니다. ` +
         "교통, 학군, 생활편의시설 등 세부 입지 정보는 이 페이지의 입지 안내에서 확인할 수 있습니다.",
@@ -295,9 +306,9 @@ function createSaleFaqs(
     listingStage === "firstCome"
   ) {
     faqs.push({
-      question: `${name}은 현재 선착순 계약이 가능한가요?`,
+      question: `${name}, 현재 선착순 계약이 가능한가요?`,
       answer:
-        `${name}은 집눈 등록 정보 기준으로 현재 선착순 분양 단계입니다.` +
+        `집눈 등록 정보 기준으로 현재 선착순 분양 단계입니다.` +
         (condition
           ? ` 등록된 핵심 계약조건은 '${condition}'입니다.`
           : "") +
@@ -308,9 +319,9 @@ function createSaleFaqs(
     });
   } else {
     faqs.push({
-      question: `${name}의 현재 분양 상태는 어떻게 되나요?`,
+      question: `${name}, 현재 분양 상태는 어떻게 되나요?`,
       answer:
-        `${name}은 집눈 등록 정보 기준으로 현재 '${status}' 상태입니다.` +
+        `집눈 등록 정보 기준으로 현재 '${status}' 상태입니다.` +
         (condition
           ? ` 등록된 핵심 조건은 '${condition}'입니다.`
           : "") +
@@ -339,7 +350,7 @@ function createSaleFaqs(
     ].filter(Boolean);
 
     faqs.push({
-      question: `${name}의 계약금과 납부 조건은 어떻게 되나요?`,
+      question: `${name}, 계약금과 납부 조건은 어떻게 되나요?`,
       answer:
         `${parts.join(". ")}. ` +
         "계약 시점과 선택 세대에 따라 적용 조건이 달라질 수 있으므로 계약 전 공급계약서와 최신 안내를 확인해주세요.",
@@ -348,9 +359,9 @@ function createSaleFaqs(
 
   if (price) {
     faqs.push({
-      question: `${name}의 분양가는 얼마인가요?`,
+      question: `${name}, 분양가는 얼마인가요?`,
       answer:
-        `${name}의 현재 등록된 대표 분양가는 ${price}입니다. ` +
+        `현재 등록된 대표 분양가는 ${price}입니다. ` +
         "주택형, 동·호수, 층에 따라 실제 분양금액이 달라질 수 있으므로 타입별 가격표를 함께 확인해주세요.",
     });
   }
@@ -360,9 +371,9 @@ function createSaleFaqs(
     faqs.length < 4
   ) {
     faqs.push({
-      question: `${name}에서 제공되는 옵션이나 혜택은 무엇인가요?`,
+      question: `${name}, 제공되는 옵션이나 혜택은 무엇인가요?`,
       answer:
-        `${name}에 현재 등록된 옵션 및 제공 품목은 ${options}입니다. ` +
+        `현재 등록된 옵션 및 제공 품목은 ${options}입니다. ` +
         "무상 제공 범위와 적용 세대는 계약 전 최신 안내를 확인해주세요.",
     });
   }
@@ -372,9 +383,9 @@ function createSaleFaqs(
     faqs.length < 4
   ) {
     faqs.push({
-      question: `${name}의 입주 예정 시기는 언제인가요?`,
+      question: `${name}, 입주 시기는 언제인가요?`,
       answer:
-        `${name}의 현재 등록된 입주 예정 시기는 ${moveIn}입니다. ` +
+        `현재 등록된 입주 정보는 ${moveIn}입니다. ` +
         "공사 및 사업 일정에 따라 변경될 수 있습니다.",
     });
   }
@@ -393,7 +404,7 @@ function createSaleFaqs(
     ].filter(Boolean);
 
     faqs.push({
-      question: `${name}의 세대수와 평형 타입은 어떻게 되나요?`,
+      question: `${name}, 세대수와 평형 타입은 어떻게 되나요?`,
       answer:
         `${parts.join(". ")}. ` +
         "타입별 잔여세대와 선택 가능한 동·호수는 현재 분양 현황에 따라 달라질 수 있습니다.",
@@ -405,9 +416,9 @@ function createSaleFaqs(
     strengths
   ) {
     faqs.push({
-      question: `${name}의 주요 장점은 무엇인가요?`,
+      question: `${name}, 주요 장점은 무엇인가요?`,
       answer:
-        `${name}의 현재 등록된 주요 장점은 ${strengths}입니다. ` +
+        `현재 등록된 주요 장점은 ${strengths}입니다. ` +
         "실거주 및 투자 판단 전에는 현장과 공식 자료를 함께 확인해주세요.",
     });
   }
@@ -461,7 +472,7 @@ export default function ApartmentFAQ({
         id="apartment-faq-title"
         className="mt-1 break-keep text-xl font-black tracking-tight text-[#132238] sm:text-2xl"
       >
-        {apartment.name} 자주 묻는 질문
+        {apartment.name} FAQ
       </h2>
 
       <p className="mt-2 break-keep text-xs leading-5 text-zinc-500 sm:text-sm sm:leading-6">

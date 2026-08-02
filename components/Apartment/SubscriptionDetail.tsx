@@ -1,7 +1,9 @@
 import SubscriptionAlertForm from "./SubscriptionAlertForm";
 import UnitPriceCard from "./UnitPriceCard";
 import ApartmentImageSections from "./ApartmentImageSections";
-import { formatMoveInDate } from "../../lib/apartmentDisplay";
+import {
+  getMoveInText,
+} from "../../lib/apartmentDisplay";
 
 import type {
   Apartment,
@@ -135,9 +137,26 @@ function statusDescription(
   }
 
   if (
-    status === "당첨자발표"
+    status ===
+      "당첨자 발표 예정"
+  ) {
+    return "청약 접수가 끝나 당첨자 발표를 기다리는 단계입니다.";
+  }
+
+  if (
+    status ===
+      "당첨자 발표" ||
+    status ===
+      "당첨자발표"
   ) {
     return "당첨자 발표와 서류 제출 일정을 확인할 단계입니다.";
+  }
+
+  if (
+    status ===
+      "계약 예정"
+  ) {
+    return "당첨자 계약 시작을 앞두고 있는 단계입니다.";
   }
 
   if (status === "계약중") {
@@ -173,7 +192,10 @@ function applyButtonText(
 
   if (
     [
+      "당첨자 발표 예정",
+      "당첨자 발표",
       "당첨자발표",
+      "계약 예정",
       "계약중",
       "청약마감",
     ].includes(status)
@@ -304,14 +326,21 @@ export default function SubscriptionDetail({
     );
 
   const moveInDate =
-    formatMoveInDate(
-      apartment.projectInfo
-        ?.moveInDate ||
-        getText(
-          applyHome,
-          "MVN_PREARNGE_YM"
-        )
-    );
+    getMoveInText({
+      ...apartment,
+
+      projectInfo: {
+        ...apartment.projectInfo,
+
+        moveInDate:
+          apartment.projectInfo
+            ?.moveInDate ||
+          getText(
+            applyHome,
+            "MVN_PREARNGE_YM"
+          ),
+      },
+    });
 
   const housingType =
     getText(
@@ -333,10 +362,15 @@ export default function SubscriptionDetail({
     APPLYHOME_MAIN_URL;
 
   const applyClosed = [
+    "당첨자 발표 예정",
+    "당첨자 발표",
     "당첨자발표",
+    "계약 예정",
     "계약중",
     "청약마감",
-  ].includes(apartment.status);
+  ].includes(
+    apartment.status
+  );
 
   const hasDetailImages = Boolean(
     apartment.images?.location
@@ -459,9 +493,19 @@ export default function SubscriptionDetail({
           />
 
           <InfoItem
-            label="입주 예정"
+            label={
+              moveInDate.includes(
+                "입주 완료"
+              )
+                ? "입주 완료"
+                : "입주 예정"
+            }
             value={
-              moveInDate ||
+              moveInDate
+                .replace(
+                  /\s입주\s(?:예정|완료)$/,
+                  ""
+                ) ||
               "정보 확인 중"
             }
           />
