@@ -1,6 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
+
 import {
   useRef,
   useState,
@@ -8,6 +10,11 @@ import {
 } from "react";
 
 import type { Apartment } from "../../types/apartment";
+
+import {
+  getRepresentativePrice,
+  isApplyHomeUnverified,
+} from "../../lib/apartmentDisplay";
 
 type Props = {
   apartment: Apartment;
@@ -17,7 +24,10 @@ type Props = {
 function getStatusStyle(status?: string) {
   if (
     status?.includes("청약") ||
+    status === "당첨자 발표 예정" ||
+    status === "당첨자 발표" ||
     status === "당첨자발표" ||
+    status === "계약 예정" ||
     status === "계약중"
   ) {
     return "bg-blue-50 text-blue-700";
@@ -70,18 +80,25 @@ function getHeroImage(
 function getPriceText(
   apartment: Apartment
 ) {
-  return (
-    apartment.priceDetail?.salePrice ||
-    apartment.price ||
-    "분양가 확인 중"
-  );
+  return getRepresentativePrice(
+    apartment
+  ).text;
 }
 
 function getContractText(
   apartment: Apartment
 ) {
+  if (
+    isApplyHomeUnverified(
+      apartment
+    )
+  ) {
+    return "계약조건 모집공고 확인";
+  }
+
   return (
-    apartment.priceDetail?.contractPrice ||
+    apartment.priceDetail
+      ?.contractPrice ||
     apartment.condition ||
     "계약조건 확인 중"
   );
@@ -96,6 +113,75 @@ function getRegionText(
     apartment.region ||
     "지역 정보 확인 중"
   );
+}
+
+
+function representativePriceValue(
+  apartment: Apartment
+) {
+  return getRepresentativePrice(
+    apartment
+  ).value;
+}
+
+function getPriceComparisonText(
+  currentApartment: Apartment,
+  apartment: Apartment
+) {
+  const currentPrice =
+    representativePriceValue(
+      currentApartment
+    );
+
+  const candidatePrice =
+    representativePriceValue(
+      apartment
+    );
+
+  if (
+    !currentPrice ||
+    !candidatePrice
+  ) {
+    return "";
+  }
+
+  const difference =
+    Math.round(
+      Math.abs(
+        currentPrice -
+          candidatePrice
+      )
+    );
+
+  if (
+    difference < 500
+  ) {
+    return "현재 단지와 비슷한 가격대";
+  }
+
+  const eok =
+    Math.floor(
+      difference / 10000
+    );
+
+  const manwon =
+    difference % 10000;
+
+  const amount =
+    eok > 0
+      ? manwon > 0
+        ? `${eok}억 ${manwon.toLocaleString(
+            "ko-KR"
+          )}만원`
+        : `${eok}억원`
+      : `${manwon.toLocaleString(
+          "ko-KR"
+        )}만원`;
+
+  return candidatePrice <
+    currentPrice
+    ? `현재 단지보다 약 ${amount} 낮음`
+    : `현재 단지보다 약 ${amount} 높음`;
 }
 
 
@@ -124,8 +210,22 @@ function getRecommendationReasons(
     reasons.push(`같은 ${getRegionText(apartment)}`);
   }
 
+  const priceComparison =
+    getPriceComparisonText(
+      currentApartment,
+      apartment
+    );
+
+  if (priceComparison) {
+    reasons.unshift(
+      priceComparison
+    );
+  }
+
   if (reasons.length === 0) {
-    reasons.push("같은 지역 비교");
+    reasons.push(
+      "같은 지역 비교"
+    );
   }
 
   return reasons.slice(0, 2);
@@ -154,12 +254,13 @@ function MobileRelatedCard({
     >
       <div className="relative h-32 overflow-hidden bg-zinc-100">
         {image ? (
-          <img
+          <Image
             src={image}
             alt={`${apartment.name} 대표 이미지`}
-            loading="lazy"
+            fill
+            sizes="330px"
             draggable={false}
-            className="pointer-events-none h-full w-full object-cover"
+            className="pointer-events-none object-contain p-2"
           />
         ) : (
           <div className="flex h-full items-center justify-center text-xs font-medium text-zinc-400">
@@ -282,153 +383,160 @@ function DesktopRelatedCard({
   apartment: Apartment;
 }) {
   const image =
-    getHeroImage(apartment);
+    getHeroImage(
+      apartment
+    );
+
+  const recommendationReasons =
+    getRecommendationReasons(
+      currentApartment,
+      apartment
+    );
 
   return (
     <article
       className="
-        group overflow-hidden rounded-2xl
+        group flex min-h-full flex-col
+        overflow-hidden rounded-3xl
         border border-zinc-200 bg-white
         transition-all duration-200
-        hover:-translate-y-0.5
+        hover:-translate-y-1
         hover:border-emerald-300
-        hover:shadow-lg
+        hover:shadow-xl
       "
     >
-      <div className="flex min-h-[176px]">
-        <div className="h-auto w-44 shrink-0 overflow-hidden bg-zinc-100">
-          {image ? (
-            <img
-              src={image}
-              alt={`${apartment.name} 대표 이미지`}
-              loading="lazy"
-              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center px-3 text-center text-sm font-medium text-zinc-400">
-              이미지 준비 중
-            </div>
+      <div className="relative aspect-[16/9] overflow-hidden border-b border-zinc-100 bg-gradient-to-br from-zinc-100 via-white to-emerald-50">
+        {image ? (
+          <Image
+            src={image}
+            alt={`${apartment.name} 대표 이미지`}
+            fill
+            sizes="(max-width: 1023px) 100vw, 560px"
+            className="object-contain p-3 transition-transform duration-300 group-hover:scale-[1.02]"
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center px-4 text-center text-sm font-medium text-zinc-400">
+            이미지 준비 중
+          </div>
+        )}
+
+        <span
+          className={[
+            "absolute left-3 top-3 rounded-full px-3 py-1.5 text-xs font-black shadow-sm",
+            getStatusStyle(
+              apartment.status
+            ),
+          ].join(" ")}
+        >
+          {apartment.status ||
+            "정보 확인 중"}
+        </span>
+
+        <span className="absolute right-3 top-3 max-w-[46%] truncate rounded-full bg-black/60 px-3 py-1.5 text-[10px] font-bold text-white backdrop-blur">
+          {getRegionText(
+            apartment
+          )}
+        </span>
+      </div>
+
+      <div className="flex flex-1 flex-col p-5">
+        <div className="flex flex-wrap gap-1.5">
+          {recommendationReasons.map(
+            (reason) => (
+              <span
+                key={reason}
+                className={[
+                  "rounded-full px-2.5 py-1 text-[10px] font-extrabold",
+                  reason.includes(
+                    "낮음"
+                  )
+                    ? "bg-rose-50 text-rose-700"
+                    : "bg-emerald-50 text-emerald-700",
+                ].join(" ")}
+              >
+                {reason}
+              </span>
+            )
           )}
         </div>
 
-        <div className="flex min-w-0 flex-1 flex-col justify-between p-5">
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span
-                className={[
-                  "rounded-full px-3 py-1 text-xs font-bold",
-                  getStatusStyle(
-                    apartment.status
-                  ),
-                ].join(" ")}
-              >
-                {apartment.status ||
-                  "정보 확인 중"}
-              </span>
+        <h3 className="mt-3 line-clamp-2 min-h-14 break-keep text-xl font-black leading-7 text-[#132238]">
+          {apartment.name}
+        </h3>
 
-              {apartment.brand && (
-                <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-600">
-                  {apartment.brand}
-                </span>
-              )}
-            </div>
+        <p className="mt-2 line-clamp-2 min-h-10 text-sm leading-5 text-zinc-500">
+          {apartment.region ||
+            "주소 정보 확인 중"}
+        </p>
 
-            <h3 className="mt-3 break-keep text-xl font-extrabold leading-tight text-[#132238]">
-              {apartment.name}
-            </h3>
-
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {getRecommendationReasons(
-                currentApartment,
-                apartment
-              ).map((reason) => (
-                <span
-                  key={reason}
-                  className="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700"
-                >
-                  {reason}
-                </span>
-              ))}
-            </div>
-
-            <p className="mt-2 line-clamp-1 text-sm text-zinc-500">
-              {apartment.region ||
-                "주소 정보 확인 중"}
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          <div className="min-w-0 rounded-2xl bg-[#F8FAF7] p-3.5">
+            <p className="text-[10px] font-bold text-zinc-500">
+              대표 가격
             </p>
 
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl bg-[#F8FAF7] p-3">
-                <p className="text-xs font-bold text-zinc-500">
-                  분양가
-                </p>
-
-                <p className="mt-1 text-sm font-extrabold text-[#132238]">
-                  {getPriceText(
-                    apartment
-                  )}
-                </p>
-              </div>
-
-              <div className="rounded-xl bg-[#F8FAF7] p-3">
-                <p className="text-xs font-bold text-zinc-500">
-                  핵심 계약조건
-                </p>
-
-                <p className="mt-1 line-clamp-2 text-sm font-extrabold leading-6 text-[#132238]">
-                  {getContractText(
-                    apartment
-                  )}
-                </p>
-              </div>
-            </div>
+            <p className="mt-1 line-clamp-2 break-keep text-sm font-black leading-5 text-[#132238]">
+              {getPriceText(
+                apartment
+              )}
+            </p>
           </div>
 
-          <div className="mt-5 flex justify-end gap-2">
-            <Link
-              href={`/apartments/${apartment.slug}`}
-              className="
-                inline-flex min-h-11
-                items-center justify-center
-                rounded-xl border
-                border-zinc-200 bg-white
-                px-4 py-2 text-sm
-                font-bold text-zinc-700
-                transition-all duration-200
-                hover:-translate-y-0.5
-                hover:border-emerald-300
-                hover:bg-emerald-50
-                hover:text-emerald-700
-                hover:shadow-md
-                focus-visible:outline-none
-                focus-visible:ring-2
-                focus-visible:ring-emerald-500
-                focus-visible:ring-offset-2
-              "
-            >
-              상세정보 보기
-            </Link>
+          <div className="min-w-0 rounded-2xl bg-blue-50 p-3.5">
+            <p className="text-[10px] font-bold text-blue-700">
+              핵심 계약조건
+            </p>
 
-            <Link
-              href={`/compare?left=${currentApartment.slug}&right=${apartment.slug}`}
-              className="
-                inline-flex min-h-11
-                items-center justify-center
-                rounded-xl bg-[#132238]
-                px-4 py-2 text-sm
-                font-bold text-white
-                transition-all duration-200
-                hover:-translate-y-0.5
-                hover:bg-emerald-600
-                hover:shadow-md
-                focus-visible:outline-none
-                focus-visible:ring-2
-                focus-visible:ring-emerald-500
-                focus-visible:ring-offset-2
-              "
-            >
-              현재 단지와 비교
-            </Link>
+            <p className="mt-1 line-clamp-2 break-keep text-sm font-black leading-5 text-blue-950">
+              {getContractText(
+                apartment
+              )}
+            </p>
           </div>
+        </div>
+
+        <div className="mt-auto grid grid-cols-2 gap-2 pt-5">
+          <Link
+            href={`/apartments/${apartment.slug}`}
+            className="
+              inline-flex min-h-11
+              items-center justify-center
+              rounded-xl border
+              border-zinc-200 bg-white
+              px-3 text-sm font-extrabold
+              text-zinc-700 transition
+              hover:-translate-y-0.5
+              hover:border-emerald-300
+              hover:bg-emerald-50
+              hover:text-emerald-700
+              focus-visible:outline-none
+              focus-visible:ring-2
+              focus-visible:ring-emerald-500
+              focus-visible:ring-offset-2
+            "
+          >
+            상세보기
+          </Link>
+
+          <Link
+            href={`/compare?left=${currentApartment.slug}&right=${apartment.slug}`}
+            className="
+              inline-flex min-h-11
+              items-center justify-center
+              rounded-xl bg-[#132238]
+              px-3 text-center text-sm
+              font-extrabold text-white
+              transition
+              hover:-translate-y-0.5
+              hover:bg-emerald-600
+              focus-visible:outline-none
+              focus-visible:ring-2
+              focus-visible:ring-emerald-500
+              focus-visible:ring-offset-2
+            "
+          >
+            비교하기
+          </Link>
         </div>
       </div>
     </article>
@@ -703,9 +811,9 @@ export default function RelatedApartments({
       </div>
 
       {/* 태블릿·PC */}
-      <div className="mt-6 hidden gap-4 sm:grid">
+      <div className="mt-6 hidden gap-5 sm:grid lg:grid-cols-2">
         {relatedApartments
-          .slice(0, 3)
+          .slice(0, 4)
           .map((item) => (
             <DesktopRelatedCard
               key={item.slug}

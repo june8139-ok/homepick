@@ -10,6 +10,7 @@ import {
 } from "../../lib/apartmentDisplay";
 
 import FavoriteButton from "./FavoriteButton";
+import ApartmentDataTrust from "./ApartmentDataTrust";
 
 type ListingStage =
   | "subscription"
@@ -45,6 +46,13 @@ type ApartmentLike = {
     | "applyhome";
 
   isAutoCreated?: boolean;
+  manualOverride?: boolean;
+  syncStatus?: string;
+  lastSyncedAt?: string | null;
+
+  priceInfo?: {
+    updatedAt?: string | null;
+  };
 
   totalSupply?:
     | number
@@ -609,6 +617,12 @@ export default function ApartmentHero({
             }
           />
         </div>
+
+        <ApartmentDataTrust
+          apartment={
+            displayApartment
+          }
+        />
 
         {isSubscription ? (
           <>
