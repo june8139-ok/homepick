@@ -474,7 +474,7 @@ export default function AdminDashboardPage() {
               />
 
               <QuickLink
-                href="/admin/subscriptions"
+                href="/admin"
                 title="청약 관리"
                 description="청약 일정 및 자동 연동"
                 symbol="✓"

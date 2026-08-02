@@ -268,42 +268,251 @@ function schedule(row: Row): SubscriptionSchedule {
   };
 }
 
-function status(value: SubscriptionSchedule) {
-  const today = koreaToday();
-
-  const specialStart = parseDate(value.specialSupplyStartDate);
-  const specialEnd = parseDate(value.specialSupplyEndDate);
-  const firstStart = parseDate(value.firstPriorityStartDate);
-  const firstEnd = parseDate(value.firstPriorityEndDate);
-  const secondStart = parseDate(value.secondPriorityStartDate);
-  const secondEnd = parseDate(value.secondPriorityEndDate);
-  const winner = parseDate(value.winnerDate);
-  const contractStart = parseDate(value.contractStartDate);
-  const contractEnd = parseDate(value.contractEndDate);
-
-  if (between(today, contractStart, contractEnd)) return "계약중";
+function latestDate(
+  values: Array<
+    Date | null
+  >
+) {
+  const dates =
+    values.filter(
+      (
+        value
+      ): value is Date =>
+        Boolean(value)
+    );
 
   if (
-    between(today, specialStart, specialEnd) ||
-    between(today, firstStart, firstEnd) ||
-    between(today, secondStart, secondEnd)
+    dates.length === 0
+  ) {
+    return null;
+  }
+
+  return new Date(
+    Math.max(
+      ...dates.map(
+        (date) =>
+          date.getTime()
+      )
+    )
+  );
+}
+
+function sameDate(
+  first: Date,
+  second: Date
+) {
+  return (
+    first.getTime() ===
+    second.getTime()
+  );
+}
+
+function status(value: SubscriptionSchedule) {
+  const today =
+    koreaToday();
+
+  const specialStart =
+    parseDate(
+      value.specialSupplyStartDate
+    );
+
+  const specialEnd =
+    parseDate(
+      value.specialSupplyEndDate
+    );
+
+  const firstStart =
+    parseDate(
+      value.firstPriorityStartDate
+    );
+
+  const firstEnd =
+    parseDate(
+      value.firstPriorityEndDate
+    );
+
+  const secondStart =
+    parseDate(
+      value.secondPriorityStartDate
+    );
+
+  const secondEnd =
+    parseDate(
+      value.secondPriorityEndDate
+    );
+
+  const winner =
+    parseDate(
+      value.winnerDate
+    );
+
+  const contractStart =
+    parseDate(
+      value.contractStartDate
+    );
+
+  const contractEnd =
+    parseDate(
+      value.contractEndDate
+    );
+
+  /*
+   * 계약 종료 이후가 가장 마지막 단계입니다.
+   */
+  if (
+    contractEnd &&
+    today >
+      contractEnd
+  ) {
+    return "청약마감";
+  }
+
+  if (
+    between(
+      today,
+      contractStart,
+      contractEnd
+    )
+  ) {
+    return "계약중";
+  }
+
+  /*
+   * 청약 접수 기간 중에는 청약중으로 표시합니다.
+   */
+  const isApplicationOpen =
+    between(
+      today,
+      specialStart,
+      specialEnd
+    ) ||
+    between(
+      today,
+      firstStart,
+      firstEnd
+    ) ||
+    between(
+      today,
+      secondStart,
+      secondEnd
+    );
+
+  if (
+    isApplicationOpen
   ) {
     return "청약중";
   }
 
-  const firstApplication =
-    specialStart ?? firstStart ?? secondStart;
+  const applicationStarts = [
+    specialStart,
+    firstStart,
+    secondStart,
+  ].filter(
+    (
+      date
+    ): date is Date =>
+      Boolean(date)
+  );
 
-  if (firstApplication && today < firstApplication) {
+  const firstApplication =
+    applicationStarts.length >
+      0
+      ? new Date(
+          Math.min(
+            ...applicationStarts.map(
+              (date) =>
+                date.getTime()
+            )
+          )
+        )
+      : null;
+
+  if (
+    firstApplication &&
+    today <
+      firstApplication
+  ) {
     return "청약예정";
   }
 
-  if (contractEnd && today > contractEnd) {
-    return "청약마감";
+  const lastApplication =
+    latestDate([
+      specialEnd ??
+        specialStart,
+      firstEnd ??
+        firstStart,
+      secondEnd ??
+        secondStart,
+    ]);
+
+  /*
+   * 청약 접수 종료 후 당첨자 발표 전 구간입니다.
+   */
+  if (
+    winner &&
+    lastApplication &&
+    today >
+      lastApplication &&
+    today <
+      winner
+  ) {
+    return "당첨자 발표 예정";
   }
 
-  if (winner && today >= winner) {
-    return "당첨자발표";
+  if (
+    winner &&
+    sameDate(
+      today,
+      winner
+    )
+  ) {
+    return "당첨자 발표";
+  }
+
+  /*
+   * 당첨자 발표가 끝났고 계약 시작 전이면 계약 예정입니다.
+   */
+  if (
+    winner &&
+    today >
+      winner &&
+    contractStart &&
+    today <
+      contractStart
+  ) {
+    return "계약 예정";
+  }
+
+  /*
+   * 계약 일정이 아직 없더라도 발표 이후에는
+   * 청약 예정으로 되돌아가지 않도록 처리합니다.
+   */
+  if (
+    winner &&
+    today >
+      winner
+  ) {
+    return "당첨자 발표";
+  }
+
+  /*
+   * 발표일만 있고 접수 종료일이 누락된 공고도
+   * 현재 날짜가 발표 전이라면 발표 예정으로 표시합니다.
+   */
+  if (
+    winner &&
+    today <
+      winner
+  ) {
+    return "당첨자 발표 예정";
+  }
+
+  if (
+    lastApplication &&
+    today >
+      lastApplication
+  ) {
+    return "청약마감";
   }
 
   return "청약예정";

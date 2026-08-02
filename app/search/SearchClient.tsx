@@ -32,6 +32,10 @@ import SearchFilters, {
 import SearchMapPanel from "./components/SearchMapPanel";
 import SearchResultCard from "./components/SearchResultCard";
 
+import {
+  isApplyHomeUnverified,
+} from "../../lib/apartmentDisplay";
+
 export type UserLocation = {
   latitude: number;
   longitude: number;
@@ -146,6 +150,14 @@ function benefitMatch(
 function contractPriority(
   apartment: Apartment
 ) {
+  if (
+    isApplyHomeUnverified(
+      apartment
+    )
+  ) {
+    return 0;
+  }
+
   const text = normalize(
     [
       apartment.condition,
@@ -616,9 +628,13 @@ export default function SearchClient({
         sourceApartments.filter(
           (apartment) => {
             const condition =
-              normalize(
-                apartment.condition
-              );
+              isApplyHomeUnverified(
+                apartment
+              )
+                ? ""
+                : normalize(
+                    apartment.condition
+                  );
 
             return (
               keywordMatch(

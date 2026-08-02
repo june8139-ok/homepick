@@ -13,6 +13,10 @@ import ConditionHistory from "./ConditionHistory";
 import ApartmentImageSections from "./ApartmentImageSections";
 import ReservationCard from "./ReservationCard";
 
+import {
+  getMoveInText,
+} from "../../lib/apartmentDisplay";
+
 type InformationCardItem = {
   icon: string;
   title: string;
@@ -541,6 +545,11 @@ export default function SaleDetail({
       ? floorPlanNames.join(", ")
       : undefined;
 
+  const moveInText =
+    getMoveInText(
+      apartment
+    );
+
   return (
     <div className="mt-5 space-y-5 sm:mt-8 sm:space-y-8">
       <section>
@@ -679,8 +688,19 @@ export default function SaleDetail({
 
           <ProjectInfoCard
             icon="📅"
-            label="입주 예정"
+            label={
+              moveInText.includes(
+                "입주 완료"
+              )
+                ? "입주 완료"
+                : "입주 예정"
+            }
             value={
+              moveInText
+                .replace(
+                  /\s입주\s(?:예정|완료)$/,
+                  ""
+                ) ||
               apartment
                 .projectInfo
                 ?.moveInDate

@@ -4,6 +4,10 @@ import type {
 
 import UnitPriceCard from "./UnitPriceCard";
 
+import {
+  isApplyHomeUnverified,
+} from "../../lib/apartmentDisplay";
+
 type BenefitTone =
   | "emerald"
   | "blue"
@@ -91,6 +95,14 @@ function cleanBenefitValue(
 function createBenefits(
   apartment: Apartment
 ): BenefitItem[] {
+  if (
+    isApplyHomeUnverified(
+      apartment
+    )
+  ) {
+    return [];
+  }
+
   const conditionItems =
     splitConditionText(
       apartment.condition
@@ -380,14 +392,21 @@ export default function PriceConditionCard({
   const benefits =
     createBenefits(apartment);
 
+  const showApplyHomeNotice =
+    isApplyHomeUnverified(
+      apartment
+    );
+
   const options =
-    apartment.priceDetail
-      ?.options?.filter(
-        (item) =>
-          isMeaningfulValue(
-            item
-          )
-      ) ?? [];
+    showApplyHomeNotice
+      ? []
+      : apartment.priceDetail
+          ?.options?.filter(
+            (item) =>
+              isMeaningfulValue(
+                item
+              )
+          ) ?? [];
 
   const sectionHeading =
     getSectionHeading(
@@ -395,6 +414,7 @@ export default function PriceConditionCard({
     );
 
   const showConditionFallback =
+    !showApplyHomeNotice &&
     benefits.length === 0 &&
     isMeaningfulValue(
       apartment.condition
@@ -408,7 +428,8 @@ export default function PriceConditionCard({
 
       {(benefits.length > 0 ||
         showConditionFallback ||
-        options.length > 0) && (
+        options.length > 0 ||
+        showApplyHomeNotice) && (
         <section className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-6">
           {apartment.listingStage ===
             "firstCome" && (
@@ -449,6 +470,18 @@ export default function PriceConditionCard({
                 </p>
               </div>
             </div>
+
+            {showApplyHomeNotice && (
+              <div className="mt-5 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-4 sm:mt-6 sm:px-5">
+                <p className="text-xs font-extrabold text-blue-700 sm:text-sm">
+                  계약조건 모집공고 확인
+                </p>
+
+                <p className="mt-1 break-keep text-xs leading-6 text-blue-950/75 sm:text-sm sm:leading-7">
+                  청약홈 자동수집 단지로 계약금, 중도금, 발코니 및 옵션 조건은 관리자 검수 전까지 확정 정보로 표시하지 않습니다.
+                </p>
+              </div>
+            )}
 
             {benefits.length >
               0 && (

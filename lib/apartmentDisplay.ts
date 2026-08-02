@@ -44,6 +44,72 @@ function normalizeText(value: unknown) {
     .replace(/\s+/g, "");
 }
 
+function booleanValue(
+  value: unknown
+) {
+  return value === true;
+}
+
+export function isApplyHomeUnverified(
+  apartment: Apartment
+) {
+  const record =
+    apartment as Apartment & {
+      source?: string;
+      manualOverride?: boolean;
+      manual_override?: boolean;
+      isAutoCreated?: boolean;
+      is_auto_created?: boolean;
+      data?: {
+        source?: string;
+        manualOverride?: boolean;
+        manual_override?: boolean;
+        isAutoCreated?: boolean;
+        is_auto_created?: boolean;
+      };
+    };
+
+  const source =
+    normalizeText(
+      record.source ??
+      record.data?.source
+    );
+
+  const isApplyHome =
+    source === "applyhome" ||
+    booleanValue(
+      record.isAutoCreated
+    ) ||
+    booleanValue(
+      record.is_auto_created
+    ) ||
+    booleanValue(
+      record.data?.isAutoCreated
+    ) ||
+    booleanValue(
+      record.data?.is_auto_created
+    );
+
+  const manuallyReviewed =
+    booleanValue(
+      record.manualOverride
+    ) ||
+    booleanValue(
+      record.manual_override
+    ) ||
+    booleanValue(
+      record.data?.manualOverride
+    ) ||
+    booleanValue(
+      record.data?.manual_override
+    );
+
+  return (
+    isApplyHome &&
+    !manuallyReviewed
+  );
+}
+
 function validPrice(value: unknown): value is number {
   return (
     typeof value === "number" &&
@@ -294,9 +360,14 @@ export function getRepresentativePrice(
 
   if (type84Maximum) {
     return {
-      label: "84㎡ 최저 공급가",
-      value: type84Maximum,
-      text: formatKoreanPrice(type84Maximum),
+      label:
+        "84㎡ 타입별 최고 공급금액",
+      value:
+        type84Maximum,
+      text:
+        `최고 ${formatKoreanPrice(
+          type84Maximum
+        )}`,
       is84: true,
       isActualMinimum: false,
     };
@@ -336,9 +407,14 @@ export function getRepresentativePrice(
 
   if (allMaximum) {
     return {
-      label: "최저 공급가",
-      value: allMaximum,
-      text: formatKoreanPrice(allMaximum),
+      label:
+        "타입별 최고 공급금액",
+      value:
+        allMaximum,
+      text:
+        `최고 ${formatKoreanPrice(
+          allMaximum
+        )}`,
       is84: false,
       isActualMinimum: false,
     };
@@ -398,6 +474,74 @@ export function formatMoveInDate(value?: unknown) {
   return raw;
 }
 
+function koreaTodayDate() {
+  const value =
+    new Intl.DateTimeFormat(
+      "en-CA",
+      {
+        timeZone:
+          "Asia/Seoul",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }
+    ).format(
+      new Date()
+    );
+
+  return new Date(
+    `${value}T00:00:00+09:00`
+  );
+}
+
+function moveInEndDate(
+  formatted: string
+) {
+  const match =
+    formatted.match(
+      /^(\d{4})\.(\d{2})(?:\.(\d{2}))?$/
+    );
+
+  if (!match) {
+    return null;
+  }
+
+  const year =
+    Number(match[1]);
+
+  const month =
+    Number(match[2]);
+
+  const day =
+    match[3]
+      ? Number(match[3])
+      : new Date(
+          year,
+          month,
+          0
+        ).getDate();
+
+  const date =
+    new Date(
+      `${String(year).padStart(
+        4,
+        "0"
+      )}-${String(month).padStart(
+        2,
+        "0"
+      )}-${String(day).padStart(
+        2,
+        "0"
+      )}T00:00:00+09:00`
+    );
+
+  return Number.isNaN(
+    date.getTime()
+  )
+    ? null
+    : date;
+}
+
 export function getMoveInText(
   apartment: Apartment
 ) {
@@ -407,11 +551,17 @@ export function getMoveInText(
       moveIn?: unknown;
       occupancyDate?: unknown;
       completionDate?: unknown;
+      projectInfo?: {
+        moveInDate?: unknown;
+      };
       data?: {
         moveInDate?: unknown;
         moveIn?: unknown;
         occupancyDate?: unknown;
         completionDate?: unknown;
+        projectInfo?: {
+          moveInDate?: unknown;
+        };
         subscription?: {
           moveInDate?: unknown;
           occupancyDate?: unknown;
@@ -424,18 +574,35 @@ export function getMoveInText(
     data.moveIn ??
     data.occupancyDate ??
     data.completionDate ??
+    data.projectInfo?.moveInDate ??
     data.data?.moveInDate ??
     data.data?.moveIn ??
     data.data?.occupancyDate ??
     data.data?.completionDate ??
+    data.data?.projectInfo?.moveInDate ??
     data.data?.subscription?.moveInDate ??
     data.data?.subscription?.occupancyDate;
 
-  const formatted = formatMoveInDate(raw);
+  const formatted =
+    formatMoveInDate(raw);
 
-  return formatted
-    ? `${formatted} 입주 예정`
-    : "";
+  if (!formatted) {
+    return "";
+  }
+
+  const endDate =
+    moveInEndDate(
+      formatted
+    );
+
+  const completed =
+    endDate !== null &&
+    koreaTodayDate() >
+      endDate;
+
+  return completed
+    ? `${formatted} 입주 완료`
+    : `${formatted} 입주 예정`;
 }
 
 const BENEFIT_RULES: Array<{
@@ -506,6 +673,14 @@ export function getKeyBenefits(
   apartment: Apartment,
   limit = 2
 ) {
+  if (
+    isApplyHomeUnverified(
+      apartment
+    )
+  ) {
+    return [];
+  }
+
   const content = normalizeText(
     [
       apartment.condition,

@@ -15,6 +15,7 @@ import {
   getKeyBenefits,
   getMoveInText,
   getRepresentativePrice,
+  isApplyHomeUnverified,
 } from "../../../lib/apartmentDisplay";
 
 function heroImage(apartment: Apartment) {
@@ -112,7 +113,16 @@ const SearchResultCard = forwardRef<HTMLElement, Props>(
     const active = selected || hovered;
     const representativePrice = getRepresentativePrice(apartment);
     const moveInText = getMoveInText(apartment);
-    const benefits = getKeyBenefits(apartment, 2);
+    const benefits =
+      getKeyBenefits(
+        apartment,
+        2
+      );
+
+    const showApplyHomeNotice =
+      isApplyHomeUnverified(
+        apartment
+      );
 
     const handleOpen = (event: MouseEvent<HTMLButtonElement>) => {
       event.stopPropagation();
@@ -205,7 +215,7 @@ const SearchResultCard = forwardRef<HTMLElement, Props>(
               </p>
             </div>
 
-            {benefits.length > 0 && (
+            {benefits.length > 0 ? (
               <div className="flex max-w-[48%] flex-wrap justify-end gap-1">
                 {benefits.map((benefit) => (
                   <span
@@ -216,7 +226,11 @@ const SearchResultCard = forwardRef<HTMLElement, Props>(
                   </span>
                 ))}
               </div>
-            )}
+            ) : showApplyHomeNotice ? (
+              <span className="max-w-[48%] rounded-full border border-blue-200 bg-white px-2 py-1 text-right text-[10px] font-bold leading-4 text-blue-700">
+                계약조건 모집공고 확인
+              </span>
+            ) : null}
           </div>
 
           <div className="mt-3 grid grid-cols-2 gap-2">
