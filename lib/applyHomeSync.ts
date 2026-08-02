@@ -1417,10 +1417,12 @@ async function updateApartment(
     priceInfo,
     totalSupply:
       existingData.totalSupply ?? apartment.totalSupply,
-    status: manualOverride
-      ? existingData.status ??
-        existing.status
-      : apartment.status,
+    /*
+     * 관리자 수정 여부와 관계없이 청약 상태는
+     * 청약홈 일정과 현재 날짜를 기준으로 계속 자동 갱신합니다.
+     * 이미지, 가격, 계약조건 등 관리자 입력값은 그대로 보호합니다.
+     */
+    status: apartment.status,
     price:
       manualOverride && text(existingData.price)
         ? existingData.price
@@ -1467,7 +1469,12 @@ async function updateApartment(
     data: nextData,
   };
 
-  if (!manualOverride) payload.status = apartment.status;
+  /*
+   * manual_override 단지도 날짜 기반 청약 상태는 자동 갱신합니다.
+   * 관리자 콘텐츠 보호와 청약 일정 상태 갱신을 분리합니다.
+   */
+  payload.status =
+    apartment.status;
 
   const { error } = await supabaseAdmin
     .from("apartments")
