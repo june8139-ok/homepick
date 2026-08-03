@@ -19,109 +19,66 @@ const SITE_URL =
     ""
   ) || "https://jibnun.com";
 
-type SearchPageProps = {
-  searchParams: Promise<
-    Record<
-      string,
-      string | string[] | undefined
-    >
-  >;
-};
-
 /*
- * 기본 검색페이지인 /search는 색인을 허용합니다.
+ * 검색페이지 메타데이터는 정적으로 유지합니다.
  *
- * 검색어와 필터가 붙은 주소는 비슷한 조합이 많이 생성될 수 있으므로
- * 검색엔진 색인은 막고 링크 탐색만 허용합니다.
- *
- * 예시
- * /search              → index, follow
- * /search?q=청약       → noindex, follow
- * /search?city=청주    → noindex, follow
+ * /search는 검색엔진 색인을 허용하고,
+ * 검색어·필터가 붙은 주소도 canonical을 /search로 통일합니다.
  */
-export async function generateMetadata({
-  searchParams,
-}: SearchPageProps): Promise<Metadata> {
-  const resolvedSearchParams =
-    await searchParams;
+export const metadata: Metadata = {
+  title:
+    "전국 분양 아파트 지도검색",
 
-  const hasSearchParams =
-    Object.keys(
-      resolvedSearchParams
-    ).length > 0;
+  description:
+    "집눈에서 전국 분양 아파트와 청약 단지, 선착순 분양 정보를 지도와 목록으로 검색하고 비교하세요.",
 
-  const title =
-    "전국 분양 아파트 지도검색";
+  alternates: {
+    canonical:
+      `${SITE_URL}/search`,
+  },
 
-  const description =
-    "집눈에서 전국 분양 아파트와 청약 단지, 선착순 분양 정보를 지도와 목록으로 검색하고 비교하세요.";
+  robots: {
+    index: true,
+    follow: true,
 
-  const canonicalUrl =
-    `${SITE_URL}/search`;
+    googleBot: {
+      index: true,
+      follow: true,
 
-  return {
-    title,
-    description,
+      "max-image-preview":
+        "large",
 
-    alternates: {
-      canonical: canonicalUrl,
+      "max-snippet": -1,
+
+      "max-video-preview": -1,
     },
+  },
 
-    robots: hasSearchParams
-      ? {
-          index: false,
-          follow: true,
+  openGraph: {
+    type: "website",
+    locale: "ko_KR",
+    url:
+      `${SITE_URL}/search`,
+    siteName: "집눈",
 
-          googleBot: {
-            index: false,
-            follow: true,
-            "max-image-preview":
-              "large",
-            "max-snippet": -1,
-            "max-video-preview":
-              -1,
-          },
-        }
-      : {
-          index: true,
-          follow: true,
+    title:
+      "전국 분양 아파트 지도검색 | 집눈",
 
-          googleBot: {
-            index: true,
-            follow: true,
-            "max-image-preview":
-              "large",
-            "max-snippet": -1,
-            "max-video-preview":
-              -1,
-          },
-        },
+    description:
+      "전국 청약·선착순 분양 단지를 지도에서 찾고 분양가와 계약조건을 비교하세요.",
+  },
 
-    openGraph: {
-      type: "website",
-      locale: "ko_KR",
-      url: canonicalUrl,
-      siteName: "집눈",
+  twitter: {
+    card:
+      "summary_large_image",
 
-      title:
-        "전국 분양 아파트 지도검색 | 집눈",
+    title:
+      "전국 분양 아파트 지도검색 | 집눈",
 
-      description:
-        "전국 청약·선착순 분양 단지를 지도에서 찾고 분양가와 계약조건을 비교하세요.",
-    },
-
-    twitter: {
-      card:
-        "summary_large_image",
-
-      title:
-        "전국 분양 아파트 지도검색 | 집눈",
-
-      description:
-        "전국 청약·선착순 분양 단지를 지도에서 검색하고 비교하세요.",
-    },
-  };
-}
+    description:
+      "전국 청약·선착순 분양 단지를 지도에서 검색하고 비교하세요.",
+  },
+};
 
 function SearchLoading() {
   return (
