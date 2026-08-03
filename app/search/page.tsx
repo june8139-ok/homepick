@@ -9,7 +9,7 @@ import { getApartments } from "../../lib/getApartments";
  * 60초 단위로 재검증합니다.
  *
  * 매 이동마다 전체 단지 데이터를 다시 읽는 force-dynamic은
- * 모바일 페이지 전환 지연을 크게 만들 수 있어 제거합니다.
+ * 모바일 페이지 전환 지연을 크게 만들 수 있어 사용하지 않습니다.
  */
 export const revalidate = 60;
 
@@ -19,56 +19,109 @@ const SITE_URL =
     ""
   ) || "https://jibnun.com";
 
-export const metadata: Metadata = {
-  title: "전국 분양 아파트 지도검색",
-
-  description:
-    "집눈에서 전국 분양 아파트와 청약 단지, 선착순 분양 정보를 지도와 목록으로 검색하고 비교하세요.",
-
-  alternates: {
-    canonical: `${SITE_URL}/search`,
-  },
-
-  /*
-   * 검색어·필터 조합으로 비슷한 URL이 많이 만들어질 수 있으므로
-   * 검색 결과 페이지 자체는 색인하지 않고 링크 탐색만 허용합니다.
-   */
-  robots: {
-    index: false,
-    follow: true,
-
-    googleBot: {
-      index: false,
-      follow: true,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-      "max-video-preview": -1,
-    },
-  },
-
-  openGraph: {
-    type: "website",
-    locale: "ko_KR",
-    url: `${SITE_URL}/search`,
-    siteName: "집눈",
-
-    title:
-      "전국 분양 아파트 지도검색 | 집눈",
-
-    description:
-      "전국 청약·선착순 분양 단지를 지도에서 찾고 분양가와 계약조건을 비교하세요.",
-  },
-
-  twitter: {
-    card: "summary_large_image",
-
-    title:
-      "전국 분양 아파트 지도검색 | 집눈",
-
-    description:
-      "전국 청약·선착순 분양 단지를 지도에서 검색하고 비교하세요.",
-  },
+type SearchPageProps = {
+  searchParams: Promise<
+    Record<
+      string,
+      string | string[] | undefined
+    >
+  >;
 };
+
+/*
+ * 기본 검색페이지인 /search는 색인을 허용합니다.
+ *
+ * 검색어와 필터가 붙은 주소는 비슷한 조합이 많이 생성될 수 있으므로
+ * 검색엔진 색인은 막고 링크 탐색만 허용합니다.
+ *
+ * 예시
+ * /search              → index, follow
+ * /search?q=청약       → noindex, follow
+ * /search?city=청주    → noindex, follow
+ */
+export async function generateMetadata({
+  searchParams,
+}: SearchPageProps): Promise<Metadata> {
+  const resolvedSearchParams =
+    await searchParams;
+
+  const hasSearchParams =
+    Object.keys(
+      resolvedSearchParams
+    ).length > 0;
+
+  const title =
+    "전국 분양 아파트 지도검색";
+
+  const description =
+    "집눈에서 전국 분양 아파트와 청약 단지, 선착순 분양 정보를 지도와 목록으로 검색하고 비교하세요.";
+
+  const canonicalUrl =
+    `${SITE_URL}/search`;
+
+  return {
+    title,
+    description,
+
+    alternates: {
+      canonical: canonicalUrl,
+    },
+
+    robots: hasSearchParams
+      ? {
+          index: false,
+          follow: true,
+
+          googleBot: {
+            index: false,
+            follow: true,
+            "max-image-preview":
+              "large",
+            "max-snippet": -1,
+            "max-video-preview":
+              -1,
+          },
+        }
+      : {
+          index: true,
+          follow: true,
+
+          googleBot: {
+            index: true,
+            follow: true,
+            "max-image-preview":
+              "large",
+            "max-snippet": -1,
+            "max-video-preview":
+              -1,
+          },
+        },
+
+    openGraph: {
+      type: "website",
+      locale: "ko_KR",
+      url: canonicalUrl,
+      siteName: "집눈",
+
+      title:
+        "전국 분양 아파트 지도검색 | 집눈",
+
+      description:
+        "전국 청약·선착순 분양 단지를 지도에서 찾고 분양가와 계약조건을 비교하세요.",
+    },
+
+    twitter: {
+      card:
+        "summary_large_image",
+
+      title:
+        "전국 분양 아파트 지도검색 | 집눈",
+
+      description:
+        "전국 청약·선착순 분양 단지를 지도에서 검색하고 비교하세요.",
+    },
+  };
+}
 
 function SearchLoading() {
   return (
@@ -122,10 +175,14 @@ export default async function SearchPage() {
 
   return (
     <Suspense
-      fallback={<SearchLoading />}
+      fallback={
+        <SearchLoading />
+      }
     >
       <SearchClient
-        apartments={apartments}
+        apartments={
+          apartments
+        }
       />
     </Suspense>
   );
