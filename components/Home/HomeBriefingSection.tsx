@@ -18,7 +18,7 @@ export default function HomeBriefingSection({
   }
 
   return (
-    <section className="mt-3 overflow-hidden rounded-2xl border border-zinc-200 bg-white px-3 py-4 shadow-sm sm:mt-4 sm:rounded-3xl sm:px-7 sm:py-6">
+    <section className="mt-4 overflow-hidden rounded-2xl bg-white/72 px-4 py-5 shadow-[0_18px_48px_rgba(24,39,32,0.045)] backdrop-blur sm:mt-6 sm:rounded-[30px] sm:px-8 sm:py-8">
       <div className="flex items-end justify-between gap-4">
         <div className="min-w-0">
           <p className="text-xs font-extrabold tracking-wide text-emerald-600 sm:text-sm">

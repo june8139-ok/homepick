@@ -436,11 +436,11 @@ function SearchHero({
     suggestions.length > 0;
 
   return (
-    <section className="relative z-30 w-full max-w-full overflow-x-hidden overflow-y-visible rounded-2xl border border-emerald-100 bg-white shadow-[0_12px_35px_rgba(15,118,110,0.08)] sm:rounded-[38px] sm:shadow-[0_18px_55px_rgba(15,118,110,0.08)]">
-      <div className="grid lg:min-h-[430px] lg:grid-cols-[0.78fr_1.22fr] xl:min-h-[470px]">
+    <section className="relative z-30 w-full max-w-full overflow-x-hidden overflow-y-visible rounded-[26px] bg-[linear-gradient(115deg,#FFFFFF_0%,#FBFDFB_42%,#EAF6F1_100%)] shadow-[0_24px_70px_rgba(28,61,50,0.10)] ring-1 ring-white/90 sm:rounded-[44px]">
+      <div className="grid lg:min-h-[455px] lg:grid-cols-[0.82fr_1.18fr] xl:min-h-[500px]">
         {/* 왼쪽 검색 영역 */}
-        <div className="relative z-20 flex min-w-0 flex-col justify-center px-4 pb-6 pt-5 sm:px-10 sm:py-10 lg:px-12 xl:px-16">
-          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[10px] font-extrabold text-[#0F766E] shadow-sm sm:px-4 sm:py-2 sm:text-xs">
+        <div className="relative z-20 flex min-w-0 flex-col justify-center px-5 pb-7 pt-6 sm:px-11 sm:py-12 lg:px-14 xl:px-[72px]">
+          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-200/70 bg-white/68 px-3 py-1.5 text-[10px] font-extrabold text-[#0F766E] shadow-sm sm:px-4 sm:py-2 sm:text-xs">
             <span
               aria-hidden="true"
               className="h-2 w-2 rounded-full bg-[#FF5A5F] shadow-[0_0_0_4px_rgba(255,90,95,0.10)]"
@@ -450,7 +450,7 @@ function SearchHero({
 
           <h1 className="mt-4 tracking-[-0.055em] sm:mt-6">
             <span className="flex items-center gap-3 sm:gap-4">
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-[0_8px_24px_rgba(15,118,110,0.12)] sm:h-[72px] sm:w-[72px] xl:h-20 xl:w-20">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white/88 shadow-[0_12px_32px_rgba(15,118,110,0.12)] ring-1 ring-emerald-100/80 sm:h-[72px] sm:w-[72px] xl:h-20 xl:w-20">
                 <Image
                   src="/icon-512.png"
                   alt="집눈 로고"
@@ -707,7 +707,7 @@ function SearchHero({
         </div>
 
         {/* 오른쪽 대표 단지 */}
-        <div className="relative hidden min-h-[260px] overflow-hidden bg-gradient-to-br from-emerald-50 via-white to-sky-50 sm:block lg:min-h-full">
+        <div className="relative hidden min-h-[280px] overflow-hidden bg-gradient-to-br from-emerald-50 via-white to-stone-50 sm:block lg:min-h-full">
           {featuredImage &&
           featuredApartment ? (
             <Image

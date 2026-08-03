@@ -351,7 +351,7 @@ export default function RegionMapSection({
   }
 
   return (
-    <section className="isolate mt-4 overflow-hidden rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-5">
+    <section className="isolate mt-6 overflow-hidden rounded-[30px] bg-[linear-gradient(135deg,#F2F7F4_0%,#EDF4F0_55%,#F7F4ED_100%)] p-4 shadow-[0_20px_55px_rgba(24,39,32,0.055)] ring-1 ring-white/80 sm:p-7 lg:p-9">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-extrabold tracking-[0.14em] text-[#0F766E]">
@@ -421,9 +421,8 @@ export default function RegionMapSection({
             hidden min-h-[560px] h-full
             min-w-0 animate-[fadeIn_220ms_ease-out]
             flex-col overflow-hidden xl:flex
-            rounded-3xl border
-            border-zinc-200 bg-white
-            shadow-sm
+            rounded-[26px] bg-white/86
+            shadow-[0_16px_40px_rgba(24,39,32,0.08)] ring-1 ring-white/90
           "
         >
           <button
@@ -664,10 +663,10 @@ export default function RegionMapSection({
                       }
                     }}
                     className={[
-                      "w-[82vw] max-w-[330px] shrink-0 snap-center overflow-hidden rounded-2xl border bg-white p-4 shadow-sm transition-all sm:w-[360px]",
+                      "w-[82vw] max-w-[330px] shrink-0 snap-center overflow-hidden rounded-2xl bg-white/86 p-4 shadow-[0_12px_30px_rgba(24,39,32,0.06)] ring-1 transition-all sm:w-[360px]",
                       selected
-                        ? "border-emerald-500 ring-2 ring-emerald-100"
-                        : "border-zinc-200",
+                        ? "ring-2 ring-emerald-400/70"
+                        : "ring-white/80",
                     ].join(" ")}
                   >
                     <button

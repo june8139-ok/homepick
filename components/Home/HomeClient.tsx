@@ -163,14 +163,14 @@ export default function HomeClient({
   };
 
   return (
-    <main className="min-h-screen bg-[#F7F8FA] py-3 text-[#111827] sm:py-5">
-      <section className="mx-auto w-full max-w-[1600px] px-3 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-[linear-gradient(180deg,#F8F8F4_0%,#F5F7F5_46%,#F8F6F1_100%)] py-3 text-[#111827] sm:py-6">
+      <section className="mx-auto w-full max-w-[1680px] px-3 sm:px-7 lg:px-10">
         <SearchHero
           apartments={visibleApartments}
         />
 
         {/* 핵심 현황 */}
-        <section className="mt-3 grid grid-cols-3 gap-2 sm:mt-4 sm:gap-3">
+        <section className="mt-3 grid grid-cols-3 overflow-hidden rounded-2xl border border-white/80 bg-white/80 shadow-[0_12px_34px_rgba(24,39,32,0.06)] backdrop-blur sm:mt-5 sm:rounded-3xl">
           <SummaryCard
             label="진행 중 청약"
             mobileLabel="청약"
@@ -305,7 +305,7 @@ export default function HomeClient({
         </div>
 
         {/* PC·태블릿 대시보드 */}
-        <section className="mt-4 hidden gap-4 sm:grid xl:grid-cols-[1fr_1fr_0.78fr]">
+        <section className="mt-5 hidden gap-5 rounded-[32px] bg-white/68 p-5 shadow-[0_18px_48px_rgba(24,39,32,0.045)] backdrop-blur sm:grid xl:grid-cols-[1fr_1fr_0.78fr] xl:p-6">
           <DashboardPanel
             title="진행 중 청약"
             href="/search?q=청약"
@@ -410,7 +410,7 @@ export default function HomeClient({
         />
 
         {/* 지역 바로가기 */}
-        <section className="mt-3 rounded-2xl border border-zinc-200 bg-white px-3 py-4 shadow-sm sm:mt-4 sm:rounded-3xl sm:px-7 sm:py-5">
+        <section className="mt-4 rounded-2xl bg-[#EEE9DF]/72 px-4 py-5 shadow-[inset_0_0_0_1px_rgba(120,113,98,0.08)] sm:mt-6 sm:rounded-[30px] sm:px-8 sm:py-7">
           <div className="flex items-center justify-between gap-3 sm:block lg:flex lg:items-center">
             <h2 className="text-base font-black text-[#111827] sm:text-lg">
               지역 바로가기
@@ -437,8 +437,8 @@ export default function HomeClient({
                     inline-flex min-h-10
                     cursor-pointer items-center
                     justify-center rounded-xl
-                    border border-zinc-100
-                    bg-zinc-50 px-2 py-2
+                    border border-white/80
+                    bg-white/72 px-2 py-2
                     text-xs font-bold
                     text-zinc-600
                     transition-all
@@ -470,7 +470,7 @@ export default function HomeClient({
                     min-w-[60px]
                     cursor-pointer items-center
                     justify-center rounded-full
-                    bg-zinc-50 px-3 py-2
+                    bg-white/72 px-3 py-2
                     text-xs font-bold
                     text-zinc-600
                     transition-all duration-200
@@ -550,10 +550,10 @@ function SummaryCard({
       type="button"
       onClick={onClick}
       className={[
-        "group flex min-w-0 cursor-pointer flex-col items-center justify-center rounded-xl border border-zinc-200 bg-white px-1.5 py-3 text-center shadow-sm",
+        "group flex min-w-0 cursor-pointer flex-col items-center justify-center px-1.5 py-3 text-center even:border-x even:border-zinc-200/70",
         "transition-all duration-200 active:scale-[0.98]",
-        "sm:min-h-[84px] sm:flex-row sm:justify-start sm:gap-4 sm:rounded-2xl sm:px-5 sm:py-4 sm:text-left",
-        "sm:hover:-translate-y-0.5 sm:hover:shadow-md",
+        "sm:min-h-[92px] sm:flex-row sm:justify-start sm:gap-4 sm:px-6 sm:py-5 sm:text-left",
+        "sm:hover:bg-white sm:hover:shadow-[inset_0_0_0_1px_rgba(16,185,129,0.10)]",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2",
         style.border,
       ].join(" ")}
@@ -607,7 +607,7 @@ function MobileDashboardPanel({
   children: ReactNode;
 }) {
   return (
-    <section className="overflow-hidden rounded-2xl border border-zinc-200 bg-white py-3 shadow-sm">
+    <section className="overflow-hidden rounded-2xl bg-white/82 py-3 shadow-[0_10px_28px_rgba(24,39,32,0.05)] backdrop-blur">
       <div className="flex items-center justify-between gap-3 px-3">
         <h2 className="text-base font-black text-[#111827]">
           {title}
@@ -638,8 +638,8 @@ function DashboardPanel({
   children: ReactNode;
 }) {
   return (
-    <section className="min-w-0 rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm">
-      <div className="mb-4 flex items-center justify-between gap-3">
+    <section className="min-w-0 px-1 py-1">
+      <div className="mb-4 flex items-center justify-between gap-3 border-b border-zinc-200/70 pb-3">
         <h2 className="text-base font-black text-[#111827]">
           {title}
         </h2>
