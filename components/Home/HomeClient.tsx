@@ -207,7 +207,7 @@ export default function HomeClient({
             value={
               allSubscriptions.length
             }
-            icon="▣"
+            icon="calendar"
             accent="blue"
             pending={
               pendingTarget ===
@@ -227,7 +227,7 @@ export default function HomeClient({
             value={
               allFirstComeApartments.length
             }
-            icon="⌂"
+            icon="home"
             accent="emerald"
             pending={
               pendingTarget ===
@@ -247,7 +247,7 @@ export default function HomeClient({
             value={
               recentApartments.length
             }
-            icon="+"
+            icon="refresh"
             accent="amber"
             pending={
               pendingTarget ===
@@ -545,6 +545,110 @@ export default function HomeClient({
   );
 }
 
+function SummaryIcon({
+  name,
+}: {
+  name:
+    | "calendar"
+    | "home"
+    | "refresh";
+}) {
+  if (name === "calendar") {
+    return (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        aria-hidden="true"
+        className="h-5 w-5 sm:h-6 sm:w-6"
+      >
+        <rect
+          x="4"
+          y="5.5"
+          width="16"
+          height="14"
+          rx="2.5"
+          stroke="currentColor"
+          strokeWidth="1.8"
+        />
+        <path
+          d="M8 3.5V7M16 3.5V7M4 9.5H20"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
+        <path
+          d="M8 13H11M8 16H14"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
+      </svg>
+    );
+  }
+
+  if (name === "home") {
+    return (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        aria-hidden="true"
+        className="h-5 w-5 sm:h-6 sm:w-6"
+      >
+        <path
+          d="M3.5 11.2L12 4L20.5 11.2"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M5.5 10.5V19.5H18.5V10.5"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M9.5 19.5V14H14.5V19.5"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  }
+
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+      className="h-5 w-5 sm:h-6 sm:w-6"
+    >
+      <path
+        d="M19 8A7 7 0 1 0 20 14"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <path
+        d="M19 4V8H15"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12 8V12L15 14"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function SummaryCard({
   label,
   mobileLabel,
@@ -557,7 +661,10 @@ function SummaryCard({
   label: string;
   mobileLabel: string;
   value: number;
-  icon: string;
+  icon:
+    | "calendar"
+    | "home"
+    | "refresh";
   accent:
     | "blue"
     | "emerald"
@@ -617,7 +724,9 @@ function SummaryCard({
           style.icon,
         ].join(" ")}
       >
-        {icon}
+        <SummaryIcon
+          name={icon}
+        />
       </span>
 
       <div className="mt-1 min-w-0 sm:mt-0">
