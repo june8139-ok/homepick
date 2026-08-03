@@ -163,14 +163,14 @@ export default function HomeClient({
   };
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(180deg,#F8F8F4_0%,#F5F7F5_46%,#F8F6F1_100%)] pb-3 text-[#111827] sm:pb-6">
+    <main className="min-h-screen bg-white pb-3 text-[#111827] sm:pb-6">
       <SearchHero
         apartments={visibleApartments}
       />
 
       <section className="mx-auto w-full max-w-[1680px] px-3 sm:px-7 lg:px-10">
         {/* 핵심 현황 */}
-        <section className="mt-4 grid grid-cols-3 overflow-hidden rounded-2xl border border-white/80 bg-white/80 shadow-[0_12px_34px_rgba(24,39,32,0.06)] backdrop-blur sm:mt-7 sm:rounded-3xl">
+        <section className="mt-4 grid grid-cols-3 overflow-hidden rounded-2xl border border-zinc-200/70 bg-white shadow-[0_14px_38px_rgba(15,118,110,0.07)] sm:mt-7 sm:rounded-3xl">
           <SummaryCard
             label="진행 중 청약"
             mobileLabel="청약"
@@ -305,7 +305,7 @@ export default function HomeClient({
         </div>
 
         {/* PC·태블릿 대시보드 */}
-        <section className="mt-5 hidden gap-5 rounded-[32px] bg-white/68 p-5 shadow-[0_18px_48px_rgba(24,39,32,0.045)] backdrop-blur sm:grid xl:grid-cols-[1fr_1fr_0.78fr] xl:p-6">
+        <section className="mt-5 hidden gap-5 rounded-[32px] border border-zinc-200/70 bg-white p-5 shadow-[0_18px_48px_rgba(15,118,110,0.055)] sm:grid xl:grid-cols-[1fr_1fr_0.78fr] xl:p-6">
           <DashboardPanel
             title="진행 중 청약"
             href="/search?q=청약"
@@ -410,7 +410,7 @@ export default function HomeClient({
         />
 
         {/* 지역 바로가기 */}
-        <section className="mt-4 rounded-2xl bg-[#EEE9DF]/72 px-4 py-5 shadow-[inset_0_0_0_1px_rgba(120,113,98,0.08)] sm:mt-6 sm:rounded-[30px] sm:px-8 sm:py-7">
+        <section className="mt-4 rounded-2xl border border-zinc-200/70 bg-white px-4 py-5 shadow-[0_16px_42px_rgba(15,118,110,0.05)] sm:mt-6 sm:rounded-[30px] sm:px-8 sm:py-7">
           <div className="flex items-center justify-between gap-3 sm:block lg:flex lg:items-center">
             <h2 className="text-base font-black text-[#111827] sm:text-lg">
               지역 바로가기
@@ -437,8 +437,8 @@ export default function HomeClient({
                     inline-flex min-h-10
                     cursor-pointer items-center
                     justify-center rounded-xl
-                    border border-white/80
-                    bg-white/72 px-2 py-2
+                    border border-zinc-200/70
+                    bg-zinc-50/80 px-2 py-2
                     text-xs font-bold
                     text-zinc-600
                     transition-all
@@ -470,7 +470,7 @@ export default function HomeClient({
                     min-w-[60px]
                     cursor-pointer items-center
                     justify-center rounded-full
-                    bg-white/72 px-3 py-2
+                    bg-zinc-50/80 px-3 py-2
                     text-xs font-bold
                     text-zinc-600
                     transition-all duration-200
@@ -607,7 +607,7 @@ function MobileDashboardPanel({
   children: ReactNode;
 }) {
   return (
-    <section className="overflow-hidden rounded-2xl bg-white/82 py-3 shadow-[0_10px_28px_rgba(24,39,32,0.05)] backdrop-blur">
+    <section className="overflow-hidden rounded-2xl border border-zinc-200/70 bg-white py-3 shadow-[0_12px_30px_rgba(15,118,110,0.055)]">
       <div className="flex items-center justify-between gap-3 px-3">
         <h2 className="text-base font-black text-[#111827]">
           {title}

@@ -31,7 +31,7 @@ function RegionMapFallback() {
   return (
     <section
       aria-hidden="true"
-      className="mt-6 overflow-hidden rounded-[30px] bg-[#EEF5F1]/72 p-4 shadow-[0_18px_48px_rgba(24,39,32,0.045)] sm:p-7"
+      className="mt-6 overflow-hidden rounded-[30px] border border-zinc-200/70 bg-white p-4 shadow-[0_18px_48px_rgba(15,118,110,0.05)] sm:p-7"
     >
       <div className="h-4 w-28 animate-pulse rounded bg-zinc-200" />
 
