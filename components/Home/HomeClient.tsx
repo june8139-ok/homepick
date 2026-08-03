@@ -207,7 +207,7 @@ export default function HomeClient({
             value={
               allSubscriptions.length
             }
-            icon="▣"
+            icon="calendar"
             accent="blue"
             pending={
               pendingTarget ===
@@ -227,7 +227,7 @@ export default function HomeClient({
             value={
               allFirstComeApartments.length
             }
-            icon="⌂"
+            icon="home"
             accent="emerald"
             pending={
               pendingTarget ===
@@ -247,7 +247,7 @@ export default function HomeClient({
             value={
               recentApartments.length
             }
-            icon="+"
+            icon="refresh"
             accent="amber"
             pending={
               pendingTarget ===
@@ -545,6 +545,110 @@ export default function HomeClient({
   );
 }
 
+function SummaryIcon({
+  name,
+}: {
+  name:
+    | "calendar"
+    | "home"
+    | "refresh";
+}) {
+  if (name === "calendar") {
+    return (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        aria-hidden="true"
+        className="h-5 w-5 sm:h-6 sm:w-6"
+      >
+        <rect
+          x="4"
+          y="5.5"
+          width="16"
+          height="14"
+          rx="2.5"
+          stroke="currentColor"
+          strokeWidth="1.8"
+        />
+        <path
+          d="M8 3.5V7M16 3.5V7M4 9.5H20"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
+        <path
+          d="M8 13H11M8 16H14"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
+      </svg>
+    );
+  }
+
+  if (name === "home") {
+    return (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        aria-hidden="true"
+        className="h-5 w-5 sm:h-6 sm:w-6"
+      >
+        <path
+          d="M3.5 11.2L12 4L20.5 11.2"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M5.5 10.5V19.5H18.5V10.5"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M9.5 19.5V14H14.5V19.5"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  }
+
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+      className="h-5 w-5 sm:h-6 sm:w-6"
+    >
+      <path
+        d="M19 8A7 7 0 1 0 20 14"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <path
+        d="M19 4V8H15"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12 8V12L15 14"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function SummaryCard({
   label,
   mobileLabel,
@@ -557,7 +661,10 @@ function SummaryCard({
   label: string;
   mobileLabel: string;
   value: number;
-  icon: string;
+  icon:
+    | "calendar"
+    | "home"
+    | "refresh";
   accent:
     | "blue"
     | "emerald"
@@ -601,7 +708,7 @@ function SummaryCard({
       disabled={pending}
       aria-busy={pending}
       className={[
-        "group flex min-w-0 cursor-pointer flex-col items-center justify-center px-1.5 py-3 text-center even:border-x even:border-zinc-200/70",
+        "group flex min-w-0 cursor-pointer flex-col items-center justify-center px-1.5 py-4 text-center even:border-x even:border-zinc-200/70",
         "transition-all duration-200 active:scale-[0.98]",
         "sm:min-h-[92px] sm:flex-row sm:justify-start sm:gap-4 sm:px-6 sm:py-5 sm:text-left",
         "sm:hover:bg-white sm:hover:shadow-[inset_0_0_0_1px_rgba(16,185,129,0.10)]",
@@ -613,17 +720,19 @@ function SummaryCard({
     >
       <span
         className={[
-          "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-sm font-black sm:h-12 sm:w-12 sm:rounded-2xl sm:text-xl",
+          "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl sm:h-12 sm:w-12",
           style.icon,
         ].join(" ")}
       >
-        {icon}
+        <SummaryIcon
+          name={icon}
+        />
       </span>
 
       <div className="mt-1 min-w-0 sm:mt-0">
         <p
           className={[
-            "text-[10px] font-bold sm:hidden",
+            "text-[12px] font-extrabold leading-4 sm:hidden",
             pending
               ? "text-white/80"
               : "text-zinc-500",
@@ -649,7 +758,7 @@ function SummaryCard({
 
         <p
           className={[
-            "mt-0.5 text-xl font-black sm:mt-1 sm:text-2xl",
+            "mt-1 text-[26px] font-black leading-none sm:mt-1 sm:text-2xl",
             pending
               ? "text-white"
               : style.value,

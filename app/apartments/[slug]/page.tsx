@@ -792,7 +792,7 @@ export default async function ApartmentDetailPage({
 
   if (isCompleted) {
     return (
-      <main className="min-h-screen bg-zinc-50 px-4 py-20 text-zinc-900 sm:px-6">
+      <main className="min-h-screen overflow-x-hidden bg-zinc-50 px-4 py-20 text-zinc-900 sm:px-6">
         <section className="mx-auto max-w-3xl rounded-3xl border border-zinc-200 bg-white p-8 text-center shadow-sm sm:p-10">
           <span className="inline-flex rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-500">
             노출 종료

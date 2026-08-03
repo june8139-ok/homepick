@@ -515,10 +515,10 @@ export default function ApartmentHero({
       : "입주 예정";
 
   return (
-    <section className="mt-4 grid gap-3 sm:mt-5 sm:gap-6 lg:grid-cols-[1.4fr_0.8fr]">
+    <section className="mt-4 grid min-w-0 max-w-full gap-3 overflow-x-hidden sm:mt-5 sm:gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.8fr)]">
       <div className="min-w-0">
         {heroImage ? (
-          <div className="group relative h-[230px] overflow-hidden rounded-2xl bg-zinc-100 shadow-sm min-[420px]:h-[270px] sm:h-[360px] sm:rounded-3xl lg:h-full lg:min-h-[470px]">
+          <div className="group relative h-[220px] w-full max-w-full overflow-hidden rounded-2xl bg-zinc-100 shadow-sm min-[420px]:h-[250px] sm:h-[360px] sm:rounded-3xl lg:h-full lg:min-h-[470px]">
             {/* PC 여백은 저용량 최적화 이미지를 흐린 배경으로 채웁니다.
                 CSS background-image를 쓰지 않아 원본 파일의 중복 다운로드를 줄입니다. */}
             <div
@@ -527,7 +527,7 @@ export default function ApartmentHero({
             >
               <Image
                 src={heroImage}
-                alt=""
+                alt={`${apartment.name} 대표 이미지 배경`}
                 fill
                 quality={28}
                 sizes="64vw"
@@ -545,10 +545,11 @@ export default function ApartmentHero({
               fetchPriority="high"
               quality={74}
               sizes="
-                (max-width: 1023px) 100vw,
+                (max-width: 639px) calc(100vw - 24px),
+                (max-width: 1023px) calc(100vw - 48px),
                 64vw
               "
-              className="relative z-[1] object-cover object-center transition-transform duration-500 lg:object-contain sm:group-hover:scale-[1.02]"
+              className="relative z-[1] h-full w-full max-w-full object-cover object-center transition-transform duration-500 lg:object-contain sm:group-hover:scale-[1.02]"
             />
 
             <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-24 bg-gradient-to-t from-black/45 to-transparent sm:h-28" />
@@ -562,7 +563,7 @@ export default function ApartmentHero({
             </div>
           </div>
         ) : (
-          <div className="h-[230px] min-[420px]:h-[270px] sm:h-[360px] lg:h-full lg:min-h-[470px]">
+          <div className="h-[220px] w-full max-w-full min-[420px]:h-[250px] sm:h-[360px] lg:h-full lg:min-h-[470px]">
             <ImagePlaceholder
               label={`${apartment.name} 대표 이미지 준비 중`}
             />
@@ -570,7 +571,7 @@ export default function ApartmentHero({
         )}
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-7">
+      <div className="min-w-0 max-w-full rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-7">
         <div className="flex flex-wrap items-center gap-2">
           <span
             className={[
