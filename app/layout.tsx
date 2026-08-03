@@ -9,6 +9,7 @@ import {
 
 import SiteHeader from "../components/Layout/SiteHeader";
 import SiteFooter from "../components/Layout/SiteFooter";
+import RouteLoadingIndicator from "../components/Layout/RouteLoadingIndicator";
 
 import "./globals.css";
 
@@ -338,6 +339,10 @@ export default function RootLayout({
         />
 
         <div className="flex min-h-screen flex-col bg-[#F7F8FA]">
+          <Suspense fallback={null}>
+            <RouteLoadingIndicator />
+          </Suspense>
+
           <Suspense
             fallback={
               <SiteHeaderFallback />

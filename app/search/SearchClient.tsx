@@ -1,4 +1,5 @@
 "use client";
+import dynamic from "next/dynamic";
 import MobileSearchCarousel from "./components/MobileSearchCarousel";
 
 import {
@@ -29,8 +30,30 @@ import SearchFilters, {
   type SortOption,
 } from "./components/SearchFilters";
 
-import SearchMapPanel from "./components/SearchMapPanel";
 import SearchResultCard from "./components/SearchResultCard";
+
+const SearchMapPanel = dynamic(
+  () =>
+    import(
+      "./components/SearchMapPanel"
+    ),
+  {
+    ssr: false,
+
+    loading: () => (
+      <section className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm lg:rounded-3xl">
+        <div className="border-b border-zinc-200 px-5 py-4">
+          <div className="h-3 w-24 animate-pulse rounded bg-emerald-100" />
+          <div className="mt-2 h-6 w-28 animate-pulse rounded bg-zinc-200" />
+        </div>
+
+        <div className="flex h-[42vh] min-h-[320px] max-h-[460px] items-center justify-center bg-zinc-100 text-sm font-semibold text-zinc-500 lg:h-[calc(100vh-190px)] lg:min-h-[680px] lg:max-h-none">
+          지도를 준비하고 있습니다.
+        </div>
+      </section>
+    ),
+  }
+);
 
 import {
   isApplyHomeUnverified,

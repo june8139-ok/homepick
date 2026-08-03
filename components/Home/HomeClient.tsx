@@ -90,6 +90,35 @@ export default function HomeClient({
 }) {
   const router = useRouter();
 
+  const [
+    pendingTarget,
+    setPendingTarget,
+  ] = useState("");
+
+  const navigate = (
+    href: string,
+    target: string
+  ) => {
+    if (pendingTarget) {
+      return;
+    }
+
+    setPendingTarget(target);
+
+    window.dispatchEvent(
+      new CustomEvent(
+        "jibnun:navigation-start",
+        {
+          detail: {
+            href,
+          },
+        }
+      )
+    );
+
+    router.push(href);
+  };
+
   const visibleApartments = useMemo(
     () =>
       getHomeVisibleApartments(
@@ -157,20 +186,21 @@ export default function HomeClient({
   const openApartment = (
     slug: string
   ) => {
-    router.push(
-      `/apartments/${slug}`
+    navigate(
+      `/apartments/${slug}`,
+      `apartment:${slug}`
     );
   };
 
   return (
-    <main className="min-h-screen bg-white pb-3 text-[#111827] sm:pb-6">
+    <main className="min-h-screen bg-[linear-gradient(180deg,#F8F8F4_0%,#F5F7F5_46%,#F8F6F1_100%)] pb-3 text-[#111827] sm:pb-6">
       <SearchHero
         apartments={visibleApartments}
       />
 
       <section className="mx-auto w-full max-w-[1680px] px-3 sm:px-7 lg:px-10">
         {/* 핵심 현황 */}
-        <section className="mt-4 grid grid-cols-3 overflow-hidden rounded-2xl border border-zinc-200/70 bg-white shadow-[0_14px_38px_rgba(15,118,110,0.07)] sm:mt-7 sm:rounded-3xl">
+        <section className="mt-4 grid grid-cols-3 overflow-hidden rounded-2xl border border-white/80 bg-white/80 shadow-[0_12px_34px_rgba(24,39,32,0.06)] backdrop-blur sm:mt-7 sm:rounded-3xl">
           <SummaryCard
             label="진행 중 청약"
             mobileLabel="청약"
@@ -179,9 +209,14 @@ export default function HomeClient({
             }
             icon="▣"
             accent="blue"
+            pending={
+              pendingTarget ===
+              "summary:subscription"
+            }
             onClick={() =>
-              router.push(
-                "/search?q=청약"
+              navigate(
+                "/search?q=청약",
+                "summary:subscription"
               )
             }
           />
@@ -194,9 +229,14 @@ export default function HomeClient({
             }
             icon="⌂"
             accent="emerald"
+            pending={
+              pendingTarget ===
+              "summary:firstCome"
+            }
             onClick={() =>
-              router.push(
-                "/search?q=선착순"
+              navigate(
+                "/search?q=선착순",
+                "summary:firstCome"
               )
             }
           />
@@ -209,8 +249,15 @@ export default function HomeClient({
             }
             icon="+"
             accent="amber"
+            pending={
+              pendingTarget ===
+              "summary:recent"
+            }
             onClick={() =>
-              router.push("/search")
+              navigate(
+                "/search",
+                "summary:recent"
+              )
             }
           />
         </section>
@@ -305,7 +352,7 @@ export default function HomeClient({
         </div>
 
         {/* PC·태블릿 대시보드 */}
-        <section className="mt-5 hidden gap-5 rounded-[32px] border border-zinc-200/70 bg-white p-5 shadow-[0_18px_48px_rgba(15,118,110,0.055)] sm:grid xl:grid-cols-[1fr_1fr_0.78fr] xl:p-6">
+        <section className="mt-5 hidden gap-5 rounded-[32px] bg-white/68 p-5 shadow-[0_18px_48px_rgba(24,39,32,0.045)] backdrop-blur sm:grid xl:grid-cols-[1fr_1fr_0.78fr] xl:p-6">
           <DashboardPanel
             title="진행 중 청약"
             href="/search?q=청약"
@@ -410,7 +457,7 @@ export default function HomeClient({
         />
 
         {/* 지역 바로가기 */}
-        <section className="mt-4 rounded-2xl border border-zinc-200/70 bg-white px-4 py-5 shadow-[0_16px_42px_rgba(15,118,110,0.05)] sm:mt-6 sm:rounded-[30px] sm:px-8 sm:py-7">
+        <section className="mt-4 rounded-2xl bg-[#EEE9DF]/72 px-4 py-5 shadow-[inset_0_0_0_1px_rgba(120,113,98,0.08)] sm:mt-6 sm:rounded-[30px] sm:px-8 sm:py-7">
           <div className="flex items-center justify-between gap-3 sm:block lg:flex lg:items-center">
             <h2 className="text-base font-black text-[#111827] sm:text-lg">
               지역 바로가기
@@ -437,8 +484,8 @@ export default function HomeClient({
                     inline-flex min-h-10
                     cursor-pointer items-center
                     justify-center rounded-xl
-                    border border-zinc-200/70
-                    bg-zinc-50/80 px-2 py-2
+                    border border-white/80
+                    bg-white/72 px-2 py-2
                     text-xs font-bold
                     text-zinc-600
                     transition-all
@@ -470,7 +517,7 @@ export default function HomeClient({
                     min-w-[60px]
                     cursor-pointer items-center
                     justify-center rounded-full
-                    bg-zinc-50/80 px-3 py-2
+                    bg-white/72 px-3 py-2
                     text-xs font-bold
                     text-zinc-600
                     transition-all duration-200
@@ -505,6 +552,7 @@ function SummaryCard({
   icon,
   accent,
   onClick,
+  pending = false,
 }: {
   label: string;
   mobileLabel: string;
@@ -515,6 +563,7 @@ function SummaryCard({
     | "emerald"
     | "amber";
   onClick: () => void;
+  pending?: boolean;
 }) {
   const style = {
     blue: {
@@ -549,13 +598,17 @@ function SummaryCard({
     <button
       type="button"
       onClick={onClick}
+      disabled={pending}
+      aria-busy={pending}
       className={[
         "group flex min-w-0 cursor-pointer flex-col items-center justify-center px-1.5 py-3 text-center even:border-x even:border-zinc-200/70",
         "transition-all duration-200 active:scale-[0.98]",
         "sm:min-h-[92px] sm:flex-row sm:justify-start sm:gap-4 sm:px-6 sm:py-5 sm:text-left",
         "sm:hover:bg-white sm:hover:shadow-[inset_0_0_0_1px_rgba(16,185,129,0.10)]",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2",
-        style.border,
+        pending
+          ? "bg-emerald-600 text-white shadow-[0_14px_34px_rgba(5,150,105,0.22)]"
+          : style.border,
       ].join(" ")}
     >
       <span
@@ -568,18 +621,38 @@ function SummaryCard({
       </span>
 
       <div className="mt-1 min-w-0 sm:mt-0">
-        <p className="text-[10px] font-bold text-zinc-500 sm:hidden">
-          {mobileLabel}
+        <p
+          className={[
+            "text-[10px] font-bold sm:hidden",
+            pending
+              ? "text-white/80"
+              : "text-zinc-500",
+          ].join(" ")}
+        >
+          {pending
+            ? "이동 중"
+            : mobileLabel}
         </p>
 
-        <p className="hidden text-xs font-bold text-zinc-500 sm:block">
-          {label}
+        <p
+          className={[
+            "hidden text-xs font-bold sm:block",
+            pending
+              ? "text-white/80"
+              : "text-zinc-500",
+          ].join(" ")}
+        >
+          {pending
+            ? `${label} 여는 중…`
+            : label}
         </p>
 
         <p
           className={[
             "mt-0.5 text-xl font-black sm:mt-1 sm:text-2xl",
-            style.value,
+            pending
+              ? "text-white"
+              : style.value,
           ].join(" ")}
         >
           {value}
@@ -590,8 +663,15 @@ function SummaryCard({
         </p>
       </div>
 
-      <span className="ml-auto hidden text-zinc-300 transition-transform duration-200 group-hover:translate-x-1 sm:block">
-        →
+      <span
+        className={[
+          "ml-auto hidden transition-transform duration-200 sm:block",
+          pending
+            ? "animate-spin text-white"
+            : "text-zinc-300 group-hover:translate-x-1",
+        ].join(" ")}
+      >
+        {pending ? "◌" : "→"}
       </span>
     </button>
   );
@@ -607,7 +687,7 @@ function MobileDashboardPanel({
   children: ReactNode;
 }) {
   return (
-    <section className="overflow-hidden rounded-2xl border border-zinc-200/70 bg-white py-3 shadow-[0_12px_30px_rgba(15,118,110,0.055)]">
+    <section className="overflow-hidden rounded-2xl bg-white/82 py-3 shadow-[0_10px_28px_rgba(24,39,32,0.05)] backdrop-blur">
       <div className="flex items-center justify-between gap-3 px-3">
         <h2 className="text-base font-black text-[#111827]">
           {title}
@@ -900,7 +980,9 @@ function MobileApartmentCarousel({
                     border border-zinc-200
                     bg-white text-left
                     shadow-sm transition
-                    active:scale-[0.99]
+                    active:scale-[0.98]
+                    active:border-emerald-400
+                    active:bg-emerald-50
                   "
                 >
                   <div className="relative h-28 overflow-hidden bg-zinc-100">
@@ -998,6 +1080,9 @@ function CompactApartmentCard({
         hover:-translate-y-0.5
         hover:border-emerald-300
         hover:shadow-md
+        active:scale-[0.98]
+        active:border-emerald-400
+        active:bg-emerald-50
         focus-visible:outline-none
         focus-visible:ring-2
         focus-visible:ring-emerald-500

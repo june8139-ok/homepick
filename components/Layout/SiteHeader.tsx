@@ -162,6 +162,11 @@ export default function SiteHeader() {
     setFavoriteCount,
   ] = useState(0);
 
+  const [
+    pendingHref,
+    setPendingHref,
+  ] = useState("");
+
   useEffect(() => {
     const updateCount = () => {
       try {
@@ -213,6 +218,31 @@ export default function SiteHeader() {
   const currentQuery =
     searchParams.get("q") ?? "";
 
+  useEffect(() => {
+    setPendingHref("");
+  }, [
+    pathname,
+    currentQuery,
+  ]);
+
+  const beginNavigation = (
+    href: string
+  ) => {
+    setPendingHref(href);
+    setIsMenuOpen(false);
+
+    window.dispatchEvent(
+      new CustomEvent(
+        "jibnun:navigation-start",
+        {
+          detail: {
+            href,
+          },
+        }
+      )
+    );
+  };
+
   const handleSearch = () => {
     const keyword =
       searchKeyword.trim();
@@ -221,7 +251,11 @@ export default function SiteHeader() {
       return;
     }
 
-    setIsMenuOpen(false);
+    beginNavigation(
+      `/search?q=${encodeURIComponent(
+        keyword
+      )}`
+    );
 
     router.push(
       `/search?q=${encodeURIComponent(
@@ -290,9 +324,7 @@ export default function SiteHeader() {
         <Link
           href="/"
           onClick={() =>
-            setIsMenuOpen(
-              false
-            )
+            beginNavigation("/")
           }
           className="
             group flex shrink-0
@@ -339,13 +371,25 @@ export default function SiteHeader() {
                   href={
                     item.href
                   }
+                  onClick={() =>
+                    beginNavigation(
+                      item.href
+                    )
+                  }
+                  aria-busy={
+                    pendingHref ===
+                    item.href
+                  }
                   className={[
                     "rounded-xl px-4 py-2.5 text-sm font-bold transition-all duration-200",
                     "hover:bg-emerald-50 hover:text-emerald-700",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2",
-                    active
-                      ? "bg-emerald-50 text-emerald-700"
-                      : "text-zinc-700",
+                    pendingHref ===
+                    item.href
+                      ? "bg-emerald-600 text-white shadow-sm"
+                      : active
+                        ? "bg-emerald-50 text-emerald-700"
+                        : "text-zinc-700",
                   ].join(
                     " "
                   )}
@@ -524,7 +568,7 @@ export default function SiteHeader() {
                   rounded-2xl border
                   border-zinc-200
                   bg-zinc-50 pl-11 pr-14
-                  text-sm font-medium
+                  text-base font-medium
                   outline-none
                   transition-all duration-200
                   placeholder:text-zinc-400
@@ -581,16 +625,23 @@ export default function SiteHeader() {
                         item.href
                       }
                       onClick={() =>
-                        setIsMenuOpen(
-                          false
+                        beginNavigation(
+                          item.href
                         )
+                      }
+                      aria-busy={
+                        pendingHref ===
+                        item.href
                       }
                       className={[
                         "flex min-h-12 items-center justify-center rounded-2xl border px-3 py-3 text-sm font-bold transition-all duration-200",
                         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2",
-                        active
-                          ? "border-emerald-300 bg-emerald-50 text-emerald-700"
-                          : "border-zinc-200 bg-white text-[#132238] hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700",
+                        pendingHref ===
+                        item.href
+                          ? "border-emerald-600 bg-emerald-600 text-white shadow-sm"
+                          : active
+                            ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+                            : "border-zinc-200 bg-white text-[#132238] hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 active:border-emerald-400 active:bg-emerald-50 active:text-emerald-800",
                       ].join(
                         " "
                       )}

@@ -4,8 +4,14 @@ import { Suspense } from "react";
 import SearchClient from "./SearchClient";
 import { getApartments } from "../../lib/getApartments";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+/*
+ * 검색페이지는 청약홈 동기화 직후에도 충분히 빠르게 반영되도록
+ * 60초 단위로 재검증합니다.
+ *
+ * 매 이동마다 전체 단지 데이터를 다시 읽는 force-dynamic은
+ * 모바일 페이지 전환 지연을 크게 만들 수 있어 제거합니다.
+ */
+export const revalidate = 60;
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(
