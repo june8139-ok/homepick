@@ -2,6 +2,7 @@ import type {
   Metadata,
 } from "next";
 
+import Image from "next/image";
 import Link from "next/link";
 
 import RegionSearch from "../../components/Region/RegionSearch";
@@ -317,11 +318,13 @@ function CityCard({
     >
       <div className="relative h-36 overflow-hidden bg-zinc-100 sm:h-44">
         {image ? (
-          <img
+          <Image
             src={image}
             alt={`${city.cityName} 최근 등록 분양 아파트`}
-            loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            fill
+            quality={72}
+            sizes="(max-width: 639px) 100vw, (max-width: 1279px) 50vw, 33vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
           <div className="flex h-full items-center justify-center text-sm font-semibold text-zinc-400">

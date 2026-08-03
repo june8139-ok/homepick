@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 import { useAdmin } from "./AdminContext";
 
 function getConditionText(
@@ -236,14 +238,19 @@ export default function PreviewSection() {
 
       <article className="mt-6 overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm">
         {heroImage ? (
-          <img
-            src={heroImage}
-            alt={
-              basicInfo.name ||
-              "대표 이미지"
-            }
-            className="h-40 w-full object-cover"
-          />
+          <div className="relative h-40 w-full">
+            <Image
+              src={heroImage}
+              alt={
+                basicInfo.name ||
+                "대표 이미지"
+              }
+              fill
+              quality={72}
+              sizes="(max-width: 639px) 100vw, 480px"
+              className="object-cover"
+            />
+          </div>
         ) : (
           <div className="flex h-40 items-center justify-center bg-zinc-100 text-sm font-semibold text-zinc-400">
             대표 이미지 미리보기

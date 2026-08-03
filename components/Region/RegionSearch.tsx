@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import {
   useRef,
@@ -345,13 +346,15 @@ export default function RegionSearch({
                             <div className="flex min-h-[118px]">
                               <div className="relative w-28 shrink-0 overflow-hidden bg-zinc-100 sm:w-32">
                                 {apartment.image ? (
-                                  <img
+                                  <Image
                                     src={
                                       apartment.image
                                     }
                                     alt={`${apartment.name} 대표 이미지`}
-                                    loading="lazy"
-                                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                    fill
+                                    quality={68}
+                                    sizes="(max-width: 639px) 112px, 128px"
+                                    className="object-cover transition-transform duration-300 group-hover:scale-105"
                                   />
                                 ) : (
                                   <div className="flex h-full items-center justify-center px-2 text-center text-[10px] font-semibold text-zinc-400">

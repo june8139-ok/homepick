@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
@@ -613,10 +614,13 @@ export default function CompareClient({
                 >
                   <div className="relative h-28 bg-zinc-100 min-[400px]:h-32 sm:h-72">
                     {image ? (
-                      <img
+                      <Image
                         src={image}
                         alt={`${apartment.name} 대표 이미지`}
-                        className="h-full w-full object-cover"
+                        fill
+                        quality={72}
+                        sizes="(max-width: 639px) 50vw, 50vw"
+                        className="object-cover"
                       />
                     ) : (
                       <div className="flex h-full items-center justify-center px-2 text-center text-[10px] font-semibold text-zinc-400 sm:text-sm">
