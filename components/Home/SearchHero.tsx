@@ -436,10 +436,10 @@ function SearchHero({
     suggestions.length > 0;
 
   return (
-    <section className="relative z-30 w-full max-w-full overflow-x-hidden overflow-y-visible rounded-[26px] bg-[linear-gradient(115deg,#FFFFFF_0%,#FBFDFB_42%,#EAF6F1_100%)] shadow-[0_24px_70px_rgba(28,61,50,0.10)] ring-1 ring-white/90 sm:rounded-[44px]">
-      <div className="grid lg:min-h-[455px] lg:grid-cols-[0.82fr_1.18fr] xl:min-h-[500px]">
+    <section className="relative z-30 w-full overflow-x-hidden overflow-y-visible bg-[linear-gradient(115deg,#FFFFFF_0%,#FBFDFB_42%,#EAF6F1_100%)]">
+      <div className="mx-auto grid w-full max-w-[1920px] lg:min-h-[455px] lg:grid-cols-[0.82fr_1.18fr] xl:min-h-[500px]">
         {/* 왼쪽 검색 영역 */}
-        <div className="relative z-20 flex min-w-0 flex-col justify-center px-5 pb-7 pt-6 sm:px-11 sm:py-12 lg:px-14 xl:px-[72px]">
+        <div className="relative z-20 flex min-w-0 flex-col justify-center px-5 pb-8 pt-7 sm:px-12 sm:py-14 lg:pl-[max(3.5rem,calc((100vw-1680px)/2+3.5rem))] lg:pr-14 xl:pl-[max(4.5rem,calc((100vw-1680px)/2+4.5rem))] xl:pr-[72px]">
           <div className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-200/70 bg-white/68 px-3 py-1.5 text-[10px] font-extrabold text-[#0F766E] shadow-sm sm:px-4 sm:py-2 sm:text-xs">
             <span
               aria-hidden="true"
@@ -739,7 +739,7 @@ function SearchHero({
             </div>
           )}
 
-          <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-black/35 via-transparent to-transparent lg:bg-gradient-to-r lg:from-white lg:via-white/40 lg:via-30% lg:to-transparent" />
+          <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-black/35 via-transparent to-transparent lg:bg-gradient-to-r lg:from-[#FBFDFB] lg:via-white/30 lg:via-24% lg:to-transparent" />
 
           {featuredApartment && (
             <button
@@ -753,9 +753,9 @@ function SearchHero({
                 group absolute bottom-3
                 left-3 right-3 z-20
                 cursor-pointer rounded-xl
-                border border-white/70
-                bg-white/92 p-3
-                text-left shadow-xl
+                border border-white/60
+                bg-white/90 p-3
+                text-left shadow-[0_16px_42px_rgba(17,24,39,0.16)]
                 backdrop-blur-xl
                 transition-all
                 hover:-translate-y-1

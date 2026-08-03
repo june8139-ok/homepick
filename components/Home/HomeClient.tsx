@@ -163,14 +163,14 @@ export default function HomeClient({
   };
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(180deg,#F8F8F4_0%,#F5F7F5_46%,#F8F6F1_100%)] py-3 text-[#111827] sm:py-6">
-      <section className="mx-auto w-full max-w-[1680px] px-3 sm:px-7 lg:px-10">
-        <SearchHero
-          apartments={visibleApartments}
-        />
+    <main className="min-h-screen bg-[linear-gradient(180deg,#F8F8F4_0%,#F5F7F5_46%,#F8F6F1_100%)] pb-3 text-[#111827] sm:pb-6">
+      <SearchHero
+        apartments={visibleApartments}
+      />
 
+      <section className="mx-auto w-full max-w-[1680px] px-3 sm:px-7 lg:px-10">
         {/* 핵심 현황 */}
-        <section className="mt-3 grid grid-cols-3 overflow-hidden rounded-2xl border border-white/80 bg-white/80 shadow-[0_12px_34px_rgba(24,39,32,0.06)] backdrop-blur sm:mt-5 sm:rounded-3xl">
+        <section className="mt-4 grid grid-cols-3 overflow-hidden rounded-2xl border border-white/80 bg-white/80 shadow-[0_12px_34px_rgba(24,39,32,0.06)] backdrop-blur sm:mt-7 sm:rounded-3xl">
           <SummaryCard
             label="진행 중 청약"
             mobileLabel="청약"
