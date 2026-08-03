@@ -351,7 +351,7 @@ export default function RootLayout({
             <SiteHeader />
           </Suspense>
 
-          <div className="min-w-0 flex-1 bg-[#F7F8FA]">
+          <div className="min-w-0 min-h-[calc(100svh-72px)] flex-1 bg-[#F7F8FA]">
             {children}
           </div>
 

@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 import {
   useCallback,
   useEffect,
@@ -1622,16 +1624,19 @@ export default function SearchMapPanel({
           floatingStatus && (
             <div className="absolute bottom-5 right-5 z-30 hidden w-[330px] overflow-hidden rounded-3xl border border-white/80 bg-white/95 shadow-2xl backdrop-blur-xl md:block">
               <div className="flex gap-3 p-4">
-                <div className="h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-zinc-100">
+                <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-zinc-100">
                   {floatingImage ? (
-                    <img
+                    <Image
                       src={
                         floatingImage
                       }
                       alt={
                         floatingApartment.name
                       }
-                      className="h-full w-full object-cover"
+                      fill
+                      quality={68}
+                      sizes="96px"
+                      className="object-cover"
                     />
                   ) : (
                     <div className="flex h-full items-center justify-center text-xs text-zinc-400">
