@@ -73,6 +73,88 @@ function getHeroImage(
   );
 }
 
+
+function formatPriceAmount(
+  amountInTenThousands: number
+) {
+  if (
+    !Number.isFinite(
+      amountInTenThousands
+    ) ||
+    amountInTenThousands <= 0
+  ) {
+    return "";
+  }
+
+  const eok = Math.floor(
+    amountInTenThousands / 10000
+  );
+
+  const remainder =
+    amountInTenThousands % 10000;
+
+  if (eok === 0) {
+    return `${amountInTenThousands.toLocaleString(
+      "ko-KR"
+    )}만원`;
+  }
+
+  if (remainder === 0) {
+    return `${eok.toLocaleString(
+      "ko-KR"
+    )}억원`;
+  }
+
+  return `${eok.toLocaleString(
+    "ko-KR"
+  )}억 ${remainder.toLocaleString(
+    "ko-KR"
+  )}만원`;
+}
+
+function formatHomePriceText(
+  value?: string | null
+) {
+  if (!value?.trim()) {
+    return "";
+  }
+
+  return value.replace(
+    /(\d{1,3}(?:,\d{3})*|\d+)\s*만원/g,
+    (match, amountText: string) => {
+      const amount = Number(
+        amountText.replace(
+          /,/g,
+          ""
+        )
+      );
+
+      return (
+        formatPriceAmount(
+          amount
+        ) || match
+      );
+    }
+  );
+}
+
+function getHomePriceText(
+  apartment: Apartment,
+  fallback: string
+) {
+  const raw =
+    apartment.priceDetail
+      ?.salePrice ||
+    apartment.price ||
+    apartment.condition ||
+    fallback;
+
+  return (
+    formatHomePriceText(raw) ||
+    fallback
+  );
+}
+
 function isManualApartment(
   apartment: Apartment
 ) {
@@ -1142,12 +1224,10 @@ function MobileApartmentCarousel({
                     </h3>
 
                     <p className="mt-2 truncate text-xs font-bold text-emerald-700">
-                      {apartment
-                        .priceDetail
-                        ?.salePrice ||
-                        apartment.price ||
-                        apartment.condition ||
-                        "상세정보 확인"}
+                      {getHomePriceText(
+                        apartment,
+                        "상세정보 확인"
+                      )}
                     </p>
                   </div>
                 </button>
@@ -1245,11 +1325,10 @@ function CompactApartmentCard({
         </p>
 
         <p className="mt-2 truncate text-xs font-bold text-emerald-700">
-          {apartment.priceDetail
-            ?.salePrice ||
-            apartment.price ||
-            apartment.condition ||
-            "상세정보 확인"}
+          {getHomePriceText(
+            apartment,
+            "상세정보 확인"
+          )}
         </p>
       </div>
     </button>
@@ -1319,11 +1398,10 @@ function RecentApartmentRow({
         </p>
 
         <p className="mt-0.5 truncate text-[11px] font-bold text-zinc-700 sm:mt-1 sm:text-xs">
-          {apartment.priceDetail
-            ?.salePrice ||
-            apartment.price ||
-            apartment.condition ||
-            "정보 확인"}
+          {getHomePriceText(
+            apartment,
+            "정보 확인"
+          )}
         </p>
       </div>
 
