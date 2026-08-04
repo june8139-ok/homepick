@@ -552,7 +552,10 @@ export default function SaleDetail({
 
   return (
     <div className="mt-5 space-y-5 sm:mt-8 sm:space-y-8">
-      <section>
+      <section
+        id="price"
+        className="scroll-mt-24"
+      >
         <SectionHeader
           eyebrow="PRICE & CONTRACT"
           title="가격 및 계약조건"
@@ -609,7 +612,10 @@ export default function SaleDetail({
         </section>
       )}
 
-      <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-7">
+      <section
+        id="overview"
+        className="scroll-mt-24 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-7"
+      >
         <SectionHeader
           eyebrow="PROJECT OVERVIEW"
           title="사업개요"
@@ -727,18 +733,26 @@ export default function SaleDetail({
         </div>
       </section>
 
-      <ApartmentImageSections
-        images={
-          apartment.images
-        }
-        apartmentName={
-          apartment.name
-        }
-      />
+      <section
+        id="images"
+        className="scroll-mt-24"
+      >
+        <ApartmentImageSections
+          images={
+            apartment.images
+          }
+          apartmentName={
+            apartment.name
+          }
+        />
+      </section>
 
       {informationCards.length >
         0 && (
-        <section className="rounded-2xl border border-zinc-200 bg-[#F8FAF7] p-4 shadow-sm sm:rounded-3xl sm:p-7">
+        <section
+          id="location"
+          className="scroll-mt-24 rounded-2xl border border-zinc-200 bg-[#F8FAF7] p-4 shadow-sm sm:rounded-3xl sm:p-7"
+        >
           <SectionHeader
             eyebrow="LOCATION & LIVING"
             title="입지·생활정보"
@@ -801,19 +815,24 @@ export default function SaleDetail({
         </div>
       </section>
 
-      <ReservationCard
-        apartmentSlug={
-          apartment.slug
-        }
-        apartmentName={
-          apartment.name
-        }
-        mode="sale"
-        kakaoUrl="https://pf.kakao.com/_RxfsxnX/chat"
-        floorPlanNames={
-          floorPlanNames
-        }
-      />
+      <section
+        id="inquiry"
+        className="scroll-mt-24"
+      >
+        <ReservationCard
+          apartmentSlug={
+            apartment.slug
+          }
+          apartmentName={
+            apartment.name
+          }
+          mode="sale"
+          kakaoUrl="https://pf.kakao.com/_RxfsxnX/chat"
+          floorPlanNames={
+            floorPlanNames
+          }
+        />
+      </section>
     </div>
   );
 }

@@ -136,21 +136,21 @@ export default function ApartmentImageSections({
   images,
   apartmentName = "",
 }: Props) {
-  const location =
-    images?.location ?? [];
-
-  const floorPlans =
-    images?.floorPlans ?? [];
-
-  const community =
-    images?.community ?? [];
-
-  const gallery =
-    images?.gallery ?? [];
-
   const imageItems =
     useMemo<ImageItem[]>(
       () => {
+        const location =
+          images?.location ?? [];
+
+        const floorPlans =
+          images?.floorPlans ?? [];
+
+        const community =
+          images?.community ?? [];
+
+        const gallery =
+          images?.gallery ?? [];
+
         const result: ImageItem[] =
           [];
 
@@ -245,10 +245,7 @@ export default function ApartmentImageSections({
       },
       [
         apartmentName,
-        community,
-        floorPlans,
-        gallery,
-        location,
+        images,
       ]
     );
 

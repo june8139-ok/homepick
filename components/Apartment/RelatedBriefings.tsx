@@ -34,7 +34,10 @@ export default function RelatedBriefings({
   }
 
   return (
-    <section className="mt-6 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:mt-8 sm:rounded-3xl sm:p-6">
+    <section
+      id="briefing"
+      className="mt-6 scroll-mt-24 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:mt-8 sm:rounded-3xl sm:p-6"
+    >
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-xs font-extrabold text-emerald-600 sm:text-sm">

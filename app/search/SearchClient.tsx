@@ -414,104 +414,18 @@ function distanceKm(
   );
 }
 
-function getHeroImage(
-  apartment: Apartment
-) {
-  const hero =
-    apartment.images?.hero;
-
-  if (Array.isArray(hero)) {
-    const firstImage =
-      hero.find(
-        (image) =>
-          typeof image === "string" &&
-          image.trim() &&
-          !image.includes(
-            "/images/apartments/default/main.jpg"
-          )
-      );
-
-    if (firstImage) {
-      return firstImage;
-    }
+function getPresetStatus(
+  query: string
+): SearchFilterState["status"] {
+  if (query === "청약") {
+    return "청약";
   }
 
-  if (
-    typeof hero === "string" &&
-    hero.trim() &&
-    !hero.includes(
-      "/images/apartments/default/main.jpg"
-    )
-  ) {
-    return hero;
+  if (query === "선착순") {
+    return "선착순";
   }
 
-  return (
-    apartment.images?.gallery?.find(
-      (image) =>
-        Boolean(image) &&
-        !image.includes(
-          "/images/apartments/default/main.jpg"
-        )
-    ) ?? ""
-  );
-}
-
-function getStatusInfo(
-  apartment: Apartment
-) {
-  const stage =
-    getListingStage(
-      apartment
-    );
-
-  if (stage === "subscription") {
-    return {
-      label:
-        apartment.status ||
-        "청약",
-      className:
-        "bg-blue-600 text-white",
-    };
-  }
-
-  if (stage === "firstCome") {
-    return {
-      label: "선착순",
-      className:
-        "bg-emerald-600 text-white",
-    };
-  }
-
-  return {
-    label:
-      apartment.status ||
-      "분양중",
-
-    className:
-      "bg-amber-500 text-white",
-  };
-}
-
-function formatDistance(
-  distance?: number
-) {
-  if (
-    distance === undefined ||
-    !Number.isFinite(distance)
-  ) {
-    return "";
-  }
-
-  if (distance < 1) {
-    return `${Math.round(
-      distance * 1000
-    )}m`;
-  }
-
-  return distance < 10
-    ? `${distance.toFixed(1)}km`
-    : `${Math.round(distance)}km`;
+  return "";
 }
 
 export default function SearchClient({
@@ -540,7 +454,11 @@ export default function SearchClient({
 
   const [filters, setFilters] =
     useState<SearchFilterState>(
-      DEFAULT_FILTERS
+      () => ({
+        ...DEFAULT_FILTERS,
+        status:
+          getPresetStatus(query),
+      })
     );
 
   const [sort, setSort] =
@@ -608,8 +526,23 @@ export default function SearchClient({
     useDeferredValue(keyword);
 
   useEffect(() => {
-    setKeyword(query);
-    setSuggestionIndex(-1);
+    const frame =
+      requestAnimationFrame(() => {
+        setKeyword(query);
+        setSuggestionIndex(-1);
+
+        setFilters((current) => ({
+          ...current,
+          status:
+            getPresetStatus(
+              query
+            ),
+        }));
+      });
+
+    return () => {
+      cancelAnimationFrame(frame);
+    };
   }, [query]);
 
   const distances = useMemo(() => {
@@ -649,8 +582,17 @@ export default function SearchClient({
 
   const filteredResults =
     useMemo(() => {
+      const presetStatus =
+        getPresetStatus(query);
+
       const normalizedQuery =
-        normalize(query);
+        presetStatus
+          ? ""
+          : normalize(query);
+
+      const effectiveStatus =
+        presetStatus ||
+        filters.status;
 
       const result =
         sourceApartments.filter(
@@ -671,7 +613,7 @@ export default function SearchClient({
               ) &&
               statusMatch(
                 apartment,
-                filters.status
+                effectiveStatus
               ) &&
               (filters.benefits
                 .length === 0 ||
@@ -753,19 +695,26 @@ export default function SearchClient({
     );
 
   useEffect(() => {
-    setVisibleSlugs(null);
-    setHoveredSlug(null);
+    const frame =
+      requestAnimationFrame(() => {
+        setVisibleSlugs(null);
+        setHoveredSlug(null);
 
-    if (
-      selectedSlug &&
-      !filteredResults.some(
-        (item) =>
-          item.slug ===
-          selectedSlug
-      )
-    ) {
-      setSelectedSlug(null);
-    }
+        if (
+          selectedSlug &&
+          !filteredResults.some(
+            (item) =>
+              item.slug ===
+              selectedSlug
+          )
+        ) {
+          setSelectedSlug(null);
+        }
+      });
+
+    return () => {
+      cancelAnimationFrame(frame);
+    };
   }, [
     filteredResults,
     resultSignature,

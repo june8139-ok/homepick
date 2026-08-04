@@ -427,7 +427,10 @@ export default function SubscriptionDetail({
       </section>
 
       {/* 청약 일정 */}
-      <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-7">
+      <section
+        id="schedule"
+        className="scroll-mt-24 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-7"
+      >
         <p className="text-xs font-bold text-emerald-700 sm:text-sm">
           SUBSCRIPTION SCHEDULE
         </p>
@@ -455,13 +458,21 @@ export default function SubscriptionDetail({
       </section>
 
       {/* 평형별 분양가 */}
-      <UnitPriceCard
-        apartment={apartment}
-        title="평형별 분양가"
-      />
+      <section
+        id="price"
+        className="scroll-mt-24"
+      >
+        <UnitPriceCard
+          apartment={apartment}
+          title="평형별 분양가"
+        />
+      </section>
 
       {/* 사업개요 */}
-      <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-7">
+      <section
+        id="overview"
+        className="scroll-mt-24 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-7"
+      >
         <p className="text-xs font-bold text-zinc-500 sm:text-sm">
           PROJECT OVERVIEW
         </p>
@@ -515,7 +526,10 @@ export default function SubscriptionDetail({
 
       {/* 단지 사진·평면도 */}
       {hasDetailImages && (
-        <section>
+        <section
+          id="images"
+          className="scroll-mt-24"
+        >
           <header>
             <p className="text-xs font-extrabold text-zinc-500 sm:text-sm">
               PHOTO &amp; FLOOR PLAN
@@ -540,18 +554,23 @@ export default function SubscriptionDetail({
       )}
 
       {/* 청약 상담·알림 */}
-      <SubscriptionAlertForm
-        apartmentSlug={
-          apartment.slug
-        }
-        apartmentName={
-          apartment.name
-        }
-        leadType={
-          apartment.leadType ??
-          "schedule"
-        }
-      />
+      <section
+        id="inquiry"
+        className="scroll-mt-24"
+      >
+        <SubscriptionAlertForm
+          apartmentSlug={
+            apartment.slug
+          }
+          apartmentName={
+            apartment.name
+          }
+          leadType={
+            apartment.leadType ??
+            "schedule"
+          }
+        />
+      </section>
 
       {/* 청약홈 연결 */}
       <section className="rounded-2xl bg-zinc-900 p-4 text-white shadow-sm sm:rounded-3xl sm:p-7">

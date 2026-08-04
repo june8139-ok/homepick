@@ -437,6 +437,39 @@ function SummaryInfoCard({
   );
 }
 
+
+function DetailQuickNav({
+  items,
+}: {
+  items: {
+    label: string;
+    href: string;
+  }[];
+}) {
+  if (items.length === 0) {
+    return null;
+  }
+
+  return (
+    <nav
+      aria-label="단지 상세 바로가기"
+      className="mt-3 overflow-x-auto rounded-2xl border border-zinc-200 bg-white px-3 py-2 shadow-sm [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mt-5 sm:px-4 sm:py-3"
+    >
+      <div className="flex min-w-max items-center gap-2">
+        {items.map((item) => (
+          <a
+            key={item.href}
+            href={item.href}
+            className="inline-flex min-h-9 items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 px-3 text-xs font-extrabold text-zinc-600 transition hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 sm:min-h-10 sm:px-4 sm:text-sm"
+          >
+            {item.label}
+          </a>
+        ))}
+      </div>
+    </nav>
+  );
+}
+
 export default function ApartmentHero({
   apartment,
 }: Props) {
@@ -514,8 +547,97 @@ export default function ApartmentHero({
       ? "입주 완료"
       : "입주 예정";
 
+  const hasDetailImages = Boolean(
+    apartment.images?.location
+      ?.length ||
+      apartment.images
+        ?.floorPlans?.length ||
+      apartment.images?.community
+        ?.length ||
+      apartment.images?.gallery
+        ?.length
+  );
+
+  const hasLocationInfo = Boolean(
+    (displayApartment.locationInfo &&
+      Object.values(
+        displayApartment.locationInfo
+      ).some(
+        (value) =>
+          typeof value ===
+            "string" &&
+          value.trim()
+      )) ||
+      displayApartment.pros?.length ||
+      displayApartment.cons?.length
+  );
+
+  const quickNavItems =
+    isSubscription
+      ? [
+          {
+            label: "청약일정",
+            href: "#schedule",
+          },
+          {
+            label: "분양가",
+            href: "#price",
+          },
+          {
+            label: "사업개요",
+            href: "#overview",
+          },
+          ...(hasDetailImages
+            ? [
+                {
+                  label:
+                    "평면도·사진",
+                  href: "#images",
+                },
+              ]
+            : []),
+          {
+            label: "청약알림",
+            href: "#inquiry",
+          },
+        ]
+      : [
+          {
+            label:
+              "가격·계약조건",
+            href: "#price",
+          },
+          {
+            label: "사업개요",
+            href: "#overview",
+          },
+          ...(hasDetailImages
+            ? [
+                {
+                  label:
+                    "평면도·사진",
+                  href: "#images",
+                },
+              ]
+            : []),
+          ...(hasLocationInfo
+            ? [
+                {
+                  label:
+                    "입지·생활",
+                  href: "#location",
+                },
+              ]
+            : []),
+          {
+            label: "상담신청",
+            href: "#inquiry",
+          },
+        ];
+
   return (
-    <section className="mt-4 grid min-w-0 max-w-full gap-3 overflow-x-hidden sm:mt-5 sm:gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.8fr)]">
+    <>
+      <section className="mt-4 grid min-w-0 max-w-full gap-3 overflow-x-hidden sm:mt-5 sm:gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.8fr)]">
       <div className="min-w-0">
         {heroImage ? (
           <div className="group relative h-[220px] w-full max-w-full overflow-hidden rounded-2xl bg-zinc-100 shadow-sm min-[420px]:h-[250px] sm:h-[360px] sm:rounded-3xl lg:h-full lg:min-h-[470px]">
@@ -765,6 +887,11 @@ export default function ApartmentHero({
           </>
         )}
       </div>
-    </section>
+      </section>
+
+      <DetailQuickNav
+        items={quickNavItems}
+      />
+    </>
   );
 }

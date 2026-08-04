@@ -218,18 +218,64 @@ export default function SiteHeader() {
   const currentQuery =
     searchParams.get("q") ?? "";
 
-  useEffect(() => {
-    setPendingHref("");
-  }, [
-    pathname,
-    currentQuery,
-  ]);
+  const currentHref =
+    pathname === "/search" &&
+    currentQuery
+      ? `/search?q=${encodeURIComponent(
+          currentQuery
+        )}`
+      : pathname;
+
+  const normalizeHref = (
+    href: string
+  ) => {
+    const url = new URL(
+      href,
+      window.location.origin
+    );
+
+    const normalizedPathname =
+      url.pathname.length > 1
+        ? url.pathname.replace(
+            /\/+$/,
+            ""
+          )
+        : url.pathname;
+
+    return `${normalizedPathname}${url.search}`;
+  };
+
+  const isPendingHref = (
+    href: string
+  ) =>
+    Boolean(
+      pendingHref &&
+      normalizeHref(
+        pendingHref
+      ) ===
+        normalizeHref(href) &&
+      normalizeHref(href) !==
+        normalizeHref(
+          currentHref
+        )
+    );
 
   const beginNavigation = (
     href: string
   ) => {
-    setPendingHref(href);
     setIsMenuOpen(false);
+
+    if (
+      normalizeHref(href) ===
+      normalizeHref(
+        currentHref
+      )
+    ) {
+      setPendingHref("");
+      return false;
+    }
+
+    setPendingHref(href);
 
     window.dispatchEvent(
       new CustomEvent(
@@ -241,6 +287,8 @@ export default function SiteHeader() {
         }
       )
     );
+
+    return true;
   };
 
   const handleSearch = () => {
@@ -251,17 +299,16 @@ export default function SiteHeader() {
       return;
     }
 
-    beginNavigation(
+    const href =
       `/search?q=${encodeURIComponent(
         keyword
-      )}`
-    );
+      )}`;
 
-    router.push(
-      `/search?q=${encodeURIComponent(
-        keyword
-      )}`
-    );
+    if (!beginNavigation(href)) {
+      return;
+    }
+
+    router.push(href);
   };
 
   const handleSearchKeyDown = (
@@ -377,15 +424,17 @@ export default function SiteHeader() {
                     )
                   }
                   aria-busy={
-                    pendingHref ===
-                    item.href
+                    isPendingHref(
+                      item.href
+                    )
                   }
                   className={[
                     "rounded-xl px-4 py-2.5 text-sm font-bold transition-all duration-200",
                     "hover:bg-emerald-50 hover:text-emerald-700",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2",
-                    pendingHref ===
-                    item.href
+                    isPendingHref(
+                      item.href
+                    )
                       ? "bg-emerald-600 text-white shadow-sm"
                       : active
                         ? "bg-emerald-50 text-emerald-700"
