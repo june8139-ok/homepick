@@ -34,7 +34,11 @@ function normalizeUrl(
         )
       : url.pathname;
 
-  return `${pathname}${url.search}${url.hash}`;
+  /*
+   * #price, #overview 같은 내부 섹션 이동은
+   * 실제 페이지 이동이 아니므로 제외합니다.
+   */
+  return `${pathname}${url.search}`;
 }
 
 function currentUrl() {
