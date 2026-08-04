@@ -1,7 +1,9 @@
 "use client";
 
 import {
+  useCallback,
   useEffect,
+  useRef,
   useState,
 } from "react";
 
@@ -9,6 +11,37 @@ import {
   usePathname,
   useSearchParams,
 } from "next/navigation";
+
+const MAX_LOADING_TIME = 8000;
+
+function normalizeUrl(
+  value: string,
+) {
+  const url = new URL(
+    value,
+    window.location.href,
+  );
+
+  /*
+   * 주소 끝의 불필요한 슬래시 차이도
+   * 같은 페이지로 판단합니다.
+   */
+  const pathname =
+    url.pathname.length > 1
+      ? url.pathname.replace(
+          /\/+$/,
+          "",
+        )
+      : url.pathname;
+
+  return `${pathname}${url.search}${url.hash}`;
+}
+
+function currentUrl() {
+  return normalizeUrl(
+    window.location.href,
+  );
+}
 
 export default function RouteLoadingIndicator() {
   const pathname =
@@ -22,13 +55,87 @@ export default function RouteLoadingIndicator() {
     setLoading,
   ] = useState(false);
 
+  const loadingTimerRef =
+    useRef<ReturnType<
+      typeof setTimeout
+    > | null>(null);
+
+  const clearLoadingTimer =
+    useCallback(() => {
+      if (
+        loadingTimerRef.current
+      ) {
+        clearTimeout(
+          loadingTimerRef.current,
+        );
+
+        loadingTimerRef.current =
+          null;
+      }
+    }, []);
+
+  const stopLoading =
+    useCallback(() => {
+      clearLoadingTimer();
+      setLoading(false);
+    }, [clearLoadingTimer]);
+
+  const startLoading =
+    useCallback(
+      (
+        destination?: string,
+      ) => {
+        /*
+         * 이동할 주소가 현재 주소와 같다면
+         * 로딩 표시를 시작하지 않습니다.
+         */
+        if (
+          destination &&
+          normalizeUrl(
+            destination,
+          ) === currentUrl()
+        ) {
+          stopLoading();
+          return;
+        }
+
+        clearLoadingTimer();
+        setLoading(true);
+
+        /*
+         * 라우터가 완료 신호를 놓치더라도
+         * 무한 로딩으로 남지 않도록 합니다.
+         */
+        loadingTimerRef.current =
+          setTimeout(() => {
+            setLoading(false);
+
+            loadingTimerRef.current =
+              null;
+          }, MAX_LOADING_TIME);
+      },
+      [
+        clearLoadingTimer,
+        stopLoading,
+      ],
+    );
+
   useEffect(() => {
-    const start = () => {
-      setLoading(true);
+    const handleNavigationStart = (
+      event: Event,
+    ) => {
+      const customEvent =
+        event as CustomEvent<{
+          href?: string;
+        }>;
+
+      startLoading(
+        customEvent.detail?.href,
+      );
     };
 
     const handleDocumentClick = (
-      event: MouseEvent
+      event: MouseEvent,
     ) => {
       if (
         event.defaultPrevented ||
@@ -46,64 +153,108 @@ export default function RouteLoadingIndicator() {
 
       const anchor =
         target?.closest<HTMLAnchorElement>(
-          "a[href]"
+          "a[href]",
         );
 
       if (
         !anchor ||
         anchor.target === "_blank" ||
-        anchor.hasAttribute("download")
+        anchor.hasAttribute(
+          "download",
+        )
       ) {
         return;
       }
 
       const url = new URL(
         anchor.href,
-        window.location.href
+        window.location.href,
       );
 
       if (
         url.origin !==
-          window.location.origin ||
-        url.href ===
-          window.location.href
+        window.location.origin
       ) {
         return;
       }
 
-      setLoading(true);
+      /*
+       * 현재 주소와 완전히 같은 메뉴를 누르면
+       * 로딩 표시를 시작하지 않습니다.
+       */
+      if (
+        normalizeUrl(url.href) ===
+        currentUrl()
+      ) {
+        stopLoading();
+        return;
+      }
+
+      startLoading(url.href);
+    };
+
+    const handlePageShow = () => {
+      stopLoading();
     };
 
     window.addEventListener(
       "jibnun:navigation-start",
-      start
+      handleNavigationStart,
+    );
+
+    window.addEventListener(
+      "pageshow",
+      handlePageShow,
     );
 
     document.addEventListener(
       "click",
       handleDocumentClick,
-      true
+      true,
     );
 
     return () => {
+      clearLoadingTimer();
+
       window.removeEventListener(
         "jibnun:navigation-start",
-        start
+        handleNavigationStart,
+      );
+
+      window.removeEventListener(
+        "pageshow",
+        handlePageShow,
       );
 
       document.removeEventListener(
         "click",
         handleDocumentClick,
-        true
+        true,
       );
     };
-  }, []);
+  }, [
+    clearLoadingTimer,
+    startLoading,
+    stopLoading,
+  ]);
 
+  /*
+   * 경로 또는 검색 파라미터가 변경되면
+   * 페이지 이동이 끝난 것으로 판단합니다.
+   */
   useEffect(() => {
-    setLoading(false);
+    const frame =
+      requestAnimationFrame(
+        stopLoading,
+      );
+
+    return () => {
+      cancelAnimationFrame(frame);
+    };
   }, [
     pathname,
     searchParams,
+    stopLoading,
   ]);
 
   if (!loading) {

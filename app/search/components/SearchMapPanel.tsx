@@ -36,6 +36,13 @@ type MarkerEntry = {
   listeners: any[];
 };
 
+type ClusterGroup = {
+  key: string;
+  latitude: number;
+  longitude: number;
+  apartments: LocatedApartment[];
+};
+
 const DEFAULT_CENTER = {
   latitude: 36.5,
   longitude: 127.8,
@@ -503,6 +510,143 @@ function spreadOverlappingMarkers(
   );
 }
 
+
+function clusterCellSize(
+  zoom: number
+) {
+  if (zoom <= 7) {
+    return 1.8;
+  }
+
+  if (zoom === 8) {
+    return 1.1;
+  }
+
+  if (zoom === 9) {
+    return 0.65;
+  }
+
+  if (zoom === 10) {
+    return 0.34;
+  }
+
+  if (zoom === 11) {
+    return 0.17;
+  }
+
+  if (zoom === 12) {
+    return 0.085;
+  }
+
+  if (zoom === 13) {
+    return 0.04;
+  }
+
+  return 0;
+}
+
+function buildClusters(
+  apartments: LocatedApartment[],
+  zoom: number
+): ClusterGroup[] {
+  const cellSize =
+    clusterCellSize(zoom);
+
+  if (cellSize <= 0) {
+    return apartments.map(
+      (apartment) => ({
+        key: apartment.slug,
+        latitude:
+          apartment.latitude,
+        longitude:
+          apartment.longitude,
+        apartments: [apartment],
+      })
+    );
+  }
+
+  const groups =
+    new Map<
+      string,
+      LocatedApartment[]
+    >();
+
+  apartments.forEach(
+    (apartment) => {
+      const latitudeCell =
+        Math.floor(
+          apartment.latitude /
+            cellSize
+        );
+
+      const longitudeCell =
+        Math.floor(
+          apartment.longitude /
+            cellSize
+        );
+
+      const key =
+        `${latitudeCell}:${longitudeCell}`;
+
+      const group =
+        groups.get(key) ?? [];
+
+      group.push(apartment);
+      groups.set(key, group);
+    }
+  );
+
+  return Array.from(
+    groups.entries()
+  ).map(([key, group]) => ({
+    key,
+    latitude:
+      group.reduce(
+        (sum, apartment) =>
+          sum +
+          apartment.latitude,
+        0
+      ) / group.length,
+
+    longitude:
+      group.reduce(
+        (sum, apartment) =>
+          sum +
+          apartment.longitude,
+        0
+      ) / group.length,
+
+    apartments: group,
+  }));
+}
+
+function clusterHtml(
+  count: number
+) {
+  return `
+    <div style="
+      display:flex;
+      height:50px;
+      min-width:50px;
+      align-items:center;
+      justify-content:center;
+      border:4px solid #ffffff;
+      border-radius:999px;
+      background:#0f766e;
+      box-shadow:0 10px 26px rgba(15,23,42,.25);
+      color:#ffffff;
+      cursor:pointer;
+      font-size:14px;
+      font-weight:900;
+      line-height:1;
+      padding:0 12px;
+      white-space:nowrap;
+    ">
+      ${count}
+    </div>
+  `;
+}
+
 function markerHtml(
   apartment: Apartment,
   highlighted: boolean
@@ -662,6 +806,14 @@ export default function SearchMapPanel({
     Map<string, MarkerEntry>
   >(new Map());
 
+  const clusterMarkersRef =
+    useRef<any[]>([]);
+
+  const hoverTimerRef =
+    useRef<ReturnType<
+      typeof setTimeout
+    > | null>(null);
+
   const userMarkerRef =
     useRef<any>(null);
 
@@ -681,6 +833,9 @@ export default function SearchMapPanel({
 
   const [mapReady, setMapReady] =
     useState(false);
+
+  const [currentZoom, setCurrentZoom] =
+    useState(7);
 
   const [mapError, setMapError] =
     useState("");
@@ -851,6 +1006,10 @@ export default function SearchMapPanel({
           "resize"
         );
 
+        setCurrentZoom(
+          map.getZoom()
+        );
+
         setMapReady(true);
       });
     };
@@ -1004,74 +1163,199 @@ export default function SearchMapPanel({
 
     markerEntriesRef.current.clear();
 
-    locatedApartments.forEach(
-      (apartment) => {
+    clusterMarkersRef.current.forEach(
+      (entry) => {
+        entry.listeners.forEach(
+          (listener: any) =>
+            window.naver.maps.Event.removeListener(
+              listener
+            )
+        );
+
+        entry.marker.setMap(null);
+      }
+    );
+
+    clusterMarkersRef.current = [];
+
+    const groups =
+      buildClusters(
+        locatedApartments,
+        currentZoom
+      );
+
+    groups.forEach((group) => {
+      if (
+        group.apartments.length > 1
+      ) {
         const marker =
           new window.naver.maps.Marker(
             {
               position:
                 new window.naver.maps.LatLng(
-                  apartment.latitude,
-                  apartment.longitude
+                  group.latitude,
+                  group.longitude
                 ),
 
               map,
-              title: apartment.name,
+
+              title:
+                `${group.apartments.length}개 단지`,
 
               icon: {
-                content: markerHtml(
-                  apartment,
-                  false
-                ),
+                content:
+                  clusterHtml(
+                    group.apartments.length
+                  ),
 
                 anchor:
                   new window.naver.maps.Point(
-                    34,
-                    46
+                    25,
+                    25
                   ),
               },
 
-              zIndex: 100,
+              zIndex: 120,
             }
           );
 
         const listeners = [
           window.naver.maps.Event.addListener(
             marker,
-            "mouseover",
-            () =>
-              onHover(
-                apartment.slug
-              )
-          ),
-
-          window.naver.maps.Event.addListener(
-            marker,
-            "mouseout",
-            () =>
-              onHover(null)
-          ),
-
-          window.naver.maps.Event.addListener(
-            marker,
             "click",
-            () =>
-              onSelect(
-                apartment.slug
-              )
+            () => {
+              onHover(null);
+
+              map.morph(
+                new window.naver.maps.LatLng(
+                  group.latitude,
+                  group.longitude
+                ),
+                Math.min(
+                  currentZoom + 2,
+                  14
+                )
+              );
+            }
           ),
         ];
 
-        markerEntriesRef.current.set(
-          apartment.slug,
+        clusterMarkersRef.current.push(
           {
             marker,
-            apartment,
             listeners,
           }
         );
+
+        return;
       }
-    );
+
+      const apartment =
+        group.apartments[0];
+
+      const isSelected =
+        selectedApartment?.slug ===
+        apartment.slug;
+
+      const marker =
+        new window.naver.maps.Marker(
+          {
+            position:
+              new window.naver.maps.LatLng(
+                apartment.latitude,
+                apartment.longitude
+              ),
+
+            map,
+            title: apartment.name,
+
+            icon: {
+              content: markerHtml(
+                apartment,
+                isSelected
+              ),
+
+              anchor:
+                new window.naver.maps.Point(
+                  isSelected
+                    ? 48
+                    : 34,
+                  isSelected
+                    ? 75
+                    : 46
+                ),
+            },
+
+            zIndex:
+              isSelected
+                ? 300
+                : 100,
+          }
+        );
+
+      const listeners = [
+        window.naver.maps.Event.addListener(
+          marker,
+          "mouseover",
+          () => {
+            if (
+              hoverTimerRef.current
+            ) {
+              clearTimeout(
+                hoverTimerRef.current
+              );
+            }
+
+            hoverTimerRef.current =
+              setTimeout(() => {
+                onHover(
+                  apartment.slug
+                );
+
+                hoverTimerRef.current =
+                  null;
+              }, 90);
+          }
+        ),
+
+        window.naver.maps.Event.addListener(
+          marker,
+          "mouseout",
+          () => {
+            if (
+              hoverTimerRef.current
+            ) {
+              clearTimeout(
+                hoverTimerRef.current
+              );
+
+              hoverTimerRef.current =
+                null;
+            }
+
+            onHover(null);
+          }
+        ),
+
+        window.naver.maps.Event.addListener(
+          marker,
+          "click",
+          () =>
+            onSelect(
+              apartment.slug
+            )
+        ),
+      ];
+
+      markerEntriesRef.current.set(
+        apartment.slug,
+        {
+          marker,
+          apartment,
+          listeners,
+        }
+      );
+    });
 
     if (
       idleListenerRef.current
@@ -1085,7 +1369,13 @@ export default function SearchMapPanel({
       window.naver.maps.Event.addListener(
         map,
         "idle",
-        updateViewport
+        () => {
+          setCurrentZoom(
+            map.getZoom()
+          );
+
+          updateViewport();
+        }
       );
 
     updateViewport();
@@ -1103,10 +1393,12 @@ export default function SearchMapPanel({
       }
     };
   }, [
+    currentZoom,
     locatedApartments,
     mapReady,
     onHover,
     onSelect,
+    selectedApartment,
     updateViewport,
   ]);
 
@@ -1372,6 +1664,14 @@ export default function SearchMapPanel({
       ) {
         clearTimeout(
           animationTimerRef.current
+        );
+      }
+
+      if (
+        hoverTimerRef.current
+      ) {
+        clearTimeout(
+          hoverTimerRef.current
         );
       }
     };
