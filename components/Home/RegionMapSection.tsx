@@ -324,7 +324,7 @@ export default function RegionMapSection({
   }
 
   return (
-    <section className="relative isolate mt-6 overflow-hidden rounded-[30px] border border-emerald-100 bg-[linear-gradient(135deg,#ffffff_0%,#f4fbf8_58%,#f7fbff_100%)] p-4 shadow-[0_20px_55px_rgba(15,118,110,0.07)] sm:p-7 lg:p-9">
+    <section className="relative isolate mt-6 overflow-hidden rounded-[30px] border border-emerald-100 bg-[linear-gradient(135deg,#ffffff_0%,#f8fcfa_62%,#fbfdff_100%)] p-4 shadow-[0_20px_55px_rgba(15,118,110,0.07)] sm:p-7 lg:p-9">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-emerald-100/55 blur-3xl"

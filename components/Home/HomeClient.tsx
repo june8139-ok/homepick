@@ -278,9 +278,9 @@ export default function HomeClient({
           className="
             mt-4 grid grid-cols-3 overflow-hidden
             rounded-2xl
-            border-2 border-emerald-300/80
+            border border-emerald-200/80
             bg-white
-            shadow-[0_14px_38px_rgba(15,118,110,0.10)]
+            shadow-[0_12px_30px_rgba(15,118,110,0.065)]
             sm:mt-7 sm:rounded-3xl
           "
         >
@@ -767,10 +767,10 @@ function SummaryCard({
       className={[
         "group relative flex min-w-0 cursor-pointer flex-col items-center justify-center",
         "px-1.5 py-3 text-center",
-        "even:border-x even:border-emerald-200/90",
+        "even:border-x even:border-emerald-100/90",
         "transition-all duration-200",
-        "hover:bg-emerald-50/70",
-        "active:scale-[0.98] active:bg-emerald-100/70",
+        "hover:bg-emerald-50/45",
+        "active:scale-[0.98] active:bg-emerald-100/45",
         "sm:min-h-[92px] sm:flex-row sm:justify-start sm:gap-4 sm:px-6 sm:py-5 sm:text-left",
         "focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset",
         pending
