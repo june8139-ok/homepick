@@ -424,7 +424,7 @@ export default function HomeClient({
         </div>
 
         {/* PC·태블릿 대시보드 */}
-        <section className="mt-5 hidden gap-5 rounded-[32px] border-2 border-emerald-300/80 bg-white p-5 shadow-[0_18px_48px_rgba(15,118,110,0.08)] sm:grid xl:grid-cols-[1fr_1fr_0.78fr] xl:p-6">
+        <section className="mt-5 hidden gap-5 rounded-[32px] bg-white p-5 shadow-[0_18px_48px_rgba(15,118,110,0.055)] sm:grid xl:grid-cols-[1fr_1fr_0.78fr] xl:p-6">
           <DashboardPanel
             title="진행 중 청약"
             href="/search?q=청약"

@@ -324,14 +324,22 @@ export default function RegionMapSection({
   }
 
   return (
-    <section className="isolate mt-6 overflow-hidden rounded-[30px] border border-zinc-200/70 bg-white p-4 shadow-[0_20px_55px_rgba(15,118,110,0.055)] sm:p-7 lg:p-9">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <section className="relative isolate mt-6 overflow-hidden rounded-[30px] border border-emerald-100 bg-[linear-gradient(135deg,#ffffff_0%,#f4fbf8_58%,#f7fbff_100%)] p-4 shadow-[0_20px_55px_rgba(15,118,110,0.07)] sm:p-7 lg:p-9">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-emerald-100/55 blur-3xl"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-28 left-[18%] h-64 w-64 rounded-full bg-sky-100/45 blur-3xl"
+      />
+      <div className="relative z-10 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-extrabold tracking-[0.14em] text-[#0F766E]">
+          <p className="text-xs font-extrabold tracking-[0.12em] text-[#0F766E]">
             집눈 지역지도
           </p>
 
-          <h2 className="mt-1 text-2xl font-black tracking-tight text-[#111827]">
+          <h2 className="mt-1 text-2xl font-black tracking-tight text-[#111827] sm:text-3xl">
             지역별로 찾아보기
           </h2>
 
@@ -348,8 +356,8 @@ export default function RegionMapSection({
             inline-flex min-h-10
             cursor-pointer items-center
             justify-center rounded-xl
-            border border-zinc-200
-            bg-white px-4 py-2
+            border border-emerald-200
+            bg-white/90 px-4 py-2
             text-sm font-bold
             text-zinc-700 shadow-sm
             transition-all duration-200
@@ -370,8 +378,21 @@ export default function RegionMapSection({
         </Link>
       </div>
 
-      <div className="mx-auto mt-4 grid w-full max-w-[1120px] gap-6 xl:grid-cols-[minmax(0,680px)_410px] xl:items-stretch xl:justify-center">
-        <div className="relative isolate flex min-w-0 justify-center overflow-hidden [contain:paint]">
+      <div className="relative z-10 mx-auto mt-5 grid w-full max-w-[1220px] gap-5 xl:grid-cols-[minmax(0,760px)_430px] xl:items-stretch xl:justify-center">
+        <div className="relative isolate flex min-w-0 justify-center overflow-hidden rounded-[28px] border border-emerald-100/90 bg-white/75 shadow-[0_18px_45px_rgba(15,118,110,0.06)] [contain:paint]">
+          <div className="pointer-events-none absolute left-5 top-5 z-10 rounded-2xl border border-emerald-100 bg-white/92 px-4 py-3 shadow-sm backdrop-blur">
+            <p className="flex items-center gap-1.5 text-[11px] font-extrabold text-emerald-700">
+              <span aria-hidden="true">●</span>
+              현재 선택
+            </p>
+            <p className="mt-1 text-2xl font-black text-[#111827]">
+              {selectedRegion?.cityName}
+            </p>
+            <p className="mt-0.5 text-xs font-bold text-zinc-500">
+              {selectedRegion?.count ?? 0}개 단지
+            </p>
+          </div>
+
           <KoreaMap
             regions={regions}
             selectedCity={
@@ -391,8 +412,8 @@ export default function RegionMapSection({
             hidden min-h-[560px] h-full
             min-w-0 animate-[fadeIn_220ms_ease-out]
             flex-col overflow-hidden xl:flex
-            rounded-[26px] border border-zinc-200/70 bg-white
-            shadow-[0_16px_40px_rgba(15,118,110,0.06)]
+            rounded-[28px] border border-emerald-100 bg-white/95
+            shadow-[0_20px_48px_rgba(15,118,110,0.09)]
           "
         >
           <Link
@@ -405,7 +426,7 @@ export default function RegionMapSection({
             }
             className="
               group relative block
-              h-[230px] w-full
+              h-[225px] w-full
               shrink-0 cursor-pointer
               overflow-hidden bg-zinc-100
               text-left
@@ -437,23 +458,31 @@ export default function RegionMapSection({
                 "
               />
             ) : (
-              <div className="flex h-full items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-sky-50">
-                <div className="text-center">
-                  <span className="text-5xl">
-                    🏢
-                  </span>
+              <div className="relative flex h-full items-center justify-center overflow-hidden bg-[linear-gradient(135deg,#dff7ec_0%,#effcf7_50%,#edf7ff_100%)]">
+                <div
+                  aria-hidden="true"
+                  className="absolute -right-8 -top-10 h-32 w-32 rounded-full bg-white/70 blur-2xl"
+                />
+                <div
+                  aria-hidden="true"
+                  className="absolute bottom-0 left-0 right-0 h-20 bg-[linear-gradient(to_top,rgba(15,118,110,0.10),transparent)]"
+                />
 
-                  <p className="mt-3 text-xs font-bold text-zinc-400">
-                    대표 이미지 준비 중
+                <div className="relative text-center">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-white/80 bg-white/80 text-4xl shadow-sm">
+                    🏢
+                  </div>
+                  <p className="mt-3 text-xs font-extrabold text-emerald-700/70">
+                    {selectedRegion?.cityName} 대표 단지
                   </p>
                 </div>
               </div>
             )}
 
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-black/5 to-transparent" />
 
             <div className="absolute bottom-4 left-4 right-4">
-              <span className="inline-flex rounded-full bg-white/90 px-3 py-1 text-[10px] font-extrabold text-emerald-700 shadow-sm backdrop-blur">
+              <span className="inline-flex rounded-full border border-white/70 bg-white/90 px-3 py-1 text-[10px] font-extrabold text-emerald-700 shadow-sm backdrop-blur">
                 선택한 지역
               </span>
 
@@ -466,7 +495,7 @@ export default function RegionMapSection({
             </div>
           </Link>
 
-          <div className="flex flex-1 flex-col p-5">
+          <div className="flex flex-1 flex-col p-5 sm:p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-bold text-zinc-400">
@@ -484,7 +513,7 @@ export default function RegionMapSection({
                 </p>
               </div>
 
-              <span className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-extrabold text-emerald-700">
+              <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-extrabold text-emerald-700">
                 실시간 현황
               </span>
             </div>
@@ -530,7 +559,7 @@ export default function RegionMapSection({
               className="
                 group mt-5 w-full
                 cursor-pointer rounded-2xl
-                border border-zinc-200
+                border border-emerald-100
                 bg-[#F8FAF7] p-4
                 text-left transition-all
                 duration-200
@@ -577,7 +606,7 @@ export default function RegionMapSection({
                 mt-auto inline-flex min-h-12
                 w-full cursor-pointer
                 items-center justify-center
-                rounded-2xl bg-[#0F766E]
+                rounded-2xl bg-[linear-gradient(90deg,#0F766E_0%,#0D9488_100%)]
                 px-5 py-3 text-sm
                 font-extrabold text-white
                 shadow-sm
@@ -638,10 +667,10 @@ export default function RegionMapSection({
                       }
                     }}
                     className={[
-                      "w-[82vw] max-w-[330px] shrink-0 snap-center overflow-hidden rounded-2xl border bg-white p-4 shadow-[0_12px_30px_rgba(15,118,110,0.05)] transition-all sm:w-[360px]",
+                      "w-[82vw] max-w-[330px] shrink-0 snap-center overflow-hidden rounded-2xl border bg-white/95 p-4 shadow-[0_12px_30px_rgba(15,118,110,0.06)] transition-all sm:w-[360px]",
                       selected
                         ? "border-emerald-300 ring-2 ring-emerald-100"
-                        : "border-zinc-200/70",
+                        : "border-emerald-100",
                     ].join(" ")}
                   >
                     <button
