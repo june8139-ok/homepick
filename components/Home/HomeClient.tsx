@@ -283,7 +283,16 @@ export default function HomeClient({
 
       <section className="mx-auto w-full max-w-[1680px] px-3 sm:px-7 lg:px-10">
         {/* 핵심 현황 */}
-        <section className="mt-4 grid grid-cols-3 overflow-hidden rounded-2xl border border-zinc-200/70 bg-white shadow-[0_14px_38px_rgba(15,118,110,0.07)] sm:mt-7 sm:rounded-3xl">
+        <section
+          className="
+            mt-4 grid grid-cols-3 overflow-hidden
+            rounded-2xl
+            border-2 border-emerald-300/80
+            bg-white
+            shadow-[0_14px_38px_rgba(15,118,110,0.10)]
+            sm:mt-7 sm:rounded-3xl
+          "
+        >
           <SummaryCard
             label="진행 중 청약"
             mobileLabel="청약"
@@ -758,29 +767,29 @@ function SummaryCard({
   const style = {
     blue: {
       icon:
-        "bg-blue-50 text-blue-600",
+        "bg-blue-50 text-blue-600 group-hover:bg-blue-100",
       value:
         "text-blue-700",
       border:
-        "hover:border-blue-300",
+        "hover:shadow-[inset_0_0_0_1px_rgba(59,130,246,0.22)]",
     },
 
     emerald: {
       icon:
-        "bg-emerald-50 text-emerald-600",
+        "bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100",
       value:
         "text-emerald-700",
       border:
-        "hover:border-emerald-300",
+        "hover:shadow-[inset_0_0_0_1px_rgba(16,185,129,0.24)]",
     },
 
     amber: {
       icon:
-        "bg-amber-50 text-amber-600",
+        "bg-amber-50 text-amber-600 group-hover:bg-amber-100",
       value:
         "text-amber-700",
       border:
-        "hover:border-amber-300",
+        "hover:shadow-[inset_0_0_0_1px_rgba(245,158,11,0.22)]",
     },
   }[accent];
 
@@ -791,11 +800,14 @@ function SummaryCard({
       disabled={pending}
       aria-busy={pending}
       className={[
-        "group flex min-w-0 cursor-pointer flex-col items-center justify-center px-1.5 py-3 text-center even:border-x even:border-zinc-200/70",
-        "transition-all duration-200 active:scale-[0.98]",
+        "group relative flex min-w-0 cursor-pointer flex-col items-center justify-center",
+        "px-1.5 py-3 text-center",
+        "even:border-x even:border-emerald-200/90",
+        "transition-all duration-200",
+        "hover:bg-emerald-50/70",
+        "active:scale-[0.98] active:bg-emerald-100/70",
         "sm:min-h-[92px] sm:flex-row sm:justify-start sm:gap-4 sm:px-6 sm:py-5 sm:text-left",
-        "sm:hover:bg-white sm:hover:shadow-[inset_0_0_0_1px_rgba(16,185,129,0.10)]",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2",
+        "focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset",
         pending
           ? "bg-emerald-600 text-white shadow-[0_14px_34px_rgba(5,150,105,0.22)]"
           : style.border,
@@ -803,8 +815,12 @@ function SummaryCard({
     >
       <span
         className={[
-          "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-sm font-black sm:h-12 sm:w-12 sm:rounded-2xl sm:text-xl",
-          style.icon,
+          "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-sm font-black",
+          "transition-all duration-200 group-hover:-translate-y-0.5",
+          "sm:h-12 sm:w-12 sm:rounded-2xl sm:text-xl",
+          pending
+            ? "bg-white/15 text-white"
+            : style.icon,
         ].join(" ")}
       >
         <SummaryIcon
@@ -849,7 +865,14 @@ function SummaryCard({
         >
           {value}
 
-          <span className="ml-1 hidden text-sm font-bold text-zinc-500 sm:inline">
+          <span
+            className={[
+              "ml-1 hidden text-sm font-bold sm:inline",
+              pending
+                ? "text-white/70"
+                : "text-zinc-500",
+            ].join(" ")}
+          >
             개 단지
           </span>
         </p>
@@ -857,11 +880,12 @@ function SummaryCard({
 
       <span
         className={[
-          "ml-auto hidden transition-transform duration-200 sm:block",
+          "ml-auto hidden text-lg font-black transition-transform duration-200 sm:block",
           pending
             ? "animate-spin text-white"
-            : "text-zinc-300 group-hover:translate-x-1",
+            : "text-emerald-400 group-hover:translate-x-1 group-hover:text-emerald-600",
         ].join(" ")}
+        aria-hidden="true"
       >
         {pending ? "◌" : "→"}
       </span>
