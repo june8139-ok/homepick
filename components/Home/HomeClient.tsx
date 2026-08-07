@@ -266,15 +266,6 @@ export default function HomeClient({
     [nonSubscriptionApartments]
   );
 
-  const openApartment = (
-    slug: string
-  ) => {
-    navigate(
-      `/apartments/${slug}`,
-      `apartment:${slug}`
-    );
-  };
-
   return (
     <main className="min-h-screen bg-white pb-3 text-[#111827] sm:pb-6">
       <SearchHero
@@ -367,9 +358,6 @@ export default function HomeClient({
                   subscriptions
                 }
                 type="subscription"
-                onOpen={
-                  openApartment
-                }
               />
             ) : (
               <EmptyMessage
@@ -393,9 +381,6 @@ export default function HomeClient({
                   firstComeApartments
                 }
                 type="sale"
-                onOpen={
-                  openApartment
-                }
               />
             ) : (
               <EmptyMessage
@@ -425,11 +410,6 @@ export default function HomeClient({
                         apartment
                       }
                       compact
-                      onClick={() =>
-                        openApartment(
-                          apartment.slug
-                        )
-                      }
                     />
                   )
                 )}
@@ -464,11 +444,6 @@ export default function HomeClient({
                           apartment
                         }
                         type="subscription"
-                        onClick={() =>
-                          openApartment(
-                            apartment.slug
-                          )
-                        }
                       />
                     )
                   )}
@@ -497,11 +472,6 @@ export default function HomeClient({
                           apartment
                         }
                         type="sale"
-                        onClick={() =>
-                          openApartment(
-                            apartment.slug
-                          )
-                        }
                       />
                     )
                   )}
@@ -526,11 +496,6 @@ export default function HomeClient({
                       }
                       apartment={
                         apartment
-                      }
-                      onClick={() =>
-                        openApartment(
-                          apartment.slug
-                        )
                       }
                     />
                   )
@@ -956,13 +921,11 @@ function DashboardPanel({
 function MobileApartmentCarousel({
   apartments,
   type,
-  onOpen,
 }: {
   apartments: Apartment[];
   type:
     | "subscription"
     | "sale";
-  onOpen: (slug: string) => void;
 }) {
   const scrollRef =
     useRef<HTMLDivElement | null>(
@@ -1169,29 +1132,39 @@ function MobileApartmentCarousel({
                 );
 
               return (
-                <button
+                <Link
                   data-home-card
                   key={apartment.slug}
-                  type="button"
-                  onClick={() => {
+                  href={`/apartments/${apartment.slug}`}
+                  onClick={(event) => {
                     if (
                       movedDistance.current >
                       6
                     ) {
+                      event.preventDefault();
+
                       movedDistance.current =
                         0;
 
                       return;
                     }
 
-                    onOpen(
-                      apartment.slug
+                    window.dispatchEvent(
+                      new CustomEvent(
+                        "jibnun:navigation-start",
+                        {
+                          detail: {
+                            href: `/apartments/${apartment.slug}`,
+                          },
+                        }
+                      )
                     );
                   }}
                   className="
                     group w-[72vw]
                     max-w-[280px]
                     shrink-0 snap-center
+                    cursor-pointer
                     overflow-hidden rounded-2xl
                     border border-zinc-200
                     bg-white text-left
@@ -1199,6 +1172,10 @@ function MobileApartmentCarousel({
                     active:scale-[0.98]
                     active:border-emerald-400
                     active:bg-emerald-50
+                    focus-visible:outline-none
+                    focus-visible:ring-2
+                    focus-visible:ring-emerald-500
+                    focus-visible:ring-offset-2
                   "
                 >
                   <div className="relative h-28 overflow-hidden bg-zinc-100">
@@ -1254,7 +1231,7 @@ function MobileApartmentCarousel({
                       )}
                     </p>
                   </div>
-                </button>
+                </Link>
               );
             }
           )}
@@ -1272,21 +1249,18 @@ function MobileApartmentCarousel({
 function CompactApartmentCard({
   apartment,
   type,
-  onClick,
 }: {
   apartment: Apartment;
   type:
     | "subscription"
     | "sale";
-  onClick: () => void;
 }) {
   const image =
     getHeroImage(apartment);
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
+    <Link
+      href={`/apartments/${apartment.slug}`}
       className="
         group min-w-0 cursor-pointer
         overflow-hidden rounded-2xl
@@ -1355,26 +1329,23 @@ function CompactApartmentCard({
           )}
         </p>
       </div>
-    </button>
+    </Link>
   );
 }
 
 function RecentApartmentRow({
   apartment,
-  onClick,
   compact = false,
 }: {
   apartment: Apartment;
-  onClick: () => void;
   compact?: boolean;
 }) {
   const image =
     getHeroImage(apartment);
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
+    <Link
+      href={`/apartments/${apartment.slug}`}
       className={[
         "group flex w-full cursor-pointer items-center text-left transition-all duration-200",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500",
@@ -1434,7 +1405,7 @@ function RecentApartmentRow({
           →
         </span>
       )}
-    </button>
+    </Link>
   );
 }
 

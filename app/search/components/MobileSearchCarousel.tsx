@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import {
   useEffect,
   useRef,
@@ -27,7 +28,6 @@ type Props = {
   selectedSlug: string | null;
   distanceBySlug: Record<string, number>;
   onSelect: (slug: string) => void;
-  onOpen: (slug: string) => void;
 };
 
 function getHeroImage(apartment: Apartment) {
@@ -101,7 +101,6 @@ export default function MobileSearchCarousel({
   selectedSlug,
   distanceBySlug,
   onSelect,
-  onOpen,
 }: Props) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const cardRefs = useRef<Map<string, HTMLElement>>(new Map());
@@ -265,13 +264,6 @@ export default function MobileSearchCarousel({
               onSelect(apartment.slug);
             };
 
-            const handleOpenButton = (
-              event: MouseEvent<HTMLButtonElement>
-            ) => {
-              event.stopPropagation();
-              onOpen(apartment.slug);
-            };
-
             return (
               <article
                 ref={(element) => {
@@ -401,13 +393,15 @@ export default function MobileSearchCarousel({
                         지도에서 보기
                       </button>
 
-                      <button
-                        type="button"
-                        onClick={handleOpenButton}
+                      <Link
+                        href={`/apartments/${apartment.slug}`}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                        }}
                         className="inline-flex min-h-11 items-center justify-center rounded-xl bg-zinc-900 px-2 text-[11px] font-extrabold text-white transition hover:bg-emerald-700 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
                       >
                         상세보기 →
-                      </button>
+                      </Link>
                     </div>
                   </div>
                 </div>

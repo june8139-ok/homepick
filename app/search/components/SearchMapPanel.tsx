@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 
 import {
   useCallback,
@@ -775,7 +776,6 @@ export default function SearchMapPanel({
   distanceBySlug,
   onHover,
   onSelect,
-  onOpen,
   onViewportChange,
 }: {
   apartments: Apartment[];
@@ -790,7 +790,6 @@ export default function SearchMapPanel({
     slug: string | null
   ) => void;
   onSelect: (slug: string) => void;
-  onOpen: (slug: string) => void;
   onViewportChange: (
     slugs: string[] | null
   ) => void;
@@ -1991,17 +1990,12 @@ export default function SearchMapPanel({
                     "조건 확인 필요"}
                 </p>
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    onOpen(
-                      floatingApartment.slug
-                    )
-                  }
+                <Link
+                  href={`/apartments/${floatingApartment.slug}`}
                   className="mt-3 inline-flex min-h-10 w-full cursor-pointer items-center justify-center rounded-xl bg-zinc-900 px-4 py-2 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
                 >
                   상세정보 확인 →
-                </button>
+                </Link>
               </div>
             </div>
           )}

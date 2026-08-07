@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import {
   forwardRef,
   type MouseEvent,
@@ -90,7 +91,6 @@ type Props = {
   onHover: () => void;
   onLeave: () => void;
   onSelect: () => void;
-  onOpen: () => void;
 };
 
 const SearchResultCard = forwardRef<HTMLElement, Props>(
@@ -103,7 +103,6 @@ const SearchResultCard = forwardRef<HTMLElement, Props>(
       onHover,
       onLeave,
       onSelect,
-      onOpen,
     },
     ref
   ) {
@@ -123,11 +122,6 @@ const SearchResultCard = forwardRef<HTMLElement, Props>(
       isApplyHomeUnverified(
         apartment
       );
-
-    const handleOpen = (event: MouseEvent<HTMLButtonElement>) => {
-      event.stopPropagation();
-      onOpen();
-    };
 
     const handleSelect = (event: MouseEvent<HTMLButtonElement>) => {
       event.stopPropagation();
@@ -250,9 +244,11 @@ const SearchResultCard = forwardRef<HTMLElement, Props>(
               지도에서 보기
             </button>
 
-            <button
-              type="button"
-              onClick={handleOpen}
+            <Link
+              href={`/apartments/${apartment.slug}`}
+              onClick={(event) => {
+                event.stopPropagation();
+              }}
               className={[
                 "inline-flex min-h-10 items-center justify-center rounded-xl",
                 "bg-zinc-900 px-3 text-xs font-extrabold text-white",
@@ -262,7 +258,7 @@ const SearchResultCard = forwardRef<HTMLElement, Props>(
               ].join(" ")}
             >
               상세보기 →
-            </button>
+            </Link>
           </div>
         </div>
       </article>

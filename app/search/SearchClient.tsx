@@ -1164,11 +1164,6 @@ export default function SearchClient({
             onSelect={
               handleMapSelect
             }
-            onOpen={(slug) =>
-              router.push(
-                `/apartments/${slug}`
-              )
-            }
             onViewportChange={
               setVisibleSlugs
             }
@@ -1196,11 +1191,6 @@ export default function SearchClient({
             selectedSlug={selectedSlug}
             distanceBySlug={distances}
             onSelect={handleListSelect}
-            onOpen={(slug) =>
-              router.push(
-                `/apartments/${slug}`
-              )
-            }
           />
         </div>
         {/* PC: 기존 목록 + 지도 구조 유지 */}
@@ -1268,11 +1258,6 @@ export default function SearchClient({
                         apartment.slug
                       )
                     }
-                    onOpen={() =>
-                      router.push(
-                        `/apartments/${apartment.slug}`
-                      )
-                    }
                   />
                 )
               )}
@@ -1315,11 +1300,6 @@ export default function SearchClient({
             }
             onSelect={
               handleMapSelect
-            }
-            onOpen={(slug) =>
-              router.push(
-                `/apartments/${slug}`
-              )
             }
             onViewportChange={
               setVisibleSlugs
