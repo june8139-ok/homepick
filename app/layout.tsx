@@ -233,7 +233,7 @@ const organizationJsonLd = {
       "ImageObject",
 
     url:
-      `${SITE_URL}/icon-512.png`,
+      `${SITE_URL}/jibnun-logo-symbol.png`,
   },
 
   description:

@@ -452,7 +452,7 @@ function SearchHero({
             <span className="flex items-center gap-3 sm:gap-4">
               <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white/88 shadow-[0_12px_32px_rgba(15,118,110,0.12)] ring-1 ring-emerald-100/80 sm:h-[72px] sm:w-[72px] xl:h-20 xl:w-20">
                 <Image
-                  src="/icon-512.png"
+                  src="/jibnun-logo-symbol.png"
                   alt="집눈 로고"
                   width={64}
                   height={64}

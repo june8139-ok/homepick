@@ -190,7 +190,7 @@ export default function OpenGraphImage() {
               }}
             >
               <img
-                src={`${SITE_URL}/icon-512.png`}
+                src={`${SITE_URL}/jibnun-logo-symbol.png`}
                 alt=""
                 width="68"
                 height="68"

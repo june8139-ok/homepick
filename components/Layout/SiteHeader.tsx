@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -48,92 +49,14 @@ function JibnunSymbol({
   className?: string;
 }) {
   return (
-    <svg
-      viewBox="0 0 72 64"
+    <Image
+      src="/jibnun-logo-symbol.png"
+      alt=""
       aria-hidden="true"
+      width={72}
+      height={64}
       className={className}
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      {/* 코랄색 지붕 */}
-      <path
-        d="M8 27.5L31 8L54 27.5"
-        stroke="#FF5A5F"
-        strokeWidth="5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-
-      {/* 청록색 집 외곽 */}
-      <path
-        d="M12 26.5V50.5H42"
-        stroke="#0F9D98"
-        strokeWidth="5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-
-      {/* 창문 */}
-      <rect
-        x="22"
-        y="27"
-        width="6"
-        height="6"
-        rx="1.4"
-        fill="#0F9D98"
-      />
-
-      <rect
-        x="31"
-        y="27"
-        width="6"
-        height="6"
-        rx="1.4"
-        fill="#0F9D98"
-      />
-
-      <rect
-        x="22"
-        y="36"
-        width="6"
-        height="6"
-        rx="1.4"
-        fill="#0F9D98"
-      />
-
-      <rect
-        x="31"
-        y="36"
-        width="6"
-        height="6"
-        rx="1.4"
-        fill="#0F9D98"
-      />
-
-      {/* 돋보기 */}
-      <circle
-        cx="50"
-        cy="46"
-        r="10"
-        stroke="#0F9D98"
-        strokeWidth="4.5"
-      />
-
-      <path
-        d="M57.5 53.5L66 62"
-        stroke="#0F9D98"
-        strokeWidth="4.5"
-        strokeLinecap="round"
-      />
-
-      {/* 돋보기 내부 코랄 포인트 */}
-      <path
-        d="M46.5 41.5C49.5 39.3 53.7 41 54 44.6"
-        stroke="#FF5A5F"
-        strokeWidth="3.2"
-        strokeLinecap="round"
-      />
-    </svg>
+    />
   );
 }
 
