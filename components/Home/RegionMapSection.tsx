@@ -380,16 +380,16 @@ export default function RegionMapSection({
 
       <div className="relative z-10 mx-auto mt-5 grid w-full max-w-[1220px] gap-5 xl:grid-cols-[minmax(0,760px)_430px] xl:items-stretch xl:justify-center">
         <div className="relative isolate flex min-w-0 justify-center overflow-hidden rounded-[28px] border border-emerald-100/90 bg-white/75 shadow-[0_18px_45px_rgba(15,118,110,0.06)] [contain:paint]">
-          <div className="pointer-events-none absolute left-5 top-5 z-10 rounded-2xl border border-emerald-100 bg-white/92 px-4 py-3 shadow-sm backdrop-blur">
-            <p className="flex items-center gap-1.5 text-[11px] font-extrabold text-emerald-700">
-              <span aria-hidden="true">●</span>
-              현재 선택
-            </p>
-            <p className="mt-1 text-2xl font-black text-[#111827]">
+          <div className="pointer-events-none absolute right-5 top-5 z-10 rounded-full border border-emerald-200 bg-white/92 px-3.5 py-2 shadow-sm backdrop-blur">
+            <p className="flex items-center gap-2 text-xs font-extrabold text-emerald-800">
+              <span
+                aria-hidden="true"
+                className="h-2 w-2 rounded-full bg-emerald-500"
+              />
               {selectedRegion?.cityName}
-            </p>
-            <p className="mt-0.5 text-xs font-bold text-zinc-500">
-              {selectedRegion?.count ?? 0}개 단지
+              <span className="font-bold text-zinc-500">
+                {selectedRegion?.count ?? 0}개
+              </span>
             </p>
           </div>
 

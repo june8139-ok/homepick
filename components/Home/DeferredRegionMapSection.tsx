@@ -106,7 +106,7 @@ export default function DeferredRegionMapSection({
         },
         {
           rootMargin:
-            "0px 0px",
+            "700px 0px",
         }
       );
 
