@@ -424,7 +424,7 @@ export default function HomeClient({
         </div>
 
         {/* PC·태블릿 대시보드 */}
-        <section className="mt-5 hidden gap-5 rounded-[32px] border border-zinc-200/70 bg-white p-5 shadow-[0_18px_48px_rgba(15,118,110,0.055)] sm:grid xl:grid-cols-[1fr_1fr_0.78fr] xl:p-6">
+        <section className="mt-5 hidden gap-5 rounded-[32px] border-2 border-emerald-300/80 bg-white p-5 shadow-[0_18px_48px_rgba(15,118,110,0.08)] sm:grid xl:grid-cols-[1fr_1fr_0.78fr] xl:p-6">
           <DashboardPanel
             title="진행 중 청약"
             href="/search?q=청약"
@@ -868,7 +868,7 @@ function MobileDashboardPanel({
   children: ReactNode;
 }) {
   return (
-    <section className="overflow-hidden rounded-2xl border border-zinc-200/70 bg-white py-3 shadow-[0_12px_30px_rgba(15,118,110,0.055)]">
+    <section className="overflow-hidden rounded-2xl border border-emerald-200/90 bg-white py-3 shadow-[0_12px_30px_rgba(15,118,110,0.07)]">
       <div className="flex items-center justify-between gap-3 px-3">
         <h2 className="text-base font-black text-[#111827]">
           {title}

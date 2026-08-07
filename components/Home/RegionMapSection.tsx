@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 
 import {
   useEffect,
@@ -8,7 +9,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { useRouter } from "next/navigation";
 
 import type {
   Apartment,
@@ -121,8 +121,6 @@ export default function RegionMapSection({
 }: {
   apartments: Apartment[];
 }) {
-  const router =
-    useRouter();
 
   const visibleApartments =
     useMemo(
@@ -319,31 +317,6 @@ export default function RegionMapSection({
     });
   }, [selectedRegion?.city]);
 
-  const openSelectedRegion =
-    () => {
-      if (!selectedRegion) {
-        return;
-      }
-
-      router.push(
-        `/region/${encodeURIComponent(
-          selectedRegion.city
-        )}`
-      );
-    };
-
-  const openRepresentativeApartment =
-    () => {
-      if (!selectedApartment) {
-        openSelectedRegion();
-        return;
-      }
-
-      router.push(
-        `/apartments/${selectedApartment.slug}`
-      );
-    };
-
   if (
     regions.length === 0
   ) {
@@ -369,11 +342,8 @@ export default function RegionMapSection({
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() =>
-            router.push("/region")
-          }
+        <Link
+          href="/region"
           className="
             inline-flex min-h-10
             cursor-pointer items-center
@@ -397,7 +367,7 @@ export default function RegionMapSection({
           "
         >
           전체 지역 보기 →
-        </button>
+        </Link>
       </div>
 
       <div className="mx-auto mt-4 grid w-full max-w-[1120px] gap-6 xl:grid-cols-[minmax(0,680px)_410px] xl:items-stretch xl:justify-center">
@@ -425,10 +395,13 @@ export default function RegionMapSection({
             shadow-[0_16px_40px_rgba(15,118,110,0.06)]
           "
         >
-          <button
-            type="button"
-            onClick={
-              openRepresentativeApartment
+          <Link
+            href={
+              selectedApartment
+                ? `/apartments/${selectedApartment.slug}`
+                : `/region/${encodeURIComponent(
+                    selectedRegion?.city ?? ""
+                  )}`
             }
             className="
               group relative block
@@ -491,7 +464,7 @@ export default function RegionMapSection({
                 }
               </p>
             </div>
-          </button>
+          </Link>
 
           <div className="flex flex-1 flex-col p-5">
             <div className="flex items-start justify-between gap-4">
@@ -546,10 +519,13 @@ export default function RegionMapSection({
               />
             </div>
 
-            <button
-              type="button"
-              onClick={
-                openRepresentativeApartment
+            <Link
+              href={
+                selectedApartment
+                  ? `/apartments/${selectedApartment.slug}`
+                  : `/region/${encodeURIComponent(
+                      selectedRegion?.city ?? ""
+                    )}`
               }
               className="
                 group mt-5 w-full
@@ -591,13 +567,12 @@ export default function RegionMapSection({
                   selectedApartment
                 )}
               </p>
-            </button>
+            </Link>
 
-            <button
-              type="button"
-              onClick={
-                openSelectedRegion
-              }
+            <Link
+              href={`/region/${encodeURIComponent(
+                selectedRegion?.city ?? ""
+              )}`}
               className="
                 mt-auto inline-flex min-h-12
                 w-full cursor-pointer
@@ -626,7 +601,7 @@ export default function RegionMapSection({
               <span className="ml-2">
                 →
               </span>
-            </button>
+            </Link>
           </div>
         </aside>
       </div>
@@ -732,19 +707,14 @@ export default function RegionMapSection({
                       </div>
                     </button>
 
-                    <button
-                      type="button"
-                      onClick={() =>
-                        router.push(
-                          `/region/${encodeURIComponent(
-                            region.city
-                          )}`
-                        )
-                      }
+                    <Link
+                      href={`/region/${encodeURIComponent(
+                        region.city
+                      )}`}
                       className="mt-3 inline-flex min-h-10 w-full cursor-pointer items-center justify-center rounded-xl bg-[#0F766E] px-4 text-xs font-extrabold text-white transition hover:bg-emerald-600 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
                     >
                       {region.cityName} 지역 보기 →
-                    </button>
+                    </Link>
                   </div>
                 );
               }
