@@ -362,6 +362,22 @@ export function normalizeApartment(
       : ""
   );
 
+  const contractDetails =
+    toStringValue(
+      firstDefined(
+        data.contractDetails,
+        row.contract_details
+      )
+    );
+
+  const jibnunSummary =
+    toStringValue(
+      firstDefined(
+        data.jibnunSummary,
+        row.jibnun_summary
+      )
+    );
+
   const heroImage =
     toNullableString(row.hero_image) ??
     normalizeHeroImage(images.hero);
@@ -380,30 +396,54 @@ export function normalizeApartment(
 
   return {
     slug: toStringValue(row.slug),
+
     city: toStringValue(
       firstDefined(data.city, row.city)
     ),
+
     cityName: toStringValue(
       firstDefined(data.cityName, row.city)
     ),
+
     district: toStringValue(
-      firstDefined(data.district, row.district)
+      firstDefined(
+        data.district,
+        row.district
+      )
     ),
+
     districtName: toStringValue(
-      firstDefined(data.districtName, row.district)
+      firstDefined(
+        data.districtName,
+        row.district
+      )
     ),
+
     region: toStringValue(
-      firstDefined(row.region, data.region)
+      firstDefined(
+        row.region,
+        data.region
+      )
     ),
+
     latitude,
     longitude,
+
     type: toStringValue(
-      firstDefined(row.type, data.type),
+      firstDefined(
+        row.type,
+        data.type
+      ),
       "아파트"
     ),
+
     brand: toStringValue(
-      firstDefined(row.brand, data.brand)
+      firstDefined(
+        row.brand,
+        data.brand
+      )
     ),
+
     builder: toStringValue(
       firstDefined(
         data.builder,
@@ -411,81 +451,151 @@ export function normalizeApartment(
         applyHome.CNSTRCT_ENTRPS_NM
       )
     ),
+
     name: toStringValue(
-      firstDefined(row.name, data.name)
+      firstDefined(
+        row.name,
+        data.name
+      )
     ),
-    leadType: normalizeLeadType(row, data),
+
+    leadType:
+      normalizeLeadType(
+        row,
+        data
+      ),
+
     images: {
       hero: heroImage,
-      location: normalizeStringArray(images.location),
+      location:
+        normalizeStringArray(
+          images.location
+        ),
       floorPlans:
         floorPlans as Apartment["images"]["floorPlans"],
-      community: normalizeStringArray(images.community),
-      gallery: normalizeStringArray(images.gallery),
+      community:
+        normalizeStringArray(
+          images.community
+        ),
+      gallery:
+        normalizeStringArray(
+          images.gallery
+        ),
     },
-    keywords: normalizeStringArray(data.keywords),
-    status,
-    listingStage: normalizeListingStage(row, data),
-    price: toStringValue(
-      firstDefined(data.price, row.price)
-    ),
-    condition,
-    source,
-    applyHomeId: toNullableString(
-      firstDefined(
-        row.applyhome_id,
-        data.applyHomeId
-      )
-    ),
-    applyHomeUrl,
-    isAutoCreated: toBooleanValue(
-      firstDefined(
-        row.is_auto_created,
-        data.isAutoCreated
-      )
-    ),
-    manualOverride: toBooleanValue(
-      firstDefined(
-        row.manual_override,
-        data.manualOverride
-      )
-    ),
-    syncStatus: toStringValue(
-      firstDefined(
-        row.sync_status,
-        data.syncStatus
+
+    keywords:
+      normalizeStringArray(
+        data.keywords
       ),
-      "manual"
-    ) as Apartment["syncStatus"],
-    lastSyncedAt: toNullableString(
+
+    status,
+
+    listingStage:
+      normalizeListingStage(
+        row,
+        data
+      ),
+
+    price: toStringValue(
       firstDefined(
-        row.last_synced_at,
-        data.lastSyncedAt
+        data.price,
+        row.price
       )
     ),
-    totalSupply: normalizedTotalSupply,
-    subscription: subscriptionData,
+
+    condition,
+
+    contractDetails,
+
+    jibnunSummary,
+
+    source,
+
+    applyHomeId:
+      toNullableString(
+        firstDefined(
+          row.applyhome_id,
+          data.applyHomeId
+        )
+      ),
+
+    applyHomeUrl,
+
+    isAutoCreated:
+      toBooleanValue(
+        firstDefined(
+          row.is_auto_created,
+          data.isAutoCreated
+        )
+      ),
+
+    manualOverride:
+      toBooleanValue(
+        firstDefined(
+          row.manual_override,
+          data.manualOverride
+        )
+      ),
+
+    syncStatus:
+      toStringValue(
+        firstDefined(
+          row.sync_status,
+          data.syncStatus
+        ),
+        "manual"
+      ) as Apartment["syncStatus"],
+
+    lastSyncedAt:
+      toNullableString(
+        firstDefined(
+          row.last_synced_at,
+          data.lastSyncedAt
+        )
+      ),
+
+    totalSupply:
+      normalizedTotalSupply,
+
+    subscription:
+      subscriptionData,
+
     projectInfo:
       projectInfo as Apartment["projectInfo"],
+
     locationInfo:
       locationInfo as Apartment["locationInfo"],
+
     applyHome:
       applyHome as Apartment["applyHome"],
+
     conditionHistory:
-      Array.isArray(data.conditionHistory)
-        ? (data.conditionHistory as Apartment["conditionHistory"])
+      Array.isArray(
+        data.conditionHistory
+      )
+        ? (
+            data.conditionHistory as Apartment["conditionHistory"]
+          )
         : [],
+
     priceInfo:
       data.priceInfo === undefined
         ? undefined
-        : (data.priceInfo as Apartment["priceInfo"]),
+        : (
+            data.priceInfo as Apartment["priceInfo"]
+          ),
+
     priceDetail:
       (
         data.priceDetail ??
         {
-          salePrice: toStringValue(
-            firstDefined(data.price, row.price)
-          ),
+          salePrice:
+            toStringValue(
+              firstDefined(
+                data.price,
+                row.price
+              )
+            ),
           pricePerPyeong: "",
           contractPrice: "",
           middlePayment: "",
@@ -493,12 +603,15 @@ export function normalizeApartment(
           options: [],
         }
       ) as Apartment["priceDetail"],
+
     score:
       (
         data.score ??
         {
           total:
-            toNullableNumber(row.score_total) ?? 0,
+            toNullableNumber(
+              row.score_total
+            ) ?? 0,
           price: 0,
           contract: 0,
           location: 0,
@@ -507,6 +620,7 @@ export function normalizeApartment(
           risk: 0,
         }
       ) as Apartment["score"],
+
     aiReview:
       (
         data.aiReview ??
@@ -518,7 +632,15 @@ export function normalizeApartment(
           strengths: [],
         }
       ) as Apartment["aiReview"],
-    pros: normalizeStringArray(data.pros),
-    cons: normalizeStringArray(data.cons),
+
+    pros:
+      normalizeStringArray(
+        data.pros
+      ),
+
+    cons:
+      normalizeStringArray(
+        data.cons
+      ),
   };
 }
