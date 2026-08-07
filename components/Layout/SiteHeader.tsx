@@ -311,7 +311,7 @@ export default function SiteHeader() {
           <JibnunSymbol className="h-9 w-10 transition-transform duration-200 group-hover:-translate-y-0.5 sm:h-10 sm:w-11" />
 
           <div className="min-w-0">
-            <p className="text-xl font-black tracking-[-0.045em] text-[#0F8F88] sm:text-[23px]">
+            <p className="text-xl font-black tracking-[-0.045em] text-[#0F766E] sm:text-[23px]">
               집눈
             </p>
 

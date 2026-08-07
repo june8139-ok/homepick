@@ -284,8 +284,10 @@ function StatBox({
 
 function CityCard({
   city,
+  priority = false,
 }: {
   city: CitySummary;
+  priority?: boolean;
 }) {
   const apartment =
     city.latestApartment;
@@ -322,6 +324,8 @@ function CityCard({
             src={image}
             alt={`${city.cityName} 최근 등록 분양 아파트`}
             fill
+            priority={priority}
+            fetchPriority={priority ? "high" : "auto"}
             quality={72}
             sizes="(max-width: 639px) 100vw, (max-width: 1279px) 50vw, 33vw"
             className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -716,12 +720,15 @@ export default async function RegionIndexPage() {
           {cities.length > 0 ? (
             <div className="mt-5 grid gap-4 sm:mt-6 sm:grid-cols-2 xl:grid-cols-3">
               {cities.map(
-                (city) => (
+                (city, index) => (
                   <CityCard
                     key={
                       city.city
                     }
                     city={city}
+                    priority={
+                      index === 0
+                    }
                   />
                 )
               )}
