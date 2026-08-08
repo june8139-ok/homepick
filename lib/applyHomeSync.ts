@@ -81,16 +81,21 @@ type NormalizedApartment = {
 };
 
 export type ApplyHomeSyncResult = {
+  startedAt: string;
+  finishedAt: string;
+  durationMs: number;
   fetched: number;
   relevant: number;
   inserted: number;
   updated: number;
+  unchanged: number;
   skipped: number;
   failed: number;
   priceSynced: number;
   priceMissing: number;
   changed: number;
   indexNowSubmitted: number;
+  warnings: string[];
   errors: string[];
 };
 
@@ -211,19 +216,124 @@ function between(
   return today >= (start ?? end!) && today <= (end ?? start!);
 }
 
-function slug(name: string, pblancNo: string) {
-  const namePart = name
+function slug(name: string) {
+  /*
+   * URL에는 단지명을 중심으로 사용합니다.
+   * 청약홈의 괄호 안 설명(블록, 본청약 문구 등)은
+   * 상세페이지 제목에는 남아 있어도 slug에서는 제거해
+   * 사람이 읽기 쉬운 주소를 만듭니다.
+   *
+   * 기존 자동수집 단지의 slug는 update 시 절대 변경하지 않고,
+   * 이 규칙은 새로 생성되는 단지에만 적용됩니다.
+   */
+  const cleanedName = name
+    .replace(/\([^)]*\)/g, " ")
+    .replace(/\[[^\]]*\]/g, " ")
+    .trim();
+
+  const namePart = cleanedName
     .toLowerCase()
     .replace(/\s+/g, "-")
     .replace(/[^\w가-힣-]/g, "")
     .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
+    .replace(/^-|-$/g, "")
+    .slice(0, 80)
+    .replace(/-$/g, "");
 
-  const idPart = pblancNo
+  return (
+    namePart ||
+    "applyhome-apartment"
+  );
+}
+
+function slugSuffix(
+  value: string,
+  length: number
+) {
+  return value
     .replace(/[^\dA-Za-z]/g, "")
-    .slice(-8);
+    .slice(-length)
+    .toLowerCase();
+}
 
-  return `${namePart || "applyhome-apartment"}-${idPart}`;
+async function resolveNewSlug(
+  apartment: NormalizedApartment
+) {
+  const baseSlug = apartment.slug;
+
+  const shortSuffix =
+    slugSuffix(
+      apartment.pblancNo,
+      4
+    );
+
+  const longSuffix =
+    slugSuffix(
+      apartment.applyHomeId,
+      8
+    );
+
+  const candidates = [
+    baseSlug,
+    shortSuffix
+      ? `${baseSlug}-${shortSuffix}`
+      : "",
+    longSuffix
+      ? `${baseSlug}-${longSuffix}`
+      : "",
+  ].filter(Boolean);
+
+  for (const candidate of candidates) {
+    const {
+      data: existing,
+      error,
+    } = await supabaseAdmin
+      .from("apartments")
+      .select(
+        "applyhome_id"
+      )
+      .eq(
+        "slug",
+        candidate
+      )
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    if (
+      !existing ||
+      text(
+        existing.applyhome_id
+      ) ===
+        apartment.applyHomeId
+    ) {
+      return candidate;
+    }
+  }
+
+  throw new Error(
+    `${apartment.name}의 고유 URL을 만들 수 없습니다. slug 충돌을 확인해주세요.`
+  );
+}
+
+function savedListingStage(
+  data: Row
+) {
+  const stage =
+    text(
+      data.listingStage
+    );
+
+  return [
+    "subscription",
+    "firstCome",
+    "completed",
+    "existing",
+  ].includes(stage)
+    ? stage
+    : "";
 }
 
 function location(region: string) {
@@ -533,7 +643,7 @@ function normalize(row: Row): NormalizedApartment | null {
     applyHomeId: `${houseManageNo}-${pblancNo}`,
     houseManageNo,
     pblancNo,
-    slug: slug(name, pblancNo),
+    slug: slug(name),
     name,
     region,
     city: place.cityName.toLowerCase().replace(/\s+/g, "-"),
@@ -1323,16 +1433,24 @@ async function insertApartment(
   priceInfo: PriceInfo | null,
   modelRows: Row[]
 ) {
-  const data = newApartmentData(
-    apartment,
-    priceInfo,
-    modelRows
-  );
+  const resolvedSlug =
+    await resolveNewSlug(
+      apartment
+    );
+
+  const data = {
+    ...newApartmentData(
+      apartment,
+      priceInfo,
+      modelRows
+    ),
+    slug: resolvedSlug,
+  };
 
   const { error } = await supabaseAdmin
     .from("apartments")
     .insert({
-      slug: apartment.slug,
+      slug: resolvedSlug,
       name: apartment.name,
       brand: "",
       builder: apartment.builder,
@@ -1366,7 +1484,11 @@ async function insertApartment(
       applyhome_url: apartment.schedule.noticeUrl,
     });
 
-  if (error) throw error;
+  if (error) {
+    throw error;
+  }
+
+  return resolvedSlug;
 }
 
 async function updateApartment(
@@ -1392,6 +1514,35 @@ async function updateApartment(
       existing.manual_override
     );
 
+  const stage =
+    savedListingStage(
+      existingData
+    );
+
+  /*
+   * 관리자가 청약 단지를 선착순/노출종료/기존단지로
+   * 전환한 경우 청약홈 일정 동기화가 표시 상태를
+   * 다시 청약으로 되돌리지 않게 보호합니다.
+   *
+   * subscription 단계는 공식 일정에 맞춰 상태 문구를
+   * 계속 갱신합니다.
+   */
+  const preserveDisplayStage =
+    manualOverride &&
+    Boolean(stage) &&
+    stage !== "subscription";
+
+  const nextStatus =
+    preserveDisplayStage
+      ? text(
+          existingData.status
+        ) ||
+        text(
+          existing.status
+        ) ||
+        apartment.status
+      : apartment.status;
+
   const priceInfo =
     mergePriceInfo(
       existingData.priceInfo,
@@ -1406,29 +1557,53 @@ async function updateApartment(
         : null
     );
 
-  const nextData = {
+  const nextData: Row = {
     ...existingData,
-    source: "applyhome",
-    applyHomeId: apartment.applyHomeId,
-    applyHomeUrl: apartment.schedule.noticeUrl,
-    subscription: apartment.schedule,
-    applyHome: apartment.raw,
-    applyHomeModels: modelRows,
-    priceInfo,
-    totalSupply:
-      existingData.totalSupply ?? apartment.totalSupply,
+
     /*
-     * 관리자 수정 여부와 관계없이 청약 상태는
-     * 청약홈 일정과 현재 날짜를 기준으로 계속 자동 갱신합니다.
-     * 이미지, 가격, 계약조건 등 관리자 입력값은 그대로 보호합니다.
+     * 청약홈 원본/일정은 관리자 수정 여부와 상관없이
+     * 최신 상태를 유지합니다.
      */
-    status: apartment.status,
+    source: "applyhome",
+    applyHomeId:
+      apartment.applyHomeId,
+    applyHomeUrl:
+      apartment.schedule.noticeUrl,
+    subscription:
+      apartment.schedule,
+    applyHome:
+      apartment.raw,
+
+    /*
+     * 주택형 API가 일시 실패한 날에는 기존 모델 데이터를
+     * 빈 배열로 덮어쓰지 않습니다.
+     */
+    applyHomeModels:
+      modelRows.length > 0
+        ? modelRows
+        : existingData.applyHomeModels,
+
+    priceInfo,
+
+    totalSupply:
+      manualOverride
+        ? existingData.totalSupply ??
+          apartment.totalSupply
+        : apartment.totalSupply ??
+          existingData.totalSupply,
+
+    status: nextStatus,
+
     price:
-      manualOverride && text(existingData.price)
+      manualOverride &&
+      text(
+        existingData.price
+      )
         ? existingData.price
         : top
           ? `최고 ${top.toLocaleString()}만원`
           : existingData.price ?? "",
+
     priceDetail: {
       ...existingPriceDetail,
 
@@ -1445,139 +1620,336 @@ async function updateApartment(
     },
   };
 
+  /*
+   * 관리자가 건드리지 않은 자동수집 단지는
+   * 청약홈에서 정정된 단지명/주소/시공사 정보도 갱신합니다.
+   * 관리자 수정 단지는 기존 입력값을 보호합니다.
+   */
+  if (!manualOverride) {
+    Object.assign(
+      nextData,
+      {
+        name:
+          apartment.name,
+        region:
+          apartment.region,
+        city:
+          apartment.city,
+        cityName:
+          apartment.cityName,
+        district:
+          apartment.district,
+        districtName:
+          apartment.districtName,
+        builder:
+          apartment.builder,
+      }
+    );
+  }
+
   const changed =
     hasMeaningfulChange(
       existing,
       nextData,
-      apartment.status
+      nextStatus
     );
 
-  const payload: Record<string, unknown> = {
+  const payload: Record<
+    string,
+    unknown
+  > = {
     source: "applyhome",
-    applyhome_house_manage_no: apartment.houseManageNo,
-    applyhome_pblanc_no: apartment.pblancNo,
+    applyhome_house_manage_no:
+      apartment.houseManageNo,
+    applyhome_pblanc_no:
+      apartment.pblancNo,
     sync_status: "synced",
-    last_synced_at: new Date().toISOString(),
-    announcement_date: apartment.schedule.announcementDate,
-    special_supply_date: apartment.schedule.specialSupplyStartDate,
-    first_priority_date: apartment.schedule.firstPriorityStartDate,
-    second_priority_date: apartment.schedule.secondPriorityStartDate,
-    winner_date: apartment.schedule.winnerDate,
-    contract_start_date: apartment.schedule.contractStartDate,
-    contract_end_date: apartment.schedule.contractEndDate,
-    applyhome_url: apartment.schedule.noticeUrl,
+    last_synced_at:
+      new Date().toISOString(),
+    announcement_date:
+      apartment.schedule.announcementDate,
+    special_supply_date:
+      apartment.schedule.specialSupplyStartDate,
+    first_priority_date:
+      apartment.schedule.firstPriorityStartDate,
+    second_priority_date:
+      apartment.schedule.secondPriorityStartDate,
+    winner_date:
+      apartment.schedule.winnerDate,
+    contract_start_date:
+      apartment.schedule.contractStartDate,
+    contract_end_date:
+      apartment.schedule.contractEndDate,
+    applyhome_url:
+      apartment.schedule.noticeUrl,
+    status: nextStatus,
     data: nextData,
   };
 
-  /*
-   * manual_override 단지도 날짜 기반 청약 상태는 자동 갱신합니다.
-   * 관리자 콘텐츠 보호와 청약 일정 상태 갱신을 분리합니다.
-   */
-  payload.status =
-    apartment.status;
+  if (!manualOverride) {
+    Object.assign(
+      payload,
+      {
+        name:
+          apartment.name,
+        builder:
+          apartment.builder,
+        city:
+          apartment.city,
+        district:
+          apartment.district,
+        region:
+          apartment.region,
+      }
+    );
+  }
 
-  const { error } = await supabaseAdmin
-    .from("apartments")
-    .update(payload)
-    .eq("applyhome_id", apartment.applyHomeId);
+  const { error } =
+    await supabaseAdmin
+      .from("apartments")
+      .update(payload)
+      .eq(
+        "applyhome_id",
+        apartment.applyHomeId
+      );
 
-  if (error) throw error;
+  if (error) {
+    throw error;
+  }
 
   return changed;
 }
 
+async function markSyncError(
+  applyHomeId: string
+) {
+  try {
+    await supabaseAdmin
+      .from("apartments")
+      .update({
+        sync_status:
+          "error",
+        last_synced_at:
+          new Date().toISOString(),
+      })
+      .eq(
+        "applyhome_id",
+        applyHomeId
+      );
+  } catch (error) {
+    console.error(
+      "청약홈 동기화 오류 상태 기록 실패:",
+      error
+    );
+  }
+}
+
 export async function syncApplyHomeApartments():
   Promise<ApplyHomeSyncResult> {
-  const rows = await candidateRows();
-
-  const normalized = rows
-    .map(normalize)
-    .filter(
-      (item): item is NormalizedApartment =>
-        item !== null
-    );
-
-  const targets = normalized.filter(relevant);
+  const startedAt =
+    new Date();
 
   const result: ApplyHomeSyncResult = {
-    fetched: rows.length,
-    relevant: targets.length,
+    startedAt:
+      startedAt.toISOString(),
+    finishedAt: "",
+    durationMs: 0,
+    fetched: 0,
+    relevant: 0,
     inserted: 0,
     updated: 0,
-    skipped: normalized.length - targets.length,
+    unchanged: 0,
+    skipped: 0,
     failed: 0,
     priceSynced: 0,
     priceMissing: 0,
     changed: 0,
     indexNowSubmitted: 0,
+    warnings: [],
     errors: [],
   };
 
-  const changedUrls =
-    new Set<string>();
+  try {
+    const rows =
+      await candidateRows();
 
-  for (const apartment of targets) {
-    try {
-      let priceInfo: PriceInfo | null = null;
-      let modelRows: Row[] = [];
+    const normalized = rows
+      .map(normalize)
+      .filter(
+        (
+          item
+        ): item is NormalizedApartment =>
+          item !== null
+      );
 
+    const targets =
+      normalized.filter(
+        relevant
+      );
+
+    result.fetched =
+      rows.length;
+
+    result.relevant =
+      targets.length;
+
+    result.skipped =
+      normalized.length -
+      targets.length;
+
+    /*
+     * API가 정상 응답했는데 유효 대상이 하나도 없으면
+     * 조용히 성공 처리하지 않고 경고를 남깁니다.
+     * 실제 공고가 없는 경우일 수도 있으므로 전체 동기화는
+     * 중단하지 않습니다.
+     */
+    if (
+      rows.length > 0 &&
+      targets.length === 0
+    ) {
+      result.warnings.push(
+        "청약홈 목록은 조회됐지만 최근/진행중 동기화 대상이 0건입니다. 날짜 필드 또는 필터 기준을 확인해주세요."
+      );
+    }
+
+    const changedUrls =
+      new Set<string>();
+
+    for (
+      const apartment of
+      targets
+    ) {
       try {
-        const priceResult = await priceInfoFor(apartment);
-        priceInfo = priceResult.priceInfo;
-        modelRows = priceResult.rows;
+        let priceInfo:
+          PriceInfo | null =
+          null;
 
-        if (priceInfo) {
-          result.priceSynced += 1;
-        } else {
-          result.priceMissing += 1;
-        }
-      } catch (error) {
-        result.priceMissing += 1;
-        result.errors.push(
-          `${apartment.name} 가격조회: ${
-            error instanceof Error
-              ? error.message
-              : "알 수 없는 오류"
-          }`
-        );
-      }
+        let modelRows:
+          Row[] = [];
 
-      const { data: existing, error } = await supabaseAdmin
-        .from("apartments")
-        .select(
-          "slug, status, data, manual_override, is_auto_created, sync_status"
-        )
-        .eq("applyhome_id", apartment.applyHomeId)
-        .maybeSingle();
+        try {
+          const priceResult =
+            await priceInfoFor(
+              apartment
+            );
 
-      if (error) throw error;
+          priceInfo =
+            priceResult.priceInfo;
 
-      if (
-        existing &&
-        existing.sync_status ===
-          "excluded"
-      ) {
-        result.skipped += 1;
-        continue;
-      }
+          modelRows =
+            priceResult.rows;
 
-      if (existing) {
-        const changed =
-          await updateApartment(
-            existing,
-            apartment,
-            priceInfo,
-            modelRows
+          if (priceInfo) {
+            result.priceSynced +=
+              1;
+          } else {
+            result.priceMissing +=
+              1;
+          }
+        } catch (error) {
+          result.priceMissing +=
+            1;
+
+          result.warnings.push(
+            `${apartment.name} 가격조회: ${
+              error instanceof Error
+                ? error.message
+                : "알 수 없는 오류"
+            }`
           );
+        }
 
-        result.updated += 1;
+        const {
+          data: existing,
+          error,
+        } =
+          await supabaseAdmin
+            .from(
+              "apartments"
+            )
+            .select(
+              "slug, status, data, manual_override, is_auto_created, sync_status"
+            )
+            .eq(
+              "applyhome_id",
+              apartment.applyHomeId
+            )
+            .maybeSingle();
 
-        if (changed) {
-          result.changed += 1;
+        if (error) {
+          throw error;
+        }
+
+        if (
+          existing &&
+          existing.sync_status ===
+            "excluded"
+        ) {
+          result.skipped +=
+            1;
+          continue;
+        }
+
+        if (existing) {
+          const changed =
+            await updateApartment(
+              existing,
+              apartment,
+              priceInfo,
+              modelRows
+            );
+
+          result.updated +=
+            1;
+
+          if (changed) {
+            result.changed +=
+              1;
+
+            /*
+             * 기존 단지는 새 slug 규칙을 적용하지 않습니다.
+             * 실제 DB에 저장돼 있는 기존 slug로만 IndexNow를 보냅니다.
+             */
+            const existingSlug =
+              text(
+                existing.slug
+              );
+
+            if (
+              existingSlug
+            ) {
+              buildIndexNowUrls({
+                slug:
+                  existingSlug,
+                region:
+                  apartment.cityName,
+              }).forEach(
+                (url) =>
+                  changedUrls.add(
+                    url
+                  )
+              );
+            }
+          } else {
+            result.unchanged +=
+              1;
+          }
+        } else {
+          const insertedSlug =
+            await insertApartment(
+              apartment,
+              priceInfo,
+              modelRows
+            );
+
+          result.inserted +=
+            1;
+          result.changed +=
+            1;
 
           buildIndexNowUrls({
             slug:
-              apartment.slug,
+              insertedSlug,
             region:
               apartment.cityName,
           }).forEach(
@@ -1587,61 +1959,146 @@ export async function syncApplyHomeApartments():
               )
           );
         }
-      } else {
-        await insertApartment(
-          apartment,
-          priceInfo,
-          modelRows
-        );
+      } catch (error) {
+        result.failed += 1;
 
-        result.inserted += 1;
-        result.changed += 1;
-
-        buildIndexNowUrls({
-          slug:
-            apartment.slug,
-          region:
-            apartment.cityName,
-        }).forEach(
-          (url) =>
-            changedUrls.add(
-              url
-            )
-        );
-      }
-    } catch (error) {
-      result.failed += 1;
-      result.errors.push(
-        `${apartment.name}: ${
+        const message =
           error instanceof Error
             ? error.message
-            : "알 수 없는 오류"
-        }`
-      );
+            : "알 수 없는 오류";
+
+        result.errors.push(
+          `${apartment.name}: ${message}`
+        );
+
+        await markSyncError(
+          apartment.applyHomeId
+        );
+      }
     }
-  }
-
-  if (
-    changedUrls.size > 0
-  ) {
-    const indexNowResult =
-      await submitIndexNow(
-        [...changedUrls]
-      );
-
-    result.indexNowSubmitted =
-      indexNowResult.submitted;
 
     if (
-      !indexNowResult.skipped &&
-      indexNowResult.submitted ===
-        0
+      changedUrls.size > 0
     ) {
-      result.errors.push(
-        `IndexNow: ${indexNowResult.message}`
+      try {
+        const indexNowResult =
+          await submitIndexNow(
+            [...changedUrls]
+          );
+
+        result.indexNowSubmitted =
+          indexNowResult.submitted;
+
+        if (
+          !indexNowResult.skipped &&
+          indexNowResult.submitted ===
+            0
+        ) {
+          result.warnings.push(
+            `IndexNow: ${indexNowResult.message}`
+          );
+        }
+      } catch (error) {
+        result.warnings.push(
+          `IndexNow 전송: ${
+            error instanceof Error
+              ? error.message
+              : "알 수 없는 오류"
+          }`
+        );
+      }
+    }
+
+    return result;
+  } catch (error) {
+    /*
+     * 목록 API 자체 실패, 응답 형식 변경, 0건 이상상태 등
+     * 전체 동기화를 진행할 수 없는 오류는 상위 route로 전달합니다.
+     */
+    const message =
+      error instanceof Error
+        ? error.message
+        : "알 수 없는 오류";
+
+    result.errors.push(
+      `전체 동기화 중단: ${message}`
+    );
+
+    throw new Error(
+      `청약홈 자동 동기화 실패: ${message}`
+    );
+  } finally {
+    const finishedAt =
+      new Date();
+
+    result.finishedAt =
+      finishedAt.toISOString();
+
+    result.durationMs =
+      finishedAt.getTime() -
+      startedAt.getTime();
+
+    const summary = {
+      startedAt:
+        result.startedAt,
+      finishedAt:
+        result.finishedAt,
+      durationMs:
+        result.durationMs,
+      fetched:
+        result.fetched,
+      relevant:
+        result.relevant,
+      inserted:
+        result.inserted,
+      updated:
+        result.updated,
+      unchanged:
+        result.unchanged,
+      skipped:
+        result.skipped,
+      failed:
+        result.failed,
+      priceSynced:
+        result.priceSynced,
+      priceMissing:
+        result.priceMissing,
+      changed:
+        result.changed,
+      indexNowSubmitted:
+        result.indexNowSubmitted,
+      warningCount:
+        result.warnings.length,
+      errorCount:
+        result.errors.length,
+    };
+
+    if (
+      result.failed > 0 ||
+      result.errors.length > 0
+    ) {
+      console.error(
+        "[청약홈 동기화 완료 - 오류 있음]",
+        summary,
+        {
+          errors:
+            result.errors,
+          warnings:
+            result.warnings,
+        }
+      );
+    } else {
+      console.log(
+        "[청약홈 동기화 완료]",
+        summary,
+        result.warnings.length >
+          0
+          ? {
+              warnings:
+                result.warnings,
+            }
+          : undefined
       );
     }
   }
-
-  return result;
 }
