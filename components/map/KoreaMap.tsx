@@ -408,177 +408,179 @@ function KoreaMap({
         aria-label="대한민국 분양지도"
         className="absolute inset-0 h-full w-full"
       >
-        {renderedFeatures.map(
-          (item) => {
-            const [
-              baseX,
-              baseY,
-            ] =
-              item.centroid;
+        {/* 1. 지도 도형을 먼저 전부 그립니다. */}
+        {renderedFeatures.map((item) => {
+          const selected =
+            selectedCity === item.region?.city ||
+            selectedCity === item.regionName;
 
-            const badge =
-              badgeOffset[
-                item.regionName
-              ] ?? {
-                x: 0,
-                y: 4,
-              };
+          const selectRegion = () => {
+            if (item.region) {
+              onSelect(item.region.city);
+            }
+          };
 
-            const label =
-              labelOffset[
-                item.regionName
-              ] ?? {
-                x: 0,
-                y:
-                  item.count > 0
-                    ? -22
-                    : 4,
-              };
+          return (
+            <path
+              key={`path-${item.key}`}
+              d={item.path}
+              fill={getRegionFill(
+                item.count,
+                selected
+              )}
+              stroke={
+                selected
+                  ? "#2fa879"
+                  : "#d6dfdc"
+              }
+              strokeWidth={
+                selected ? 2 : 1
+              }
+              vectorEffect="non-scaling-stroke"
+              onClick={selectRegion}
+              className={
+                item.region
+                  ? "cursor-pointer transition-colors duration-150 hover:fill-[#bdebd6]"
+                  : "cursor-default"
+              }
+            />
+          );
+        })}
 
-            const cx =
-              baseX + badge.x;
+        {/* 2. 지역명은 도형 위에 표시합니다. */}
+        {renderedFeatures.map((item) => {
+          const [
+            baseX,
+            baseY,
+          ] = item.centroid;
 
-            const cy =
-              baseY + badge.y;
+          const label =
+            labelOffset[
+              item.regionName
+            ] ?? {
+              x: 0,
+              y:
+                item.count > 0
+                  ? -22
+                  : 4,
+            };
 
-            const selected =
-              selectedCity ===
-                item.region?.city ||
-              selectedCity ===
-                item.regionName;
+          return (
+            <text
+              key={`label-${item.key}`}
+              x={
+                baseX +
+                label.x
+              }
+              y={
+                baseY +
+                label.y
+              }
+              textAnchor="middle"
+              className="pointer-events-none select-none fill-zinc-700 text-[12px] font-bold"
+            >
+              {item.regionName}
+            </text>
+          );
+        })}
 
-            const selectRegion =
-              () => {
-                if (
-                  item.region
-                ) {
-                  onSelect(
-                    item.region.city
-                  );
-                }
-              };
-
-            return (
-              <g key={item.key}>
-                <path
-                  d={item.path}
-                  fill={getRegionFill(
-                    item.count,
-                    selected
-                  )}
-                  stroke={
-                    selected
-                      ? "#2fa879"
-                      : "#d6dfdc"
-                  }
-                  strokeWidth={
-                    selected ? 2 : 1
-                  }
-                  vectorEffect="non-scaling-stroke"
-                  onClick={
-                    selectRegion
-                  }
-                  className={
-                    item.region
-                      ? "cursor-pointer transition-colors duration-150 hover:fill-[#bdebd6]"
-                      : "cursor-default"
-                  }
-                />
-
-                <text
-                  x={
-                    baseX +
-                    label.x
-                  }
-                  y={
-                    baseY +
-                    label.y
-                  }
-                  textAnchor="middle"
-                  className="pointer-events-none select-none fill-zinc-700 text-[12px] font-bold"
-                >
-                  {
-                    item.regionName
-                  }
-                </text>
-
-                {item.count >
-                  0 && (
-                  <g
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`${item.regionName} 분양 단지 ${item.count}개 보기`}
-                    onClick={
-                      selectRegion
-                    }
-                    onKeyDown={(
-                      event
-                    ) => {
-                      if (
-                        event.key ===
-                          "Enter" ||
-                        event.key ===
-                          " "
-                      ) {
-                        event.preventDefault();
-                        selectRegion();
-                      }
-                    }}
-                    className="cursor-pointer outline-none"
-                  >
-                    {selected && (
-                      <circle
-                        cx={cx}
-                        cy={cy}
-                        r={29}
-                        fill="none"
-                        stroke="#59c79b"
-                        strokeWidth={
-                          2
-                        }
-                        opacity={
-                          0.35
-                        }
-                        className="animate-pulse"
-                      />
-                    )}
-
-                    <circle
-                      cx={cx}
-                      cy={cy}
-                      r={
-                        item.count >=
-                        10
-                          ? 21
-                          : 18
-                      }
-                      fill={
-                        selected
-                          ? "#238b68"
-                          : "#00a97a"
-                      }
-                      stroke="#ffffff"
-                      strokeWidth={
-                        3
-                      }
-                      vectorEffect="non-scaling-stroke"
-                      className="drop-shadow-md transition-colors duration-150 hover:fill-[#238b68]"
-                    />
-
-                    <text
-                      x={cx}
-                      y={cy + 6}
-                      textAnchor="middle"
-                      className="pointer-events-none select-none fill-white text-[16px] font-extrabold"
-                    >
-                      {item.count}
-                    </text>
-                  </g>
-                )}
-              </g>
-            );
+        {/* 3. 숫자 버튼은 항상 맨 마지막에 그려 어떤 지역 도형에도 가려지지 않게 합니다. */}
+        {renderedFeatures.map((item) => {
+          if (item.count <= 0) {
+            return null;
           }
-        )}
+
+          const [
+            baseX,
+            baseY,
+          ] = item.centroid;
+
+          const badge =
+            badgeOffset[
+              item.regionName
+            ] ?? {
+              x: 0,
+              y: 4,
+            };
+
+          const cx =
+            baseX + badge.x;
+
+          const cy =
+            baseY + badge.y;
+
+          const selected =
+            selectedCity === item.region?.city ||
+            selectedCity === item.regionName;
+
+          const selectRegion = () => {
+            if (item.region) {
+              onSelect(item.region.city);
+            }
+          };
+
+          return (
+            <g
+              key={`badge-${item.key}`}
+              role="button"
+              tabIndex={0}
+              aria-label={`${item.regionName} 분양 단지 ${item.count}개 보기`}
+              onClick={selectRegion}
+              onKeyDown={(event) => {
+                if (
+                  event.key === "Enter" ||
+                  event.key === " "
+                ) {
+                  event.preventDefault();
+                  selectRegion();
+                }
+              }}
+              className="cursor-pointer outline-none"
+            >
+              {selected && (
+                <circle
+                  cx={cx}
+                  cy={cy}
+                  r={29}
+                  fill="none"
+                  stroke="#59c79b"
+                  strokeWidth={2}
+                  opacity={0.35}
+                  className="animate-pulse"
+                />
+              )}
+
+              <circle
+                cx={cx}
+                cy={cy}
+                r={
+                  item.count >= 10
+                    ? 21
+                    : 18
+                }
+                fill={
+                  selected
+                    ? "#238b68"
+                    : "#00a97a"
+                }
+                stroke="#ffffff"
+                strokeWidth={3}
+                vectorEffect="non-scaling-stroke"
+                className="drop-shadow-md transition-colors duration-150 hover:fill-[#238b68]"
+              />
+
+              <text
+                x={cx}
+                y={cy + 6}
+                textAnchor="middle"
+                className="pointer-events-none select-none fill-white text-[16px] font-extrabold"
+              >
+                {item.count}
+              </text>
+            </g>
+          );
+        })}
+
       </svg>
 
       <div className="pointer-events-none absolute bottom-3 left-3 right-3 z-20 flex flex-wrap gap-1.5 text-[9px] sm:bottom-5 sm:left-6 sm:right-6 sm:gap-2 sm:text-xs">
