@@ -147,6 +147,33 @@ export default async function sitemap(): Promise<
 
       {
         url:
+          `${SITE_URL}/search`,
+        lastModified: now,
+        changeFrequency:
+          "daily",
+        priority: 0.85,
+      },
+
+      {
+        url:
+          `${SITE_URL}/subscription`,
+        lastModified: now,
+        changeFrequency:
+          "daily",
+        priority: 0.9,
+      },
+
+      {
+        url:
+          `${SITE_URL}/first-come`,
+        lastModified: now,
+        changeFrequency:
+          "daily",
+        priority: 0.9,
+      },
+
+      {
+        url:
           `${SITE_URL}/briefing`,
         lastModified: now,
         changeFrequency:
@@ -154,10 +181,6 @@ export default async function sitemap(): Promise<
         priority: 0.8,
       },
     ];
-
-  /*
-   * /search는 noindex 페이지이므로 사이트맵에서 제외합니다.
-   */
   const regionPages: MetadataRoute.Sitemap =
     regions.map(
       (region) => ({

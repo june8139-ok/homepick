@@ -18,13 +18,13 @@ const menuItems = [
   },
   {
     label: "청약일정",
-    href: "/search?q=청약",
-    query: "청약",
+    href: "/subscription",
+    query: "",
   },
   {
     label: "선착순",
-    href: "/search?q=선착순",
-    query: "선착순",
+    href: "/first-come",
+    query: "",
   },
   {
     label: "지역별 보기",
