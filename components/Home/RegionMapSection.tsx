@@ -410,14 +410,14 @@ export default function RegionMapSection({
   ) {
     return (
       <section className="relative isolate mt-6 overflow-hidden rounded-[30px] border border-emerald-100 bg-[linear-gradient(135deg,#ffffff_0%,#f8fcfa_62%,#fbfdff_100%)] p-5 shadow-[0_20px_55px_rgba(15,118,110,0.07)] sm:p-7 lg:p-9">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-xs font-extrabold tracking-[0.12em] text-[#0F766E]">
               집눈 신규 분양지도
             </p>
 
             <h2 className="mt-1 text-2xl font-black tracking-tight text-[#111827] sm:text-3xl">
-              최근 7일 신규 등록 지역
+              신규 등록 지역
             </h2>
 
             <p className="mt-2 text-sm leading-6 text-zinc-500">
@@ -427,7 +427,7 @@ export default function RegionMapSection({
 
           <Link
             href="/region"
-            className="inline-flex min-h-10 items-center justify-center rounded-xl border border-emerald-200 bg-white px-4 py-2 text-sm font-bold text-emerald-700 transition hover:bg-emerald-50"
+            className="inline-flex min-h-10 shrink-0 self-start items-center justify-center rounded-xl border border-emerald-200 bg-white px-4 py-2 text-sm font-bold text-emerald-700 transition hover:bg-emerald-50 lg:self-auto"
           >
             전체 지역 보기 →
           </Link>
@@ -446,14 +446,14 @@ export default function RegionMapSection({
         aria-hidden="true"
         className="pointer-events-none absolute -bottom-28 left-[18%] h-64 w-64 rounded-full bg-sky-100/45 blur-3xl"
       />
-      <div className="relative z-10 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div className="relative z-10 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-xs font-extrabold tracking-[0.12em] text-[#0F766E]">
             집눈 신규 분양지도
           </p>
 
           <h2 className="mt-1 text-2xl font-black tracking-tight text-[#111827] sm:text-3xl">
-            최근 7일 신규 등록 지역
+            신규 등록 지역
           </h2>
 
           <p className="mt-1 text-sm leading-6 text-zinc-500">
@@ -465,8 +465,9 @@ export default function RegionMapSection({
         <Link
           href="/region"
           className="
-            inline-flex min-h-10
+            inline-flex min-h-10 shrink-0 self-start
             cursor-pointer items-center
+            lg:self-auto
             justify-center rounded-xl
             border border-emerald-200
             bg-white/90 px-4 py-2
@@ -864,7 +865,7 @@ export default function RegionMapSection({
         </div>
 
         <p className="mt-1 text-center text-[10px] leading-5 text-zinc-400">
-          지도 숫자를 누르거나 카드를 좌우로 밀어 최근 7일 신규 등록 지역을 확인하세요.
+          지도 숫자를 누르거나 카드를 좌우로 밀어 신규 등록 지역을 확인하세요.
         </p>
       </div>
     </section>
