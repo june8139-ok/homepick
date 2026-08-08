@@ -554,6 +554,22 @@ export function normalizeApartment(
         )
       ),
 
+    createdAt:
+      toNullableString(
+        firstDefined(
+          row.created_at,
+          data.createdAt
+        )
+      ),
+
+    updatedAt:
+      toNullableString(
+        firstDefined(
+          row.updated_at,
+          data.updatedAt
+        )
+      ),
+
     totalSupply:
       normalizedTotalSupply,
 

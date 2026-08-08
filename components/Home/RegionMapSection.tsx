@@ -101,6 +101,76 @@ function getStatusPriority(
   return 1;
 }
 
+
+const NEW_WINDOW_DAYS = 7;
+const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function getKstDayNumber(
+  value: string | Date
+) {
+  const date =
+    value instanceof Date
+      ? value
+      : new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return Math.floor(
+    (date.getTime() + KST_OFFSET_MS) /
+      DAY_MS
+  );
+}
+
+function isRecentRegistration(
+  apartment: Apartment
+) {
+  if (!apartment.createdAt) {
+    return false;
+  }
+
+  const createdDay =
+    getKstDayNumber(
+      apartment.createdAt
+    );
+
+  const today =
+    getKstDayNumber(new Date());
+
+  if (
+    createdDay === null ||
+    today === null
+  ) {
+    return false;
+  }
+
+  const dayDiff =
+    today - createdDay;
+
+  return (
+    dayDiff >= 0 &&
+    dayDiff < NEW_WINDOW_DAYS
+  );
+}
+
+function getCreatedTime(
+  apartment: Apartment
+) {
+  if (!apartment.createdAt) {
+    return 0;
+  }
+
+  const time = new Date(
+    apartment.createdAt
+  ).getTime();
+
+  return Number.isFinite(time)
+    ? time
+    : 0;
+}
+
 function getRepresentativeInfo(
   apartment?: Apartment | null
 ) {
@@ -131,6 +201,15 @@ export default function RegionMapSection({
       [apartments]
     );
 
+  const recentApartments =
+    useMemo(
+      () =>
+        visibleApartments.filter(
+          isRecentRegistration
+        ),
+      [visibleApartments]
+    );
+
   const regions =
     useMemo<RegionItem[]>(() => {
       const accumulator =
@@ -139,7 +218,7 @@ export default function RegionMapSection({
           Apartment[]
         >();
 
-      visibleApartments.forEach(
+      recentApartments.forEach(
         (apartment) => {
           const regionKey =
             getApartmentRegionKey(
@@ -174,11 +253,20 @@ export default function RegionMapSection({
           ]): RegionItem => {
             const sortedApartments = [
               ...regionApartments,
-            ].sort(
-              (a, b) =>
+            ].sort((a, b) => {
+              const createdDiff =
+                getCreatedTime(b) -
+                getCreatedTime(a);
+
+              if (createdDiff !== 0) {
+                return createdDiff;
+              }
+
+              return (
                 getStatusPriority(b) -
                 getStatusPriority(a)
-            );
+              );
+            });
 
             const subscriptionCount =
               regionApartments.filter(
@@ -238,7 +326,7 @@ export default function RegionMapSection({
             "ko"
           );
         });
-    }, [visibleApartments]);
+    }, [recentApartments]);
 
   const [
     selectedCity,
@@ -320,7 +408,32 @@ export default function RegionMapSection({
   if (
     regions.length === 0
   ) {
-    return null;
+    return (
+      <section className="relative isolate mt-6 overflow-hidden rounded-[30px] border border-emerald-100 bg-[linear-gradient(135deg,#ffffff_0%,#f8fcfa_62%,#fbfdff_100%)] p-5 shadow-[0_20px_55px_rgba(15,118,110,0.07)] sm:p-7 lg:p-9">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-extrabold tracking-[0.12em] text-[#0F766E]">
+              집눈 신규 분양지도
+            </p>
+
+            <h2 className="mt-1 text-2xl font-black tracking-tight text-[#111827] sm:text-3xl">
+              최근 7일 신규 등록 지역
+            </h2>
+
+            <p className="mt-2 text-sm leading-6 text-zinc-500">
+              최근 7일 동안 새로 등록된 분양정보가 없습니다.
+            </p>
+          </div>
+
+          <Link
+            href="/region"
+            className="inline-flex min-h-10 items-center justify-center rounded-xl border border-emerald-200 bg-white px-4 py-2 text-sm font-bold text-emerald-700 transition hover:bg-emerald-50"
+          >
+            전체 지역 보기 →
+          </Link>
+        </div>
+      </section>
+    );
   }
 
   return (
@@ -336,17 +449,16 @@ export default function RegionMapSection({
       <div className="relative z-10 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-extrabold tracking-[0.12em] text-[#0F766E]">
-            집눈 지역지도
+            집눈 신규 분양지도
           </p>
 
           <h2 className="mt-1 text-2xl font-black tracking-tight text-[#111827] sm:text-3xl">
-            지역별로 찾아보기
+            최근 7일 신규 등록 지역
           </h2>
 
           <p className="mt-1 text-sm leading-6 text-zinc-500">
-            지도 위 지역이나 숫자를 누르면
-            해당 지역의 분양 현황을 확인할 수
-            있습니다.
+            최근 7일 동안 새로 등록된 단지가 있는 지역만
+            표시합니다. 숫자를 누르면 신규 단지를 확인할 수 있습니다.
           </p>
         </div>
 
@@ -388,7 +500,7 @@ export default function RegionMapSection({
               />
               {selectedRegion?.cityName}
               <span className="font-bold text-zinc-500">
-                {selectedRegion?.count ?? 0}개
+                NEW {selectedRegion?.count ?? 0}
               </span>
             </p>
           </div>
@@ -483,7 +595,7 @@ export default function RegionMapSection({
 
             <div className="absolute bottom-4 left-4 right-4">
               <span className="inline-flex rounded-full border border-white/70 bg-white/90 px-3 py-1 text-[10px] font-extrabold text-emerald-700 shadow-sm backdrop-blur">
-                선택한 지역
+                신규 등록 지역
               </span>
 
               <p className="mt-2 text-3xl font-black text-white">
@@ -499,7 +611,7 @@ export default function RegionMapSection({
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-bold text-zinc-400">
-                  등록된 부동산
+                  최근 7일 신규 등록
                 </p>
 
                 <p className="mt-1 text-4xl font-black tracking-tight text-[#111827]">
@@ -514,7 +626,7 @@ export default function RegionMapSection({
               </div>
 
               <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-extrabold text-emerald-700">
-                실시간 현황
+                7일 롤링
               </span>
             </div>
 
@@ -694,7 +806,7 @@ export default function RegionMapSection({
                         </div>
 
                         <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-extrabold text-emerald-700">
-                          총 {region.count}개
+                          NEW {region.count}
                         </span>
                       </div>
 
@@ -752,7 +864,7 @@ export default function RegionMapSection({
         </div>
 
         <p className="mt-1 text-center text-[10px] leading-5 text-zinc-400">
-          지도 숫자를 누르거나 카드를 좌우로 밀어 지역 현황을 확인하세요.
+          지도 숫자를 누르거나 카드를 좌우로 밀어 최근 7일 신규 등록 지역을 확인하세요.
         </p>
       </div>
     </section>

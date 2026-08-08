@@ -136,6 +136,8 @@ export type Apartment = {
   manualOverride?: boolean;
   syncStatus?: string;
   lastSyncedAt?: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
   totalSupply?: number | null;
   subscription?: SubscriptionSchedule;
   projectInfo?: ProjectInfo;

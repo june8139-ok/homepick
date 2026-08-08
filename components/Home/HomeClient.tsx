@@ -534,7 +534,7 @@ export default function HomeClient({
               (region) => (
                 <Link
                   key={region}
-                  href={`/search?q=${encodeURIComponent(
+                  href={`/region/${encodeURIComponent(
                     region
                   )}`}
                   className="
@@ -566,7 +566,7 @@ export default function HomeClient({
               (region) => (
                 <Link
                   key={region}
-                  href={`/search?q=${encodeURIComponent(
+                  href={`/region/${encodeURIComponent(
                     region
                   )}`}
                   className="
