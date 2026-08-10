@@ -298,7 +298,7 @@ export default function HomeClient({
             }
             onClick={() =>
               navigate(
-                "/search?q=청약",
+                "/subscription",
                 "summary:subscription"
               )
             }
@@ -318,7 +318,7 @@ export default function HomeClient({
             }
             onClick={() =>
               navigate(
-                "/search?q=선착순",
+                "/first-come",
                 "summary:firstCome"
               )
             }
@@ -338,7 +338,7 @@ export default function HomeClient({
             }
             onClick={() =>
               navigate(
-                "/search",
+                "/search?recent=1",
                 "summary:recent"
               )
             }
@@ -349,7 +349,7 @@ export default function HomeClient({
         <div className="mt-3 sm:hidden">
           <MobileDashboardPanel
             title="진행 중 청약"
-            href="/search?q=청약"
+            href="/subscription"
           >
             {subscriptions.length >
             0 ? (
@@ -372,7 +372,7 @@ export default function HomeClient({
         <div className="mt-3 sm:hidden">
           <MobileDashboardPanel
             title="선착순 분양"
-            href="/search?q=선착순"
+            href="/first-come"
           >
             {firstComeApartments.length >
             0 ? (
@@ -395,7 +395,7 @@ export default function HomeClient({
         <div className="mt-3 sm:hidden">
           <MobileDashboardPanel
             title="최근 업데이트 단지"
-            href="/search"
+            href="/search?recent=1"
           >
             {recentApartments.length >
             0 ? (
@@ -427,7 +427,7 @@ export default function HomeClient({
         <section className="mt-5 hidden gap-5 rounded-[32px] bg-white p-5 shadow-[0_18px_48px_rgba(15,118,110,0.055)] sm:grid xl:grid-cols-[1fr_1fr_0.78fr] xl:p-6">
           <DashboardPanel
             title="진행 중 청약"
-            href="/search?q=청약"
+            href="/subscription"
           >
             {subscriptions.length >
             0 ? (
@@ -455,7 +455,7 @@ export default function HomeClient({
 
           <DashboardPanel
             title="선착순 분양"
-            href="/search?q=선착순"
+            href="/first-come"
           >
             {firstComeApartments.length >
             0 ? (
@@ -483,7 +483,7 @@ export default function HomeClient({
 
           <DashboardPanel
             title="최근 업데이트 단지"
-            href="/search"
+            href="/search?recent=1"
           >
             {recentApartments.length >
             0 ? (

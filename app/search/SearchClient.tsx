@@ -69,6 +69,15 @@ const DEFAULT_FILTERS: SearchFilterState = {
   benefits: [],
 };
 
+function isManualApartment(
+  apartment: Apartment
+) {
+  return (
+    apartment.source !== "applyhome" &&
+    apartment.isAutoCreated !== true
+  );
+}
+
 function normalize(value: unknown) {
   return String(value ?? "")
     .trim()
@@ -440,6 +449,9 @@ export default function SearchClient({
   const query =
     searchParams.get("q") ?? "";
 
+  const recentOnly =
+    searchParams.get("recent") === "1";
+
   const sourceApartments =
     useMemo(
       () =>
@@ -447,6 +459,21 @@ export default function SearchClient({
           apartments
         ),
       [apartments]
+    );
+
+  const recentApartments =
+    useMemo(
+      () =>
+        sourceApartments
+          .filter(
+            (apartment) =>
+              !isSubscriptionApartment(
+                apartment
+              )
+          )
+          .filter(isManualApartment)
+          .slice(0, 4),
+      [sourceApartments]
     );
 
   const [keyword, setKeyword] =
@@ -594,8 +621,13 @@ export default function SearchClient({
         presetStatus ||
         filters.status;
 
+      const searchSource =
+        recentOnly
+          ? recentApartments
+          : sourceApartments;
+
       const result =
-        sourceApartments.filter(
+        searchSource.filter(
           (apartment) => {
             const condition =
               isApplyHomeUnverified(
@@ -678,6 +710,8 @@ export default function SearchClient({
       distances,
       filters,
       query,
+      recentApartments,
+      recentOnly,
       sort,
       sourceApartments,
     ]);
@@ -999,15 +1033,17 @@ export default function SearchClient({
               </p>
 
               <h1 className="break-keep text-xl font-extrabold tracking-tight sm:mt-1 sm:text-3xl">
-                {query
-                  ? `“${query}” 관련 부동산`
-                  : "전국 부동산 찾기"}
+                {recentOnly
+                  ? "최근 업데이트 단지"
+                  : query
+                    ? `“${query}” 관련 부동산`
+                    : "전국 부동산 찾기"}
               </h1>
 
               <p className="mt-1 text-[11px] leading-4 text-zinc-500 sm:mt-2 sm:text-sm sm:leading-5">
-                지도와 단지 목록을 함께
-                보며 분양 정보를
-                확인하세요.
+                {recentOnly
+                  ? "최근 업데이트된 단지만 모아 확인하세요."
+                  : "지도와 단지 목록을 함께 보며 분양 정보를 확인하세요."}
               </p>
             </div>
 

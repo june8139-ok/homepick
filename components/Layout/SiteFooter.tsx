@@ -25,18 +25,22 @@ const serviceLinks = [
   },
   {
     label: "청약일정",
-    href: "/search?q=청약",
+    href: "/subscription",
   },
   {
-    label: "선착순 분양",
-    href: "/search?q=선착순",
+    label: "선착순",
+    href: "/first-come",
   },
   {
     label: "지역별 보기",
     href: "/region",
   },
   {
-    label: "단지 비교",
+    label: "관심단지",
+    href: "/favorites",
+  },
+  {
+    label: "비교하기",
     href: "/compare",
   },
 ];
