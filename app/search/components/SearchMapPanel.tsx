@@ -637,8 +637,6 @@ function clusterHtml(
       box-shadow:0 10px 26px rgba(15,23,42,.25);
       color:#ffffff;
       cursor:pointer;
-      pointer-events:auto;
-      touch-action:manipulation;
       font-size:14px;
       font-weight:900;
       line-height:1;
@@ -677,8 +675,6 @@ function markerHtml(
           : "none"
       };
       cursor:pointer;
-      pointer-events:auto;
-      touch-action:manipulation;
     ">
       <div style="
         min-width:64px;
@@ -870,16 +866,13 @@ export default function SearchMapPanel({
       typeof setTimeout
     > | null>(null);
 
-  const lastTouchActivationRef =
-    useRef(0);
-
   const userMarkerRef =
     useRef<any>(null);
 
   const idleListenerRef =
     useRef<any>(null);
 
-  const dragStartListenerRef =
+  const dragEndListenerRef =
     useRef<any>(null);
 
   const previousActiveSlugRef =
@@ -1343,29 +1336,8 @@ export default function SearchMapPanel({
         const listeners = [
           window.naver.maps.Event.addListener(
             marker,
-            "touchend",
-            () => {
-              lastTouchActivationRef.current =
-                Date.now();
-
-              activateCluster();
-            }
-          ),
-
-          window.naver.maps.Event.addListener(
-            marker,
             "click",
-            () => {
-              if (
-                Date.now() -
-                  lastTouchActivationRef.current <
-                500
-              ) {
-                return;
-              }
-
-              activateCluster();
-            }
+            activateCluster
           ),
         ];
 
@@ -1382,9 +1354,7 @@ export default function SearchMapPanel({
       const apartment =
         group.apartments[0];
 
-      const isSelected =
-        selectedApartment?.slug ===
-        apartment.slug;
+      const isSelected = false;
 
       const marker =
         new window.naver.maps.Marker(
@@ -1469,29 +1439,8 @@ export default function SearchMapPanel({
 
         window.naver.maps.Event.addListener(
           marker,
-          "touchend",
-          () => {
-            lastTouchActivationRef.current =
-              Date.now();
-
-            onSelect(
-              apartment.slug
-            );
-          }
-        ),
-
-        window.naver.maps.Event.addListener(
-          marker,
           "click",
           () => {
-            if (
-              Date.now() -
-                lastTouchActivationRef.current <
-              500
-            ) {
-              return;
-            }
-
             onSelect(
               apartment.slug
             );
@@ -1530,16 +1479,16 @@ export default function SearchMapPanel({
         }
       );
 
-    if (dragStartListenerRef.current) {
+    if (dragEndListenerRef.current) {
       window.naver.maps.Event.removeListener(
-        dragStartListenerRef.current
+        dragEndListenerRef.current
       );
     }
 
-    dragStartListenerRef.current =
+    dragEndListenerRef.current =
       window.naver.maps.Event.addListener(
         map,
-        "dragstart",
+        "dragend",
         () => {
           if (isMobileViewport()) {
             onUserMapInteraction?.();
@@ -1557,11 +1506,11 @@ export default function SearchMapPanel({
         idleListenerRef.current = null;
       }
 
-      if (dragStartListenerRef.current) {
+      if (dragEndListenerRef.current) {
         window.naver.maps.Event.removeListener(
-          dragStartListenerRef.current
+          dragEndListenerRef.current
         );
-        dragStartListenerRef.current = null;
+        dragEndListenerRef.current = null;
       }
     };
   }, [
@@ -1571,7 +1520,6 @@ export default function SearchMapPanel({
     onHover,
     onSelect,
     onUserMapInteraction,
-    selectedApartment,
     updateViewport,
   ]);
 
@@ -2055,7 +2003,10 @@ export default function SearchMapPanel({
       : "";
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm lg:sticky lg:top-4 lg:rounded-3xl">
+    <section
+      data-jibnun-map-root
+      className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm lg:sticky lg:top-4 lg:rounded-3xl"
+    >
       <div className="flex items-center justify-between border-b border-zinc-200 px-5 py-4">
         <div>
           <p className="text-xs font-semibold tracking-[0.14em] text-emerald-600">

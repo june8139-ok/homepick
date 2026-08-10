@@ -155,6 +155,18 @@ export default function RouteLoadingIndicator() {
       const target =
         event.target as HTMLElement | null;
 
+      /*
+       * 네이버 지도 내부의 줌 컨트롤/오버레이 클릭은
+       * 앱 라우팅 감시 대상에서 제외합니다.
+       */
+      if (
+        target?.closest(
+          "[data-jibnun-map-root]"
+        )
+      ) {
+        return;
+      }
+
       const anchor =
         target?.closest<HTMLAnchorElement>(
           "a[href]",
@@ -269,7 +281,7 @@ export default function RouteLoadingIndicator() {
     <>
       <div
         aria-hidden="true"
-        className="fixed inset-x-0 top-0 z-[9999] h-1 overflow-hidden bg-emerald-100"
+        className="pointer-events-none fixed inset-x-0 top-0 z-[9999] h-1 overflow-hidden bg-emerald-100"
       >
         <div className="h-full w-1/2 animate-[jibnun-route-progress_1s_ease-in-out_infinite] bg-[#0F8F88]" />
       </div>

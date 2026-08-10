@@ -1,6 +1,5 @@
 import { ImageResponse } from "next/og";
 
-export const runtime = "edge";
 
 export const alt =
   "집눈 JIBNUN | 전국 부동산을 한눈에";
