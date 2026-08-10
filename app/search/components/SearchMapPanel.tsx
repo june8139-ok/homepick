@@ -1236,23 +1236,51 @@ export default function SearchMapPanel({
                   "undefined" &&
                 window.innerWidth < 1024;
 
-              const nextZoom =
-                isMobile
-                  ? Math.min(
-                      currentZoom + 1,
-                      12
-                    )
-                  : Math.min(
-                      currentZoom + 2,
-                      14
+              if (isMobile) {
+                /*
+                 * 모바일은 여러 번 눌러 확대하지 않아도
+                 * 해당 숫자 클러스터에 포함된 단지들이
+                 * 한 번에 화면 안에 들어오도록 맞춥니다.
+                 *
+                 * maxZoom 12로 과도한 확대는 막습니다.
+                 */
+                const bounds =
+                  new window.naver.maps.LatLngBounds();
+
+                group.apartments.forEach(
+                  (apartment) => {
+                    bounds.extend(
+                      new window.naver.maps.LatLng(
+                        apartment.latitude,
+                        apartment.longitude
+                      )
                     );
+                  }
+                );
+
+                map.fitBounds(
+                  bounds,
+                  {
+                    top: 44,
+                    right: 24,
+                    bottom: 44,
+                    left: 24,
+                    maxZoom: 12,
+                  }
+                );
+
+                return;
+              }
 
               map.morph(
                 new window.naver.maps.LatLng(
                   group.latitude,
                   group.longitude
                 ),
-                nextZoom
+                Math.min(
+                  currentZoom + 2,
+                  14
+                )
               );
             }
           ),
