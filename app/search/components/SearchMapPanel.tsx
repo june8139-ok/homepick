@@ -637,6 +637,8 @@ function clusterHtml(
       box-shadow:0 10px 26px rgba(15,23,42,.25);
       color:#ffffff;
       cursor:pointer;
+      pointer-events:auto;
+      touch-action:manipulation;
       font-size:14px;
       font-weight:900;
       line-height:1;
@@ -675,6 +677,8 @@ function markerHtml(
           : "none"
       };
       cursor:pointer;
+      pointer-events:auto;
+      touch-action:manipulation;
     ">
       <div style="
         min-width:64px;
@@ -865,6 +869,9 @@ export default function SearchMapPanel({
     useRef<ReturnType<
       typeof setTimeout
     > | null>(null);
+
+  const lastTouchActivationRef =
+    useRef(0);
 
   const userMarkerRef =
     useRef<any>(null);
@@ -1285,55 +1292,79 @@ export default function SearchMapPanel({
               },
 
               zIndex: 120,
+              clickable: true,
             }
           );
+
+        const activateCluster = () => {
+          onHover(null);
+
+          if (isMobileViewport()) {
+            const clusterBounds =
+              new window.naver.maps.LatLngBounds();
+
+            group.apartments.forEach(
+              (apartment) => {
+                clusterBounds.extend(
+                  new window.naver.maps.LatLng(
+                    apartment.latitude,
+                    apartment.longitude
+                  )
+                );
+              }
+            );
+
+            map.fitBounds(
+              clusterBounds,
+              {
+                top: 46,
+                right: 26,
+                bottom: 126,
+                left: 26,
+                maxZoom: 12,
+              }
+            );
+
+            return;
+          }
+
+          map.morph(
+            new window.naver.maps.LatLng(
+              group.latitude,
+              group.longitude
+            ),
+            Math.min(
+              currentZoom + 2,
+              14
+            )
+          );
+        };
 
         const listeners = [
           window.naver.maps.Event.addListener(
             marker,
+            "touchend",
+            () => {
+              lastTouchActivationRef.current =
+                Date.now();
+
+              activateCluster();
+            }
+          ),
+
+          window.naver.maps.Event.addListener(
+            marker,
             "click",
             () => {
-              onHover(null);
-
-              if (isMobileViewport()) {
-                const clusterBounds =
-                  new window.naver.maps.LatLngBounds();
-
-                group.apartments.forEach(
-                  (apartment) => {
-                    clusterBounds.extend(
-                      new window.naver.maps.LatLng(
-                        apartment.latitude,
-                        apartment.longitude
-                      )
-                    );
-                  }
-                );
-
-                map.fitBounds(
-                  clusterBounds,
-                  {
-                    top: 46,
-                    right: 26,
-                    bottom: 126,
-                    left: 26,
-                    maxZoom: 12,
-                  }
-                );
-
+              if (
+                Date.now() -
+                  lastTouchActivationRef.current <
+                500
+              ) {
                 return;
               }
 
-              map.morph(
-                new window.naver.maps.LatLng(
-                  group.latitude,
-                  group.longitude
-                ),
-                Math.min(
-                  currentZoom + 2,
-                  14
-                )
-              );
+              activateCluster();
             }
           ),
         ];
@@ -1388,6 +1419,7 @@ export default function SearchMapPanel({
               isSelected
                 ? 300
                 : 100,
+            clickable: true,
           }
         );
 
@@ -1437,11 +1469,33 @@ export default function SearchMapPanel({
 
         window.naver.maps.Event.addListener(
           marker,
-          "click",
-          () =>
+          "touchend",
+          () => {
+            lastTouchActivationRef.current =
+              Date.now();
+
             onSelect(
               apartment.slug
-            )
+            );
+          }
+        ),
+
+        window.naver.maps.Event.addListener(
+          marker,
+          "click",
+          () => {
+            if (
+              Date.now() -
+                lastTouchActivationRef.current <
+              500
+            ) {
+              return;
+            }
+
+            onSelect(
+              apartment.slug
+            );
+          }
         ),
       ];
 
@@ -1927,60 +1981,6 @@ export default function SearchMapPanel({
     };
   }, [mapReady]);
 
-  useEffect(() => {
-    const element = mapElementRef.current;
-
-    if (!mapReady || !element) {
-      return;
-    }
-
-    element.style.touchAction = "none";
-
-    const preventGesture = (event: Event) => {
-      event.preventDefault();
-    };
-
-    const preventMultiTouchPageZoom = (
-      event: TouchEvent
-    ) => {
-      if (event.touches.length >= 2) {
-        event.preventDefault();
-      }
-    };
-
-    element.addEventListener(
-      "gesturestart",
-      preventGesture,
-      { passive: false }
-    );
-    element.addEventListener(
-      "gesturechange",
-      preventGesture,
-      { passive: false }
-    );
-    element.addEventListener(
-      "touchmove",
-      preventMultiTouchPageZoom,
-      { passive: false }
-    );
-
-    return () => {
-      element.style.touchAction = "";
-      element.removeEventListener(
-        "gesturestart",
-        preventGesture
-      );
-      element.removeEventListener(
-        "gesturechange",
-        preventGesture
-      );
-      element.removeEventListener(
-        "touchmove",
-        preventMultiTouchPageZoom
-      );
-    };
-  }, [mapReady]);
-
   const fitAll = () => {
     const map = mapRef.current;
 
@@ -2090,7 +2090,6 @@ export default function SearchMapPanel({
           style={{
             width: "100%",
             height: "100%",
-            touchAction: "none",
           }}
         />
 
