@@ -1225,15 +1225,34 @@ export default function SearchMapPanel({
             () => {
               onHover(null);
 
+              /*
+               * 모바일에서는 숫자 클러스터를 눌렀을 때
+               * 너무 깊게 확대되어 단지가 화면 밖으로 나가지 않도록
+               * 한 단계만 확대합니다.
+               * PC는 기존 +2 확대를 유지합니다.
+               */
+              const isMobile =
+                typeof window !==
+                  "undefined" &&
+                window.innerWidth < 1024;
+
+              const nextZoom =
+                isMobile
+                  ? Math.min(
+                      currentZoom + 1,
+                      12
+                    )
+                  : Math.min(
+                      currentZoom + 2,
+                      14
+                    );
+
               map.morph(
                 new window.naver.maps.LatLng(
                   group.latitude,
                   group.longitude
                 ),
-                Math.min(
-                  currentZoom + 2,
-                  14
-                )
+                nextZoom
               );
             }
           ),

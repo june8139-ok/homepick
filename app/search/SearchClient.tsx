@@ -722,12 +722,21 @@ export default function SearchClient({
   ]);
 
   /*
-   * 검색 결과 목록은 지도 이동·확대와 분리합니다.
-   * 지도 범위는 숫자 안내에만 사용하고,
-   * 사용자가 검색하거나 필터링한 결과는 목록에서 사라지지 않습니다.
+   * PC 목록은 검색 결과 전체를 유지합니다.
+   * 모바일 카드 목록은 현재 지도 화면 안에 보이는 단지만 표시합니다.
    */
   const listResults =
     filteredResults;
+
+  const mobileListResults =
+    visibleSlugs === null
+      ? filteredResults
+      : filteredResults.filter(
+          (apartment) =>
+            visibleSlugs.includes(
+              apartment.slug
+            )
+        );
 
   const mapVisibleCount =
     visibleSlugs === null
@@ -1205,22 +1214,21 @@ export default function SearchClient({
           <div className="mt-4 flex items-center justify-between px-1">
             <div>
               <h2 className="text-base font-black">
-                검색 결과 단지
+                현재 지도 단지
               </h2>
 
               <p className="mt-0.5 text-xs text-zinc-500">
-                검색 결과는 지도 이동과 관계없이
-                그대로 유지됩니다.
+                지도 안 {mobileListResults.length}개 · 전체 결과 {filteredResults.length}개
               </p>
             </div>
 
             <span className="rounded-full bg-white px-3 py-1.5 text-xs font-bold text-zinc-600 shadow-sm">
-              {listResults.length}개
+              {mobileListResults.length}개
             </span>
           </div>
 
           <MobileSearchCarousel
-            apartments={listResults}
+            apartments={mobileListResults}
             selectedSlug={
               selectedSlug
             }
