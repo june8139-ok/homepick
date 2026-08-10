@@ -161,6 +161,30 @@ function getHomePriceText(
 }
 
 
+function getCreatedAtTimestamp(
+  apartment: Apartment
+) {
+  const timestamp = apartment.createdAt
+    ? new Date(
+        apartment.createdAt
+      ).getTime()
+    : 0;
+
+  return Number.isFinite(timestamp)
+    ? timestamp
+    : 0;
+}
+
+function sortByNewestCreated(
+  apartments: Apartment[]
+) {
+  return [...apartments].sort(
+    (first, second) =>
+      getCreatedAtTimestamp(second) -
+      getCreatedAtTimestamp(first)
+  );
+}
+
 export default function HomeClient({
   apartments,
   briefings,
@@ -221,7 +245,9 @@ export default function HomeClient({
 
   const subscriptions = useMemo(
     () =>
-      allSubscriptions.slice(0, 6),
+      sortByNewestCreated(
+        allSubscriptions
+      ).slice(0, 6),
     [allSubscriptions]
   );
 
@@ -248,10 +274,9 @@ export default function HomeClient({
 
   const firstComeApartments = useMemo(
     () =>
-      allFirstComeApartments.slice(
-        0,
-        6
-      ),
+      sortByNewestCreated(
+        allFirstComeApartments
+      ).slice(0, 6),
     [allFirstComeApartments]
   );
 

@@ -4,7 +4,7 @@ import {
 } from "./subscriptionVisibility";
 
 export const RECENT_UPDATE_DAYS = 14;
-export const HOME_RECENT_LIMIT = 4;
+export const HOME_RECENT_LIMIT = 3;
 
 function toTimestamp(
   value?: string | null
