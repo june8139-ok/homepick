@@ -133,7 +133,7 @@ export default function SearchFilters({
   };
 
   return (
-    <section className="mt-3 w-full min-w-0 sm:mt-5">
+    <section className="mt-2 w-full min-w-0 sm:mt-5">
       <div className="sm:hidden">
         <div className="flex min-w-0 items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {statusOptions.map((option) => {
@@ -149,7 +149,7 @@ export default function SearchFilters({
                 }
                 aria-pressed={active}
                 className={[
-                  "h-9 shrink-0 cursor-pointer rounded-full border px-3.5 text-xs font-extrabold transition-all",
+                  "h-8 shrink-0 cursor-pointer rounded-full border px-3 text-[11px] font-extrabold transition-all",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2",
                   active
                     ? "border-emerald-600 bg-emerald-600 text-white shadow-sm"
@@ -166,7 +166,7 @@ export default function SearchFilters({
             onClick={() => setDetailOpen((value) => !value)}
             aria-expanded={detailOpen}
             className={[
-              "ml-auto inline-flex h-9 shrink-0 cursor-pointer items-center rounded-full border px-3.5 text-xs font-extrabold transition-all",
+              "ml-auto inline-flex h-8 shrink-0 cursor-pointer items-center rounded-full border px-3 text-[11px] font-extrabold transition-all",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 focus-visible:ring-offset-2",
               detailOpen || filters.benefits.length > 0 || hasUserLocation || sort !== "default"
                 ? "border-zinc-900 bg-zinc-900 text-white shadow-sm"
@@ -180,14 +180,14 @@ export default function SearchFilters({
         </div>
 
         {detailOpen && (
-          <div className="mt-2 rounded-2xl border border-zinc-200 bg-zinc-50 p-3 shadow-sm">
+          <div className="mt-2 rounded-xl border border-zinc-200 bg-zinc-50 p-2.5 shadow-sm">
             <div className="flex min-w-0 items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 type="button"
                 disabled={locationStatus === "loading" || locationStatus === "unsupported"}
                 onClick={onRequestLocation}
                 className={[
-                  "inline-flex h-9 shrink-0 cursor-pointer items-center gap-1 rounded-full border px-3 text-xs font-bold",
+                  "inline-flex h-8 shrink-0 cursor-pointer items-center gap-1 rounded-full border px-2.5 text-[11px] font-bold",
                   "disabled:cursor-not-allowed disabled:opacity-50",
                   hasUserLocation
                     ? "border-emerald-500 bg-emerald-50 text-emerald-700"
@@ -202,7 +202,7 @@ export default function SearchFilters({
                 value={sort}
                 onChange={(event) => changeSort(event.target.value as SortOption)}
                 aria-label="정렬 방식"
-                className="h-9 shrink-0 cursor-pointer rounded-full border border-zinc-300 bg-white px-3 text-xs font-bold outline-none"
+                className="h-8 shrink-0 cursor-pointer rounded-full border border-zinc-300 bg-white px-2.5 text-[11px] font-bold outline-none"
               >
                 <option value="default">기본순</option>
                 <option value="distance">가까운 순</option>
@@ -213,7 +213,7 @@ export default function SearchFilters({
               <button
                 type="button"
                 onClick={onClear}
-                className="h-9 shrink-0 cursor-pointer rounded-full border border-zinc-300 bg-white px-3 text-xs font-bold text-zinc-600"
+                className="h-8 shrink-0 cursor-pointer rounded-full border border-zinc-300 bg-white px-2.5 text-[11px] font-bold text-zinc-600"
               >
                 초기화
               </button>

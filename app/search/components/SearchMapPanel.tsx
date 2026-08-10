@@ -1310,18 +1310,16 @@ export default function SearchMapPanel({
                   }
                 );
 
-                map.fitBounds(clusterBounds, {
-                  top: 52,
-                  right: 28,
-                  bottom: 118,
-                  left: 28,
-                });
-
-                setTimeout(() => {
-                  if (map.getZoom() > 14) {
-                    map.setZoom(14);
+                map.fitBounds(
+                  clusterBounds,
+                  {
+                    top: 46,
+                    right: 26,
+                    bottom: 126,
+                    left: 26,
+                    maxZoom: 12,
                   }
-                }, 220);
+                );
 
                 return;
               }
@@ -2085,7 +2083,7 @@ export default function SearchMapPanel({
         </div>
       </div>
 
-      <div className="relative h-[48vh] min-h-[390px] max-h-[540px] overflow-hidden lg:h-[calc(100vh-190px)] lg:min-h-[680px] lg:max-h-none">
+      <div className="relative h-[50vh] min-h-[400px] max-h-[560px] overflow-hidden lg:h-[calc(100vh-190px)] lg:min-h-[680px] lg:max-h-none">
         <div
           ref={mapElementRef}
           className="absolute inset-0 bg-[#eaf5f8]"

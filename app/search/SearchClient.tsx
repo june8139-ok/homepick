@@ -995,34 +995,34 @@ export default function SearchClient({
   return (
     <main className="min-h-0 overflow-x-hidden bg-zinc-50 text-zinc-900">
       <section className="border-b border-zinc-200 bg-white">
-        <div className="mx-auto max-w-[1760px] px-4 py-5 sm:px-5 sm:py-6 lg:px-8">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+        <div className="mx-auto max-w-[1760px] px-3 py-3 sm:px-5 sm:py-6 lg:px-8">
+          <div className="flex flex-col gap-2 sm:gap-4 xl:flex-row xl:items-end xl:justify-between">
             <div>
-              <p className="text-xs font-semibold text-emerald-600 sm:text-sm">
+              <p className="hidden text-xs font-semibold text-emerald-600 sm:block sm:text-sm">
                 JIBNUN SEARCH
               </p>
 
-              <h1 className="mt-1 break-keep text-2xl font-extrabold tracking-tight sm:text-3xl">
+              <h1 className="break-keep text-xl font-extrabold tracking-tight sm:mt-1 sm:text-3xl">
                 {query
                   ? `“${query}” 관련 부동산`
                   : "전국 부동산 찾기"}
               </h1>
 
-              <p className="mt-2 text-xs leading-5 text-zinc-500 sm:text-sm">
+              <p className="mt-1 text-[11px] leading-4 text-zinc-500 sm:mt-2 sm:text-sm sm:leading-5">
                 지도와 단지 목록을 함께
                 보며 분양 정보를
                 확인하세요.
               </p>
             </div>
 
-            <div className="w-fit rounded-full bg-zinc-100 px-3 py-1.5 text-xs font-semibold text-zinc-600 sm:px-4 sm:py-2 sm:text-sm">
+            <div className="w-fit rounded-full bg-zinc-100 px-2.5 py-1 text-[11px] font-semibold text-zinc-600 sm:px-4 sm:py-2 sm:text-sm">
               검색 결과{" "}
               {filteredResults.length}개
             </div>
           </div>
 
-          <div className="relative mt-5 max-w-4xl sm:mt-6">
-            <div className="flex gap-2 rounded-2xl border border-zinc-200 bg-white p-2 shadow-sm sm:gap-3 sm:p-3">
+          <div className="relative mt-3 max-w-4xl sm:mt-6">
+            <div className="flex gap-1.5 rounded-xl border border-zinc-200 bg-white p-1.5 shadow-sm sm:gap-3 sm:rounded-2xl sm:p-3">
               <input
                 ref={searchInputRef}
                 value={keyword}
@@ -1094,7 +1094,7 @@ export default function SearchClient({
                 }}
                 placeholder="단지명, 지역, 계약조건 검색"
                 autoComplete="off"
-                className="h-11 min-w-0 flex-1 rounded-xl border border-zinc-200 px-3 text-base outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 sm:h-12 sm:px-4 sm:text-base"
+                className="h-10 min-w-0 flex-1 rounded-lg border border-zinc-200 px-3 text-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 sm:h-12 sm:rounded-xl sm:px-4 sm:text-base"
               />
 
               <button
@@ -1102,7 +1102,7 @@ export default function SearchClient({
                 onClick={() =>
                   submitSearch()
                 }
-                className="min-w-16 cursor-pointer rounded-xl bg-zinc-900 px-3 text-sm font-bold text-white transition hover:bg-emerald-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 sm:min-w-20 sm:px-6"
+                className="min-w-[54px] cursor-pointer rounded-lg bg-zinc-900 px-2.5 text-xs font-bold text-white transition hover:bg-emerald-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 sm:min-w-20 sm:rounded-xl sm:px-6 sm:text-sm"
               >
                 검색
               </button>
@@ -1110,7 +1110,7 @@ export default function SearchClient({
 
             {suggestions.length >
               0 && (
-              <div className="absolute left-0 right-0 top-[62px] z-40 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xl sm:top-[72px]">
+              <div className="absolute left-0 right-0 top-[52px] z-40 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xl sm:top-[72px]">
                 {suggestions.map(
                   (
                     apartment,
@@ -1185,7 +1185,7 @@ export default function SearchClient({
         </div>
       </section>
 
-      <section className="mx-auto w-full max-w-[1760px] px-3 pb-6 pt-4 sm:px-5 sm:pb-8 sm:pt-5 lg:px-8">
+      <section className="mx-auto w-full max-w-[1760px] px-2.5 pb-6 pt-2.5 sm:px-5 sm:pb-8 sm:pt-5 lg:px-8">
         {/* 모바일: 지도와 카드 목록 동시 노출 */}
         <div className="min-w-0 overflow-hidden lg:hidden">
           <SearchMapPanel
