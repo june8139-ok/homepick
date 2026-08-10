@@ -1238,35 +1238,47 @@ export default function SearchMapPanel({
 
               if (isMobile) {
                 /*
-                 * 모바일은 여러 번 눌러 확대하지 않아도
-                 * 해당 숫자 클러스터에 포함된 단지들이
-                 * 한 번에 화면 안에 들어오도록 맞춥니다.
+                 * 현재 숫자 묶음이 실제로 둘 이상으로
+                 * 갈라지는 첫 줌 레벨을 찾아 한 번에 이동합니다.
                  *
-                 * maxZoom 12로 과도한 확대는 막습니다.
+                 * 이전 maxZoom 12 고정 방식은 줌 12에서도
+                 * 클러스터가 남을 수 있어 마지막 숫자가
+                 * 더 이상 풀리지 않는 문제가 있었습니다.
                  */
-                const bounds =
-                  new window.naver.maps.LatLngBounds();
+                let splitZoom =
+                  Math.min(
+                    currentZoom + 1,
+                    14
+                  );
 
-                group.apartments.forEach(
-                  (apartment) => {
-                    bounds.extend(
-                      new window.naver.maps.LatLng(
-                        apartment.latitude,
-                        apartment.longitude
-                      )
+                for (
+                  let zoom =
+                    currentZoom + 1;
+                  zoom <= 14;
+                  zoom += 1
+                ) {
+                  const nextGroups =
+                    buildClusters(
+                      group.apartments,
+                      zoom
                     );
-                  }
-                );
 
-                map.fitBounds(
-                  bounds,
-                  {
-                    top: 44,
-                    right: 24,
-                    bottom: 44,
-                    left: 24,
-                    maxZoom: 12,
+                  if (
+                    nextGroups.length > 1
+                  ) {
+                    splitZoom = zoom;
+                    break;
                   }
+
+                  splitZoom = zoom;
+                }
+
+                map.morph(
+                  new window.naver.maps.LatLng(
+                    group.latitude,
+                    group.longitude
+                  ),
+                  splitZoom
                 );
 
                 return;
