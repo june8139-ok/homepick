@@ -175,6 +175,197 @@ function hasUsefulPriceInfo(
   );
 }
 
+function normalizeForStableJson(
+  value: unknown
+): unknown {
+  if (Array.isArray(value)) {
+    return value.map(
+      (item): unknown =>
+        normalizeForStableJson(item)
+    );
+  }
+
+  if (isRecord(value)) {
+    return Object.keys(value)
+      .sort()
+      .reduce<JsonRecord>(
+        (result, key) => {
+          result[key] =
+            normalizeForStableJson(
+              value[key]
+            );
+
+          return result;
+        },
+        {}
+      );
+  }
+
+  return value;
+}
+
+function stableJson(
+  value: unknown
+): string {
+  return JSON.stringify(
+    normalizeForStableJson(value)
+  );
+}
+
+function changed(
+  before: unknown,
+  after: unknown
+) {
+  return (
+    stableJson(before) !==
+    stableJson(after)
+  );
+}
+
+function getMeaningfulUpdateType(
+  existingValue: unknown,
+  incomingValue: unknown
+) {
+  const existing =
+    toRecord(existingValue);
+
+  const incoming =
+    toRecord(incomingValue);
+
+  const beforeStage =
+    typeof existing.listingStage ===
+    "string"
+      ? existing.listingStage
+      : "";
+
+  const afterStage =
+    typeof incoming.listingStage ===
+    "string"
+      ? incoming.listingStage
+      : beforeStage;
+
+  if (
+    beforeStage === "subscription" &&
+    afterStage === "firstCome"
+  ) {
+    return "청약 → 선착순";
+  }
+
+  if (
+    beforeStage &&
+    afterStage &&
+    beforeStage !== afterStage
+  ) {
+    return "노출 상태 변경";
+  }
+
+  if (
+    changed(
+      {
+        price: existing.price,
+        priceDetail:
+          existing.priceDetail,
+        priceInfo:
+          existing.priceInfo,
+      },
+      {
+        price:
+          incoming.price ??
+          existing.price,
+        priceDetail:
+          incoming.priceDetail ??
+          existing.priceDetail,
+        priceInfo:
+          incoming.priceInfo ??
+          existing.priceInfo,
+      }
+    )
+  ) {
+    return "분양가 변경";
+  }
+
+  if (
+    changed(
+      {
+        condition:
+          existing.condition,
+        contractDetails:
+          existing.contractDetails,
+        evaluation:
+          existing.evaluation,
+        conditionHistory:
+          existing.conditionHistory,
+      },
+      {
+        condition:
+          incoming.condition ??
+          existing.condition,
+        contractDetails:
+          incoming.contractDetails ??
+          existing.contractDetails,
+        evaluation:
+          incoming.evaluation ??
+          existing.evaluation,
+        conditionHistory:
+          incoming.conditionHistory ??
+          existing.conditionHistory,
+      }
+    )
+  ) {
+    return "계약조건 변경";
+  }
+
+  if (
+    changed(
+      existing.subscription,
+      incoming.subscription ??
+        existing.subscription
+    )
+  ) {
+    return "청약일정 변경";
+  }
+
+  if (
+    changed(
+      {
+        moveInDate:
+          toRecord(
+            existing.projectInfo
+          ).moveInDate,
+        totalHouseholds:
+          toRecord(
+            existing.projectInfo
+          ).totalHouseholds,
+        saleHouseholds:
+          toRecord(
+            existing.projectInfo
+          ).saleHouseholds,
+      },
+      {
+        moveInDate:
+          toRecord(
+            incoming.projectInfo ??
+              existing.projectInfo
+          ).moveInDate,
+        totalHouseholds:
+          toRecord(
+            incoming.projectInfo ??
+              existing.projectInfo
+          ).totalHouseholds,
+        saleHouseholds:
+          toRecord(
+            incoming.projectInfo ??
+              existing.projectInfo
+          ).saleHouseholds,
+      }
+    )
+  ) {
+    return "주요 정보 변경";
+  }
+
+  return null;
+}
+
 function mergeNestedRecord(
   existingValue: unknown,
   incomingValue: unknown
@@ -519,11 +710,25 @@ export async function POST(
           existingApartment.is_auto_created
         );
 
+      const meaningfulUpdateType =
+        getMeaningfulUpdateType(
+          existingApartment.data,
+          payload.data
+        );
+
       const mergedData =
         mergeApartmentData(
           existingApartment.data,
           payload.data
         );
+
+      if (meaningfulUpdateType) {
+        mergedData.lastMeaningfulUpdateAt =
+          new Date().toISOString();
+
+        mergedData.lastUpdateType =
+          meaningfulUpdateType;
+      }
 
       /*
        * 청약홈 자동등록 단지를 관리자가 수정하면
@@ -642,6 +847,15 @@ export async function POST(
       toRecord(
         payload.data
       );
+
+    const createdAt =
+      new Date().toISOString();
+
+    createdData.lastMeaningfulUpdateAt =
+      createdAt;
+
+    createdData.lastUpdateType =
+      "신규 등록";
 
     const {
       data:

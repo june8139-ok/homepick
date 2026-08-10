@@ -27,6 +27,11 @@ import SearchHero from "./SearchHero";
 import DeferredRegionMapSection from "./DeferredRegionMapSection";
 import HomeBriefingSection from "./HomeBriefingSection";
 
+import {
+  HOME_RECENT_LIMIT,
+  getRecentUpdatedApartments,
+} from "../../lib/recentApartments";
+
 const regionNames = [
   "서울",
   "경기",
@@ -155,14 +160,6 @@ function getHomePriceText(
   );
 }
 
-function isManualApartment(
-  apartment: Apartment
-) {
-  return (
-    apartment.source !== "applyhome" &&
-    apartment.isAutoCreated !== true
-  );
-}
 
 export default function HomeClient({
   apartments,
@@ -258,12 +255,21 @@ export default function HomeClient({
     [allFirstComeApartments]
   );
 
+  const allRecentApartments = useMemo(
+    () =>
+      getRecentUpdatedApartments(
+        visibleApartments
+      ),
+    [visibleApartments]
+  );
+
   const recentApartments = useMemo(
     () =>
-      nonSubscriptionApartments
-        .filter(isManualApartment)
-        .slice(0, 4),
-    [nonSubscriptionApartments]
+      allRecentApartments.slice(
+        0,
+        HOME_RECENT_LIMIT
+      ),
+    [allRecentApartments]
   );
 
   return (
@@ -328,7 +334,7 @@ export default function HomeClient({
             label="최근 업데이트"
             mobileLabel="업데이트"
             value={
-              recentApartments.length
+              allRecentApartments.length
             }
             icon="refresh"
             accent="amber"

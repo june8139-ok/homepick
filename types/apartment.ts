@@ -138,6 +138,14 @@ export type Apartment = {
   lastSyncedAt?: string | null;
   createdAt?: string | null;
   updatedAt?: string | null;
+
+  /*
+   * 사용자에게 보여줄 "최근 업데이트" 전용 메타데이터입니다.
+   * 단순 자동 동기화가 아니라 실제 의미 있는 정보가 바뀐 경우에만 갱신합니다.
+   */
+  lastMeaningfulUpdateAt?: string | null;
+  lastUpdateType?: string | null;
+
   totalSupply?: number | null;
   subscription?: SubscriptionSchedule;
   projectInfo?: ProjectInfo;

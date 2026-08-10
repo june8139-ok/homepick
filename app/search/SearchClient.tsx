@@ -32,6 +32,10 @@ import SearchFilters, {
 
 import SearchResultCard from "./components/SearchResultCard";
 
+import {
+  getRecentUpdatedApartments,
+} from "../../lib/recentApartments";
+
 const SearchMapPanel = dynamic(
   () =>
     import(
@@ -69,14 +73,6 @@ const DEFAULT_FILTERS: SearchFilterState = {
   benefits: [],
 };
 
-function isManualApartment(
-  apartment: Apartment
-) {
-  return (
-    apartment.source !== "applyhome" &&
-    apartment.isAutoCreated !== true
-  );
-}
 
 function normalize(value: unknown) {
   return String(value ?? "")
@@ -464,15 +460,9 @@ export default function SearchClient({
   const recentApartments =
     useMemo(
       () =>
-        sourceApartments
-          .filter(
-            (apartment) =>
-              !isSubscriptionApartment(
-                apartment
-              )
-          )
-          .filter(isManualApartment)
-          .slice(0, 4),
+        getRecentUpdatedApartments(
+          sourceApartments
+        ),
       [sourceApartments]
     );
 
