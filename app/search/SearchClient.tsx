@@ -481,6 +481,13 @@ export default function SearchClient({
   );
 
   const [
+    mapFocusedSlug,
+    setMapFocusedSlug,
+  ] = useState<string | null>(
+    null
+  );
+
+  const [
     visibleSlugs,
     setVisibleSlugs,
   ] = useState<string[] | null>(
@@ -699,6 +706,7 @@ export default function SearchClient({
       requestAnimationFrame(() => {
         setVisibleSlugs(null);
         setHoveredSlug(null);
+        setMapFocusedSlug(null);
 
         if (
           selectedSlug &&
@@ -745,7 +753,8 @@ export default function SearchClient({
       (item) =>
         item.slug ===
         (hoveredSlug ??
-          selectedSlug)
+          selectedSlug ??
+          mapFocusedSlug)
     ) ?? null;
 
   const suggestions =
@@ -805,6 +814,7 @@ export default function SearchClient({
     useCallback(
       (slug: string) => {
         setSelectedSlug(slug);
+        setMapFocusedSlug(slug);
         setHoveredSlug(null);
         scrollToCard(slug);
       },
@@ -815,10 +825,42 @@ export default function SearchClient({
     useCallback(
       (slug: string) => {
         setSelectedSlug(slug);
+        setMapFocusedSlug(slug);
         setHoveredSlug(null);
         scrollToCard(slug);
       },
       [scrollToCard]
+    );
+
+  const handleStatusSearch =
+    useCallback(
+      (
+        status: SearchFilterState["status"]
+      ) => {
+        const nextQuery =
+          status || "";
+
+        setFilters((current) => ({
+          ...current,
+          status,
+        }));
+
+        setKeyword(nextQuery);
+        setSuggestionIndex(-1);
+        setVisibleSlugs(null);
+        setHoveredSlug(null);
+        setSelectedSlug(null);
+        setMapFocusedSlug(null);
+
+        router.push(
+          nextQuery
+            ? `/search?q=${encodeURIComponent(
+                nextQuery
+              )}`
+            : "/search"
+        );
+      },
+      [router]
     );
 
   const submitSearch = (
@@ -943,6 +985,7 @@ export default function SearchClient({
     setSort("default");
     setHoveredSlug(null);
     setSelectedSlug(null);
+    setMapFocusedSlug(null);
     setVisibleSlugs(null);
     setSuggestionIndex(-1);
 
@@ -1130,6 +1173,9 @@ export default function SearchClient({
             onFiltersChange={
               setFilters
             }
+            onStatusChange={
+              handleStatusSearch
+            }
             onSortChange={setSort}
             onRequestLocation={
               requestLocation
@@ -1164,6 +1210,13 @@ export default function SearchClient({
             onSelect={
               handleMapSelect
             }
+            onAutoFocus={
+              setMapFocusedSlug
+            }
+            onUserMapInteraction={() => {
+              setSelectedSlug(null);
+              setHoveredSlug(null);
+            }}
             onViewportChange={
               setVisibleSlugs
             }
@@ -1188,7 +1241,10 @@ export default function SearchClient({
 
           <MobileSearchCarousel
             apartments={listResults}
-            selectedSlug={selectedSlug}
+            selectedSlug={
+              selectedSlug ??
+              mapFocusedSlug
+            }
             distanceBySlug={distances}
             onSelect={handleListSelect}
           />

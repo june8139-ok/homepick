@@ -204,7 +204,7 @@ export default function MobileSearchCarousel({
   }
 
   return (
-    <div className="relative mt-3 w-full min-w-0 overflow-hidden">
+    <div className="relative mt-2 w-full min-w-0 overflow-hidden">
       {apartments.length > 1 && (
         <button
           type="button"
@@ -277,7 +277,7 @@ export default function MobileSearchCarousel({
                 key={apartment.slug}
                 onClick={handleCardClick}
                 className={[
-                  "w-[86vw] max-w-[380px] shrink-0 snap-center",
+                  "w-[82vw] max-w-[360px] shrink-0 snap-center",
                   "cursor-pointer overflow-hidden rounded-2xl border bg-white shadow-sm",
                   "transition-all duration-200",
                   selected
@@ -292,7 +292,7 @@ export default function MobileSearchCarousel({
                         src={image}
                         alt={`${apartment.name} 대표 이미지`}
                         fill
-                        sizes="(max-width: 639px) 86vw, 380px"
+                        sizes="(max-width: 639px) 82vw, 360px"
                         quality={72}
                         draggable={false}
                         className="pointer-events-none object-contain"

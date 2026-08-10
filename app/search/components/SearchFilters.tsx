@@ -69,6 +69,7 @@ export default function SearchFilters({
   locationMessage,
   hasUserLocation,
   onFiltersChange,
+  onStatusChange,
   onSortChange,
   onRequestLocation,
   onClear,
@@ -80,6 +81,9 @@ export default function SearchFilters({
   hasUserLocation: boolean;
   onFiltersChange: (
     filters: SearchFilterState
+  ) => void;
+  onStatusChange?: (
+    status: SearchStatus
   ) => void;
   onSortChange: (sort: SortOption) => void;
   onRequestLocation: () => void;
@@ -102,6 +106,20 @@ export default function SearchFilters({
     });
   };
 
+  const changeStatus = (
+    value: SearchStatus
+  ) => {
+    if (onStatusChange) {
+      onStatusChange(value);
+      return;
+    }
+
+    onFiltersChange({
+      ...filters,
+      status: value,
+    });
+  };
+
   const changeSort = (value: SortOption) => {
     if (
       value === "distance" &&
@@ -115,14 +133,9 @@ export default function SearchFilters({
   };
 
   return (
-    <section className="mt-4 w-full min-w-0 rounded-2xl border border-zinc-200 bg-zinc-50 p-3 sm:mt-5 sm:p-4">
-      <div className="space-y-3">
-        {/* 모바일에서도 한 줄 유지 */}
-        <div className="flex min-w-0 items-center gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-2">
-          <span className="mr-0.5 shrink-0 text-[11px] font-bold text-zinc-500 sm:mr-1 sm:text-xs">
-            단지 구분
-          </span>
-
+    <section className="mt-3 w-full min-w-0 sm:mt-5">
+      <div className="sm:hidden">
+        <div className="flex min-w-0 items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {statusOptions.map((option) => {
             const active =
               filters.status === option.value;
@@ -132,160 +145,217 @@ export default function SearchFilters({
                 key={option.label}
                 type="button"
                 onClick={() =>
-                  onFiltersChange({
-                    ...filters,
-                    status: option.value,
-                  })
+                  changeStatus(option.value)
                 }
                 aria-pressed={active}
                 className={[
-                  "h-9 shrink-0 cursor-pointer rounded-full border px-3",
-                  "text-xs font-bold transition-all sm:h-10 sm:px-4 sm:text-sm",
-                  "focus:outline-none focus:ring-2",
-                  "focus:ring-emerald-500 focus:ring-offset-2",
+                  "h-9 shrink-0 cursor-pointer rounded-full border px-3.5 text-xs font-extrabold transition-all",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2",
                   active
                     ? "border-emerald-600 bg-emerald-600 text-white shadow-sm"
-                    : "border-zinc-200 bg-white text-zinc-700 hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700",
+                    : "border-zinc-200 bg-white text-zinc-700",
                 ].join(" ")}
               >
                 {option.label}
               </button>
             );
           })}
-        </div>
 
-        {/* 보조 필터 */}
-        <div className="flex min-w-0 items-center gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-wrap sm:gap-2 sm:overflow-visible">
           <button
             type="button"
-            onClick={() =>
-              setDetailOpen(
-                (value) => !value
-              )
-            }
+            onClick={() => setDetailOpen((value) => !value)}
             aria-expanded={detailOpen}
             className={[
-              "inline-flex h-9 shrink-0 cursor-pointer items-center rounded-full border px-3",
-              "text-xs font-bold transition-all sm:h-10 sm:px-4 sm:text-sm",
-              "focus:outline-none focus:ring-2",
-              "focus:ring-zinc-500 focus:ring-offset-2",
-              filters.benefits.length > 0
+              "ml-auto inline-flex h-9 shrink-0 cursor-pointer items-center rounded-full border px-3.5 text-xs font-extrabold transition-all",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 focus-visible:ring-offset-2",
+              detailOpen || filters.benefits.length > 0 || hasUserLocation || sort !== "default"
                 ? "border-zinc-900 bg-zinc-900 text-white shadow-sm"
-                : "border-zinc-300 bg-white text-zinc-700 hover:-translate-y-0.5 hover:border-zinc-400",
+                : "border-zinc-200 bg-white text-zinc-700",
             ].join(" ")}
           >
-            조건 필터
-            {filters.benefits.length > 0
-              ? ` ${filters.benefits.length}`
-              : ""}
-
-            <span className="ml-1">
-              {detailOpen ? "↑" : "↓"}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            disabled={
-              locationStatus === "loading" ||
-              locationStatus === "unsupported"
-            }
-            onClick={onRequestLocation}
-            className={[
-              "inline-flex h-9 shrink-0 cursor-pointer items-center gap-1 rounded-full border px-3",
-              "text-xs font-bold transition-all sm:h-10 sm:px-4 sm:text-sm",
-              "focus:outline-none focus:ring-2",
-              "focus:ring-emerald-500 focus:ring-offset-2",
-              "disabled:cursor-not-allowed disabled:opacity-50",
-              hasUserLocation
-                ? "border-emerald-500 bg-emerald-50 text-emerald-700"
-                : "border-zinc-300 bg-white text-zinc-700 hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700",
-            ].join(" ")}
-          >
-            <span aria-hidden="true">
-              📍
-            </span>
-
-            {locationLabel(locationStatus)}
-          </button>
-
-          <select
-            value={sort}
-            onChange={(event) =>
-              changeSort(
-                event.target.value as SortOption
-              )
-            }
-            aria-label="정렬 방식"
-            className="h-9 shrink-0 cursor-pointer rounded-full border border-zinc-200 bg-white px-3 text-xs font-bold outline-none transition hover:border-emerald-300 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 sm:h-10 sm:rounded-xl sm:text-sm"
-          >
-            <option value="default">
-              기본순
-            </option>
-
-            <option value="distance">
-              가까운 순
-            </option>
-
-            <option value="contract">
-              계약조건순
-            </option>
-
-            <option value="name">
-              이름순
-            </option>
-          </select>
-
-          <button
-            type="button"
-            onClick={onClear}
-            className="h-9 shrink-0 cursor-pointer rounded-full border border-zinc-200 bg-white px-3 text-xs font-bold text-zinc-500 transition hover:border-zinc-400 hover:text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-400 focus:ring-offset-2 sm:h-10 sm:rounded-xl sm:px-4 sm:text-sm"
-          >
-            초기화
+            필터
+            {filters.benefits.length > 0 ? ` ${filters.benefits.length}` : ""}
+            <span className="ml-1">{detailOpen ? "↑" : "↓"}</span>
           </button>
         </div>
+
+        {detailOpen && (
+          <div className="mt-2 rounded-2xl border border-zinc-200 bg-zinc-50 p-3 shadow-sm">
+            <div className="flex min-w-0 items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <button
+                type="button"
+                disabled={locationStatus === "loading" || locationStatus === "unsupported"}
+                onClick={onRequestLocation}
+                className={[
+                  "inline-flex h-9 shrink-0 cursor-pointer items-center gap-1 rounded-full border px-3 text-xs font-bold",
+                  "disabled:cursor-not-allowed disabled:opacity-50",
+                  hasUserLocation
+                    ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                    : "border-zinc-300 bg-white text-zinc-700",
+                ].join(" ")}
+              >
+                <span aria-hidden="true">📍</span>
+                {locationLabel(locationStatus)}
+              </button>
+
+              <select
+                value={sort}
+                onChange={(event) => changeSort(event.target.value as SortOption)}
+                aria-label="정렬 방식"
+                className="h-9 shrink-0 cursor-pointer rounded-full border border-zinc-300 bg-white px-3 text-xs font-bold outline-none"
+              >
+                <option value="default">기본순</option>
+                <option value="distance">가까운 순</option>
+                <option value="contract">계약조건순</option>
+                <option value="name">이름순</option>
+              </select>
+
+              <button
+                type="button"
+                onClick={onClear}
+                className="h-9 shrink-0 cursor-pointer rounded-full border border-zinc-300 bg-white px-3 text-xs font-bold text-zinc-600"
+              >
+                초기화
+              </button>
+            </div>
+
+            <div className="mt-3 border-t border-zinc-200 pt-3">
+              <p className="mb-2 text-[11px] font-extrabold text-zinc-500">계약조건</p>
+              <div className="flex flex-wrap gap-1.5">
+                {benefitOptions.map((benefit) => {
+                  const active = filters.benefits.includes(benefit);
+                  return (
+                    <button
+                      key={benefit}
+                      type="button"
+                      onClick={() => toggleBenefit(benefit)}
+                      aria-pressed={active}
+                      className={[
+                        "cursor-pointer rounded-full border px-2.5 py-1.5 text-[11px] font-semibold transition-all",
+                        active
+                          ? "border-zinc-900 bg-zinc-900 text-white"
+                          : "border-zinc-200 bg-white text-zinc-700",
+                      ].join(" ")}
+                    >
+                      {benefit}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {locationMessage && (
+              <p className="mt-2 text-[11px] font-medium leading-5 text-zinc-500">
+                {locationMessage}
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
-      {locationMessage && (
-        <p className="mt-2 text-[11px] font-medium leading-5 text-zinc-500 sm:mt-3 sm:text-xs">
-          {locationMessage}
-        </p>
-      )}
-
-      {detailOpen && (
-        <div className="mt-3 border-t border-zinc-200 pt-3 sm:mt-4 sm:pt-4">
-          <div className="flex flex-wrap gap-1.5 sm:gap-2">
-            {benefitOptions.map((benefit) => {
-              const active =
-                filters.benefits.includes(
-                  benefit
-                );
-
+      <div className="hidden rounded-2xl border border-zinc-200 bg-zinc-50 p-4 sm:block">
+        <div className="space-y-3">
+          <div className="flex min-w-0 items-center gap-2 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <span className="mr-1 shrink-0 text-xs font-bold text-zinc-500">단지 구분</span>
+            {statusOptions.map((option) => {
+              const active = filters.status === option.value;
               return (
                 <button
-                  key={benefit}
+                  key={option.label}
                   type="button"
-                  onClick={() =>
-                    toggleBenefit(benefit)
-                  }
+                  onClick={() => changeStatus(option.value)}
                   aria-pressed={active}
                   className={[
-                    "cursor-pointer rounded-full border px-2.5 py-1.5",
-                    "text-[11px] font-semibold transition-all sm:px-3 sm:py-2 sm:text-sm",
-                    "focus:outline-none focus:ring-2",
-                    "focus:ring-zinc-500 focus:ring-offset-2",
+                    "h-10 shrink-0 cursor-pointer rounded-full border px-4 text-sm font-bold transition-all",
+                    "focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2",
                     active
-                      ? "border-zinc-900 bg-zinc-900 text-white shadow-sm"
+                      ? "border-emerald-600 bg-emerald-600 text-white shadow-sm"
                       : "border-zinc-200 bg-white text-zinc-700 hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700",
                   ].join(" ")}
                 >
-                  {benefit}
+                  {option.label}
                 </button>
               );
             })}
           </div>
+
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setDetailOpen((value) => !value)}
+              aria-expanded={detailOpen}
+              className={[
+                "inline-flex h-10 shrink-0 cursor-pointer items-center rounded-full border px-4 text-sm font-bold transition-all",
+                filters.benefits.length > 0
+                  ? "border-zinc-900 bg-zinc-900 text-white shadow-sm"
+                  : "border-zinc-300 bg-white text-zinc-700 hover:-translate-y-0.5 hover:border-zinc-400",
+              ].join(" ")}
+            >
+              조건 필터{filters.benefits.length > 0 ? ` ${filters.benefits.length}` : ""}
+              <span className="ml-1">{detailOpen ? "↑" : "↓"}</span>
+            </button>
+
+            <button
+              type="button"
+              disabled={locationStatus === "loading" || locationStatus === "unsupported"}
+              onClick={onRequestLocation}
+              className={[
+                "inline-flex h-10 shrink-0 cursor-pointer items-center gap-1 rounded-full border px-4 text-sm font-bold transition-all",
+                "disabled:cursor-not-allowed disabled:opacity-50",
+                hasUserLocation
+                  ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                  : "border-zinc-300 bg-white text-zinc-700 hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700",
+              ].join(" ")}
+            >
+              <span aria-hidden="true">📍</span>{locationLabel(locationStatus)}
+            </button>
+
+            <select
+              value={sort}
+              onChange={(event) => changeSort(event.target.value as SortOption)}
+              aria-label="정렬 방식"
+              className="h-10 shrink-0 cursor-pointer rounded-xl border border-zinc-200 bg-white px-3 text-sm font-bold outline-none"
+            >
+              <option value="default">기본순</option>
+              <option value="distance">가까운 순</option>
+              <option value="contract">계약조건순</option>
+              <option value="name">이름순</option>
+            </select>
+
+            <button type="button" onClick={onClear} className="h-10 shrink-0 cursor-pointer rounded-xl border border-zinc-200 bg-white px-4 text-sm font-bold text-zinc-500">초기화</button>
+          </div>
         </div>
-      )}
+
+        {locationMessage && (
+          <p className="mt-3 text-xs font-medium leading-5 text-zinc-500">{locationMessage}</p>
+        )}
+
+        {detailOpen && (
+          <div className="mt-4 border-t border-zinc-200 pt-4">
+            <div className="flex flex-wrap gap-2">
+              {benefitOptions.map((benefit) => {
+                const active = filters.benefits.includes(benefit);
+                return (
+                  <button
+                    key={benefit}
+                    type="button"
+                    onClick={() => toggleBenefit(benefit)}
+                    aria-pressed={active}
+                    className={[
+                      "cursor-pointer rounded-full border px-3 py-2 text-sm font-semibold transition-all",
+                      active
+                        ? "border-zinc-900 bg-zinc-900 text-white shadow-sm"
+                        : "border-zinc-200 bg-white text-zinc-700 hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700",
+                    ].join(" ")}
+                  >
+                    {benefit}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
     </section>
   );
 }
