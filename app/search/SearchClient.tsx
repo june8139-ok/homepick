@@ -481,13 +481,6 @@ export default function SearchClient({
   );
 
   const [
-    mapFocusedSlug,
-    setMapFocusedSlug,
-  ] = useState<string | null>(
-    null
-  );
-
-  const [
     visibleSlugs,
     setVisibleSlugs,
   ] = useState<string[] | null>(
@@ -706,7 +699,6 @@ export default function SearchClient({
       requestAnimationFrame(() => {
         setVisibleSlugs(null);
         setHoveredSlug(null);
-        setMapFocusedSlug(null);
 
         if (
           selectedSlug &&
@@ -753,8 +745,7 @@ export default function SearchClient({
       (item) =>
         item.slug ===
         (hoveredSlug ??
-          selectedSlug ??
-          mapFocusedSlug)
+          selectedSlug)
     ) ?? null;
 
   const suggestions =
@@ -814,7 +805,6 @@ export default function SearchClient({
     useCallback(
       (slug: string) => {
         setSelectedSlug(slug);
-        setMapFocusedSlug(slug);
         setHoveredSlug(null);
         scrollToCard(slug);
       },
@@ -825,7 +815,6 @@ export default function SearchClient({
     useCallback(
       (slug: string) => {
         setSelectedSlug(slug);
-        setMapFocusedSlug(slug);
         setHoveredSlug(null);
         scrollToCard(slug);
       },
@@ -850,7 +839,6 @@ export default function SearchClient({
         setVisibleSlugs(null);
         setHoveredSlug(null);
         setSelectedSlug(null);
-        setMapFocusedSlug(null);
 
         router.push(
           nextQuery
@@ -985,7 +973,6 @@ export default function SearchClient({
     setSort("default");
     setHoveredSlug(null);
     setSelectedSlug(null);
-    setMapFocusedSlug(null);
     setVisibleSlugs(null);
     setSuggestionIndex(-1);
 
@@ -1210,13 +1197,6 @@ export default function SearchClient({
             onSelect={
               handleMapSelect
             }
-            onAutoFocus={
-              setMapFocusedSlug
-            }
-            onUserMapInteraction={() => {
-              setSelectedSlug(null);
-              setHoveredSlug(null);
-            }}
             onViewportChange={
               setVisibleSlugs
             }
@@ -1242,8 +1222,7 @@ export default function SearchClient({
           <MobileSearchCarousel
             apartments={listResults}
             selectedSlug={
-              selectedSlug ??
-              mapFocusedSlug
+              selectedSlug
             }
             distanceBySlug={distances}
             onSelect={handleListSelect}

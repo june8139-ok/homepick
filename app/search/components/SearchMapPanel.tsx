@@ -768,53 +768,6 @@ function displayDistance(
     : `${Math.round(distanceKm)}km`;
 }
 
-function isMobileViewport() {
-  return (
-    typeof window !== "undefined" &&
-    window.innerWidth < 1024
-  );
-}
-
-function nearestApartmentToCenter(
-  map: any,
-  apartments: LocatedApartment[]
-): LocatedApartment | null {
-  if (!map || apartments.length === 0) {
-    return null;
-  }
-
-  const center = map.getCenter();
-
-  let nearest =
-    apartments[0];
-
-  let nearestScore =
-    Number.POSITIVE_INFINITY;
-
-  for (const apartment of apartments) {
-    const latDifference =
-      apartment.latitude -
-      center.y;
-
-    const lngDifference =
-      apartment.longitude -
-      center.x;
-
-    const score =
-      latDifference *
-        latDifference +
-      lngDifference *
-        lngDifference;
-
-    if (score < nearestScore) {
-      nearestScore = score;
-      nearest = apartment;
-    }
-  }
-
-  return nearest;
-}
-
 export default function SearchMapPanel({
   apartments,
   activeApartment,
@@ -823,8 +776,6 @@ export default function SearchMapPanel({
   distanceBySlug,
   onHover,
   onSelect,
-  onAutoFocus,
-  onUserMapInteraction,
   onViewportChange,
 }: {
   apartments: Apartment[];
@@ -839,10 +790,6 @@ export default function SearchMapPanel({
     slug: string | null
   ) => void;
   onSelect: (slug: string) => void;
-  onAutoFocus?: (
-    slug: string | null
-  ) => void;
-  onUserMapInteraction?: () => void;
   onViewportChange: (
     slugs: string[] | null
   ) => void;
@@ -870,9 +817,6 @@ export default function SearchMapPanel({
     useRef<any>(null);
 
   const idleListenerRef =
-    useRef<any>(null);
-
-  const dragEndListenerRef =
     useRef<any>(null);
 
   const previousActiveSlugRef =
@@ -1027,9 +971,6 @@ export default function SearchMapPanel({
               scaleControl: false,
               logoControl: true,
               mapDataControl: false,
-              draggable: true,
-              pinchZoom: true,
-              scrollWheel: true,
             }
           );
       }
@@ -1175,34 +1116,23 @@ export default function SearchMapPanel({
 
       const bounds = map.getBounds();
 
-      const visibleApartments =
-        locatedApartments.filter(
-          (apartment) =>
+      onViewportChange(
+        locatedApartments
+          .filter((apartment) =>
             bounds.hasLatLng(
               new window.naver.maps.LatLng(
                 apartment.latitude,
                 apartment.longitude
               )
             )
-        );
-
-      onViewportChange(
-        visibleApartments.map(
-          (apartment) => apartment.slug
-        )
+          )
+          .map(
+            (apartment) =>
+              apartment.slug
+          )
       );
-
-      if (isMobileViewport() && onAutoFocus) {
-        const nearest = nearestApartmentToCenter(
-          map,
-          visibleApartments
-        );
-
-        onAutoFocus(nearest?.slug ?? null);
-      }
     }, [
       locatedApartments,
-      onAutoFocus,
       onViewportChange,
     ]);
 
@@ -1285,59 +1215,27 @@ export default function SearchMapPanel({
               },
 
               zIndex: 120,
-              clickable: true,
             }
           );
-
-        const activateCluster = () => {
-          onHover(null);
-
-          if (isMobileViewport()) {
-            const clusterBounds =
-              new window.naver.maps.LatLngBounds();
-
-            group.apartments.forEach(
-              (apartment) => {
-                clusterBounds.extend(
-                  new window.naver.maps.LatLng(
-                    apartment.latitude,
-                    apartment.longitude
-                  )
-                );
-              }
-            );
-
-            map.fitBounds(
-              clusterBounds,
-              {
-                top: 46,
-                right: 26,
-                bottom: 126,
-                left: 26,
-                maxZoom: 12,
-              }
-            );
-
-            return;
-          }
-
-          map.morph(
-            new window.naver.maps.LatLng(
-              group.latitude,
-              group.longitude
-            ),
-            Math.min(
-              currentZoom + 2,
-              14
-            )
-          );
-        };
 
         const listeners = [
           window.naver.maps.Event.addListener(
             marker,
             "click",
-            activateCluster
+            () => {
+              onHover(null);
+
+              map.morph(
+                new window.naver.maps.LatLng(
+                  group.latitude,
+                  group.longitude
+                ),
+                Math.min(
+                  currentZoom + 2,
+                  14
+                )
+              );
+            }
           ),
         ];
 
@@ -1354,7 +1252,9 @@ export default function SearchMapPanel({
       const apartment =
         group.apartments[0];
 
-      const isSelected = false;
+      const isSelected =
+        selectedApartment?.slug ===
+        apartment.slug;
 
       const marker =
         new window.naver.maps.Marker(
@@ -1389,7 +1289,6 @@ export default function SearchMapPanel({
               isSelected
                 ? 300
                 : 100,
-            clickable: true,
           }
         );
 
@@ -1440,11 +1339,10 @@ export default function SearchMapPanel({
         window.naver.maps.Event.addListener(
           marker,
           "click",
-          () => {
+          () =>
             onSelect(
               apartment.slug
-            );
-          }
+            )
         ),
       ];
 
@@ -1479,38 +1377,18 @@ export default function SearchMapPanel({
         }
       );
 
-    if (dragEndListenerRef.current) {
-      window.naver.maps.Event.removeListener(
-        dragEndListenerRef.current
-      );
-    }
-
-    dragEndListenerRef.current =
-      window.naver.maps.Event.addListener(
-        map,
-        "dragend",
-        () => {
-          if (isMobileViewport()) {
-            onUserMapInteraction?.();
-          }
-        }
-      );
-
     updateViewport();
 
     return () => {
-      if (idleListenerRef.current) {
+      if (
+        idleListenerRef.current
+      ) {
         window.naver.maps.Event.removeListener(
           idleListenerRef.current
         );
-        idleListenerRef.current = null;
-      }
 
-      if (dragEndListenerRef.current) {
-        window.naver.maps.Event.removeListener(
-          dragEndListenerRef.current
-        );
-        dragEndListenerRef.current = null;
+        idleListenerRef.current =
+          null;
       }
     };
   }, [
@@ -1519,7 +1397,7 @@ export default function SearchMapPanel({
     mapReady,
     onHover,
     onSelect,
-    onUserMapInteraction,
+    selectedApartment,
     updateViewport,
   ]);
 
@@ -2003,10 +1881,7 @@ export default function SearchMapPanel({
       : "";
 
   return (
-    <section
-      data-jibnun-map-root
-      className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm lg:sticky lg:top-4 lg:rounded-3xl"
-    >
+    <section className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm lg:sticky lg:top-4 lg:rounded-3xl">
       <div className="flex items-center justify-between border-b border-zinc-200 px-5 py-4">
         <div>
           <p className="text-xs font-semibold tracking-[0.14em] text-emerald-600">
@@ -2034,7 +1909,7 @@ export default function SearchMapPanel({
         </div>
       </div>
 
-      <div className="relative h-[50vh] min-h-[400px] max-h-[560px] overflow-hidden lg:h-[calc(100vh-190px)] lg:min-h-[680px] lg:max-h-none">
+      <div className="relative h-[42vh] min-h-[320px] max-h-[460px] overflow-hidden lg:h-[calc(100vh-190px)] lg:min-h-[680px] lg:max-h-none">
         <div
           ref={mapElementRef}
           className="absolute inset-0 bg-[#eaf5f8]"
@@ -2043,41 +1918,6 @@ export default function SearchMapPanel({
             height: "100%",
           }}
         />
-
-        {floatingApartment && floatingStatus && (
-          <div className="absolute inset-x-3 bottom-3 z-30 overflow-hidden rounded-2xl border border-white/90 bg-white/95 shadow-2xl backdrop-blur-xl md:hidden">
-            <Link
-              href={`/apartments/${floatingApartment.slug}`}
-              className="flex min-h-[78px] items-center gap-3 p-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-emerald-500"
-            >
-              <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-zinc-100">
-                {floatingImage ? (
-                  <Image src={floatingImage} alt={floatingApartment.name} fill quality={64} sizes="56px" className="object-cover" />
-                ) : (
-                  <div className="flex h-full items-center justify-center text-[9px] text-zinc-400">이미지</div>
-                )}
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5">
-                  <span
-                    style={{ backgroundColor: floatingStatus.light, color: floatingStatus.text }}
-                    className="shrink-0 rounded-full px-2 py-0.5 text-[9px] font-extrabold"
-                  >
-                    {floatingStatus.label}
-                  </span>
-                  {floatingDistance && (
-                    <span className="truncate text-[9px] font-bold text-blue-600">내 위치 {floatingDistance}</span>
-                  )}
-                </div>
-                <h3 className="mt-1 truncate text-sm font-black text-zinc-950">{floatingApartment.name}</h3>
-                <p className="mt-0.5 truncate text-[10px] text-zinc-500">{floatingApartment.region}</p>
-              </div>
-
-              <span className="shrink-0 rounded-full bg-zinc-900 px-2.5 py-2 text-[10px] font-extrabold text-white">상세 →</span>
-            </Link>
-          </div>
-        )}
 
         {floatingApartment &&
           floatingStatus && (
