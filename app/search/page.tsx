@@ -14,10 +14,8 @@ import { getApartments } from "../../lib/getApartments";
 export const revalidate = 60;
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(
-    /\/$/,
-    ""
-  ) || "https://jibnun.com";
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
+  "https://jibnun.com";
 
 /*
  * 검색페이지 메타데이터는 정적으로 유지합니다.
@@ -26,15 +24,13 @@ const SITE_URL =
  * 검색어·필터가 붙은 주소도 canonical을 /search로 통일합니다.
  */
 export const metadata: Metadata = {
-  title:
-    "전국 분양 아파트 지도검색",
+  title: "전국 분양 아파트 지도검색",
 
   description:
     "집눈에서 전국 분양 아파트와 청약 단지, 선착순 분양 정보를 지도와 목록으로 검색하고 비교하세요.",
 
   alternates: {
-    canonical:
-      `${SITE_URL}/search`,
+    canonical: `${SITE_URL}/search`,
   },
 
   robots: {
@@ -45,11 +41,8 @@ export const metadata: Metadata = {
       index: true,
       follow: true,
 
-      "max-image-preview":
-        "large",
-
+      "max-image-preview": "large",
       "max-snippet": -1,
-
       "max-video-preview": -1,
     },
   },
@@ -57,26 +50,33 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "ko_KR",
-    url:
-      `${SITE_URL}/search`,
+    url: `${SITE_URL}/search`,
     siteName: "집눈",
 
-    title:
-      "전국 분양 아파트 지도검색 | 집눈",
+    title: "전국 분양 아파트 지도검색 | 집눈",
 
     description:
       "전국 청약·선착순 분양 단지를 지도에서 찾고 분양가와 계약조건을 비교하세요.",
+
+    images: [
+      {
+        url: `${SITE_URL}/opengraph-image`,
+        width: 1200,
+        height: 630,
+        alt: "집눈 | 전국 부동산을 한눈에",
+      },
+    ],
   },
 
   twitter: {
-    card:
-      "summary_large_image",
+    card: "summary_large_image",
 
-    title:
-      "전국 분양 아파트 지도검색 | 집눈",
+    title: "전국 분양 아파트 지도검색 | 집눈",
 
     description:
       "전국 청약·선착순 분양 단지를 지도에서 검색하고 비교하세요.",
+
+    images: [`${SITE_URL}/opengraph-image`],
   },
 };
 
@@ -127,20 +127,11 @@ function SearchLoading() {
 }
 
 export default async function SearchPage() {
-  const apartments =
-    await getApartments();
+  const apartments = await getApartments();
 
   return (
-    <Suspense
-      fallback={
-        <SearchLoading />
-      }
-    >
-      <SearchClient
-        apartments={
-          apartments
-        }
-      />
+    <Suspense fallback={<SearchLoading />}>
+      <SearchClient apartments={apartments} />
     </Suspense>
   );
 }
