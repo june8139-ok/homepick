@@ -904,14 +904,15 @@ function MainApartmentSection({
       ? "text-emerald-600"
       : "text-blue-600";
 
-  const visibleApartments =
+  const initialApartments =
     typeof initialLimit === "number"
       ? apartments.slice(0, initialLimit)
       : apartments;
 
-  const hasMore =
-    visibleApartments.length <
-    apartments.length;
+  const remainingApartments =
+    typeof initialLimit === "number"
+      ? apartments.slice(initialLimit)
+      : [];
 
   return (
     <section className="mt-9 sm:mt-12">
@@ -943,7 +944,7 @@ function MainApartmentSection({
       {apartments.length > 0 ? (
         <>
           <div className="mt-5 grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4 xl:gap-4">
-            {visibleApartments.map(
+            {initialApartments.map(
               (apartment) => (
                 <ApartmentCard
                   key={
@@ -957,20 +958,35 @@ function MainApartmentSection({
             )}
           </div>
 
-          {hasMore && (
-            <Link
-              href={`/search?q=${encodeURIComponent(
-                title.replace(
-                  /\\s*(청약 아파트|선착순 분양)$/,
-                  ""
-                )
-              )}`}
-              className="mx-auto mt-5 inline-flex min-h-11 items-center justify-center rounded-xl border border-zinc-200 bg-white px-5 text-sm font-black text-zinc-700 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
-            >
-              {apartments.length -
-                visibleApartments.length}
-              개 단지 더보기 →
-            </Link>
+          {remainingApartments.length >
+            0 && (
+            <details className="group mt-5">
+              <summary className="mx-auto flex min-h-11 w-fit cursor-pointer list-none items-center justify-center rounded-xl border border-zinc-200 bg-white px-5 text-sm font-black text-zinc-700 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
+                <span className="group-open:hidden">
+                  {remainingApartments.length}
+                  개 단지 더보기 ↓
+                </span>
+
+                <span className="hidden group-open:inline">
+                  접기 ↑
+                </span>
+              </summary>
+
+              <div className="mt-5 grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4 xl:gap-4">
+                {remainingApartments.map(
+                  (apartment) => (
+                    <ApartmentCard
+                      key={
+                        apartment.slug
+                      }
+                      apartment={
+                        apartment
+                      }
+                    />
+                  )
+                )}
+              </div>
+            </details>
           )}
         </>
       ) : (
