@@ -700,7 +700,7 @@ function ApartmentCard({
     <article className="group min-w-0 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition hover:border-emerald-300 hover:shadow-md sm:rounded-3xl">
       <Link
         href={`/apartments/${apartment.slug}`}
-        className="relative block aspect-[16/9] w-full overflow-hidden bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset"
+        className="relative block aspect-[4/3] w-full overflow-hidden bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset"
       >
         {image ? (
           <Image
@@ -709,7 +709,7 @@ function ApartmentCard({
             fill
             loading="lazy"
             quality={68}
-            sizes="(max-width: 767px) calc(100vw - 32px), (max-width: 1279px) 50vw, 580px"
+            sizes="(max-width: 639px) 50vw, (max-width: 1023px) 50vw, 25vw"
             className="object-cover"
           />
         ) : (
@@ -729,7 +729,7 @@ function ApartmentCard({
         </span>
       </Link>
 
-      <div className="p-4 sm:p-5">
+      <div className="p-3 sm:p-4">
         <div className="flex flex-wrap items-center gap-2">
           {apartment.brand && (
             <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-[10px] font-bold text-zinc-600 sm:text-xs">
@@ -748,51 +748,51 @@ function ApartmentCard({
           href={`/apartments/${apartment.slug}`}
           className="block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
         >
-          <h3 className="mt-3 line-clamp-2 break-keep text-lg font-black leading-6 text-[#132238] transition group-hover:text-emerald-700 sm:text-xl">
+          <h3 className="mt-2 line-clamp-2 break-keep text-sm font-black leading-5 text-[#132238] transition group-hover:text-emerald-700 sm:text-base">
             {apartment.name}
           </h3>
         </Link>
 
-        <p className="mt-1.5 line-clamp-1 text-xs text-zinc-500 sm:text-sm">
+        <p className="mt-1 line-clamp-1 text-[10px] text-zinc-500 sm:text-xs">
           {apartment.region ||
             "주소 정보 확인 중"}
         </p>
 
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          <div className="min-w-0 rounded-xl bg-zinc-50 px-3 py-3">
-            <p className="text-[10px] font-bold text-zinc-500 sm:text-xs">
-              대표 분양가
+        <div className="mt-3 space-y-1.5">
+          <div className="min-w-0 rounded-lg bg-zinc-50 px-2.5 py-2">
+            <p className="text-[9px] font-bold text-zinc-500 sm:text-[10px]">
+              분양가
             </p>
 
-            <p className="mt-1 line-clamp-2 break-keep text-xs font-black leading-5 text-[#132238] sm:text-sm">
+            <p className="mt-0.5 line-clamp-1 break-keep text-[11px] font-black leading-4 text-[#132238] sm:text-xs">
               {price}
             </p>
           </div>
 
-          <div className="min-w-0 rounded-xl bg-emerald-50/70 px-3 py-3">
-            <p className="text-[10px] font-bold text-emerald-700 sm:text-xs">
-              핵심 계약조건
+          <div className="min-w-0 rounded-lg bg-emerald-50/70 px-2.5 py-2">
+            <p className="text-[9px] font-bold text-emerald-700 sm:text-[10px]">
+              계약조건
             </p>
 
-            <p className="mt-1 line-clamp-2 break-keep text-xs font-black leading-5 text-emerald-900 sm:text-sm">
+            <p className="mt-0.5 line-clamp-1 break-keep text-[11px] font-black leading-4 text-emerald-900 sm:text-xs">
               {condition}
             </p>
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-2">
+        <div className="mt-3 grid grid-cols-[0.8fr_1.2fr] gap-1.5">
           <Link
             href={`/compare?left=${encodeURIComponent(
               apartment.slug
             )}`}
-            className="inline-flex min-h-10 items-center justify-center rounded-xl border border-zinc-200 bg-white px-3 text-xs font-bold text-zinc-700 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 sm:text-sm"
+            className="inline-flex min-h-9 items-center justify-center rounded-lg border border-zinc-200 bg-white px-2 text-[10px] font-bold text-zinc-700 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 sm:text-xs"
           >
-            비교하기
+            비교
           </Link>
 
           <Link
             href={`/apartments/${apartment.slug}`}
-            className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#132238] px-3 text-xs font-bold text-white transition hover:bg-emerald-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 sm:text-sm"
+            className="inline-flex min-h-9 items-center justify-center rounded-lg bg-[#132238] px-2 text-[10px] font-bold text-white transition hover:bg-emerald-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 sm:text-xs"
           >
             상세보기 →
           </Link>
@@ -890,17 +890,28 @@ function MainApartmentSection({
   description,
   apartments,
   accent,
+  initialLimit,
 }: {
   eyebrow: string;
   title: string;
   description: string;
   apartments: Apartment[];
   accent: "emerald" | "blue";
+  initialLimit?: number;
 }) {
   const accentClass =
     accent === "emerald"
       ? "text-emerald-600"
       : "text-blue-600";
+
+  const visibleApartments =
+    typeof initialLimit === "number"
+      ? apartments.slice(0, initialLimit)
+      : apartments;
+
+  const hasMore =
+    visibleApartments.length <
+    apartments.length;
 
   return (
     <section className="mt-9 sm:mt-12">
@@ -930,20 +941,38 @@ function MainApartmentSection({
       </div>
 
       {apartments.length > 0 ? (
-        <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
-          {apartments.map(
-            (apartment) => (
-              <ApartmentCard
-                key={
-                  apartment.slug
-                }
-                apartment={
-                  apartment
-                }
-              />
-            )
+        <>
+          <div className="mt-5 grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4 xl:gap-4">
+            {visibleApartments.map(
+              (apartment) => (
+                <ApartmentCard
+                  key={
+                    apartment.slug
+                  }
+                  apartment={
+                    apartment
+                  }
+                />
+              )
+            )}
+          </div>
+
+          {hasMore && (
+            <Link
+              href={`/search?q=${encodeURIComponent(
+                title.replace(
+                  /\\s*(청약 아파트|선착순 분양)$/,
+                  ""
+                )
+              )}`}
+              className="mx-auto mt-5 inline-flex min-h-11 items-center justify-center rounded-xl border border-zinc-200 bg-white px-5 text-sm font-black text-zinc-700 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+            >
+              {apartments.length -
+                visibleApartments.length}
+              개 단지 더보기 →
+            </Link>
           )}
-        </div>
+        </>
       ) : (
         <div className="mt-5 rounded-2xl border border-zinc-200 bg-white px-4 py-10 text-center text-sm text-zinc-500">
           현재 공개된 단지가 없습니다.
@@ -1397,6 +1426,7 @@ export default async function RegionPage({
             subscriptionApartments
           }
           accent="blue"
+          initialLimit={12}
         />
 
         <section className="mt-10 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm sm:mt-12 sm:rounded-3xl sm:p-7 lg:p-8">
