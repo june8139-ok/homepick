@@ -192,9 +192,11 @@ function sortByNewestCreated(
 export default function HomeClient({
   apartments,
   briefings,
+  referenceNow,
 }: {
   apartments: Apartment[];
   briefings: Briefing[];
+  referenceNow: number;
 }) {
   const router = useRouter();
 
@@ -306,9 +308,14 @@ export default function HomeClient({
   const allRecentApartments = useMemo(
     () =>
       getRecentUpdatedApartments(
-        visibleApartments
+        visibleApartments,
+        undefined,
+        referenceNow
       ),
-    [visibleApartments]
+    [
+      visibleApartments,
+      referenceNow,
+    ]
   );
 
   const recentApartments = useMemo(

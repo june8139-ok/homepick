@@ -106,9 +106,18 @@ export function getMeaningfulUpdateLabel(
 
 export function getRecentUpdatedApartments(
   apartments: Apartment[],
-  days = RECENT_UPDATE_DAYS
+  days = RECENT_UPDATE_DAYS,
+  referenceNow = Date.now()
 ) {
-  const now = Date.now();
+  /*
+   * 홈에서는 app/page.tsx에서 만든 동일한 referenceNow를
+   * 서버 렌더와 hydration에 함께 전달합니다.
+   *
+   * 다른 기존 호출부는 세 번째 인자를 생략해도 이전처럼 동작합니다.
+   */
+  const now =
+    referenceNow;
+
   const maximumAge =
     days * 24 * 60 * 60 * 1000;
 

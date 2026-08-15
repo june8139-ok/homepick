@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import HomeClient from "../components/Home/HomeClient";
 import { getApartments } from "../lib/getApartments";
 import { getBriefings } from "../lib/getBriefings";
+import { getServerReferenceNow } from "../lib/serverReferenceTime";
 
 /*
  * 홈 데이터는 최대 60초마다 다시 갱신합니다.
@@ -98,6 +99,13 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
+  /*
+   * 서버 렌더와 브라우저 hydration이 같은 "현재 시각"을 사용하도록
+   * 홈 요청마다 기준 시각을 한 번만 생성합니다.
+   */
+  const referenceNow =
+    await getServerReferenceNow();
+
   const [
     apartments,
     briefings,
@@ -117,6 +125,9 @@ export default async function Home() {
       }
       briefings={
         briefings
+      }
+      referenceNow={
+        referenceNow
       }
     />
   );
