@@ -82,13 +82,21 @@ function normalizeListingStage(
   row: UnknownRecord,
   data: UnknownRecord
 ): ListingStage {
+  /*
+   * 관리자 저장값(data.listingStage)을 최우선으로 사용합니다.
+   *
+   * 과거 DB의 listing_stage 컬럼에 이전 상태가 남아 있더라도
+   * 관리자가 수정 화면에서 선택한 최신 상태가 공개 화면에
+   * 즉시 반영되도록 data 값을 먼저 확인합니다.
+   */
   const value =
-    row.listing_stage ??
-    data.listingStage;
+    data.listingStage ??
+    row.listing_stage;
 
   if (
     value === "subscription" ||
     value === "firstCome" ||
+    value === "soldOut" ||
     value === "completed" ||
     value === "existing"
   ) {
@@ -121,8 +129,16 @@ function normalizeListingStage(
   if (
     status.includes("분양완료") ||
     status.includes("공급완료") ||
+    status.includes("마감완료")
+  ) {
+    return "soldOut";
+  }
+
+  if (
     status.includes("노출종료") ||
-    status.includes("노출 종료")
+    status.includes("노출 종료") ||
+    status.includes("게시종료") ||
+    status.includes("게시 종료")
   ) {
     return "completed";
   }
