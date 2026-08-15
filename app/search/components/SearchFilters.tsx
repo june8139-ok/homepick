@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 
-export type SearchStatus = "" | "청약" | "선착순";
+export type SearchStatus =
+  | ""
+  | "청약"
+  | "선착순"
+  | "분양완료";
 
 export type SortOption =
   | "default"
@@ -30,6 +34,10 @@ const statusOptions: Array<{
   { value: "", label: "전체" },
   { value: "청약", label: "청약" },
   { value: "선착순", label: "선착순" },
+  {
+    value: "분양완료",
+    label: "분양완료",
+  },
 ];
 
 const benefitOptions = [

@@ -101,6 +101,10 @@ function keywordMatch(
     apartment.price,
     apartment.condition,
     apartment.slug,
+    apartment.listingStage ===
+    "soldOut"
+      ? "분양완료 100%분양완료"
+      : "",
     ...(apartment.keywords ?? []),
     ...(apartment.pros ?? []),
     ...(apartment.cons ?? []),
@@ -277,13 +281,20 @@ function contractPriority(
 
 function getListingStage(
   apartment: Apartment
-): "subscription" | "firstCome" | "existing" | "completed" | "" {
+):
+  | "subscription"
+  | "firstCome"
+  | "soldOut"
+  | "existing"
+  | "completed"
+  | "" {
   const stage =
     apartment.listingStage;
 
   if (
     stage === "subscription" ||
     stage === "firstCome" ||
+    stage === "soldOut" ||
     stage === "existing" ||
     stage === "completed"
   ) {
@@ -328,6 +339,12 @@ function statusMatch(
 
   if (status === "선착순") {
     return stage === "firstCome";
+  }
+
+  if (
+    status === "분양완료"
+  ) {
+    return stage === "soldOut";
   }
 
   return true;
@@ -428,6 +445,14 @@ function getPresetStatus(
 
   if (query === "선착순") {
     return "선착순";
+  }
+
+  if (
+    query === "분양완료" ||
+    query === "100% 분양완료" ||
+    query === "100%분양완료"
+  ) {
+    return "분양완료";
   }
 
   return "";
@@ -695,7 +720,26 @@ export default function SearchClient({
         );
       }
 
-      return result;
+      return [...result].sort(
+        (first, second) => {
+          const firstSoldOut =
+            getListingStage(first) ===
+            "soldOut"
+              ? 1
+              : 0;
+
+          const secondSoldOut =
+            getListingStage(second) ===
+            "soldOut"
+              ? 1
+              : 0;
+
+          return (
+            firstSoldOut -
+            secondSoldOut
+          );
+        }
+      );
     }, [
       distances,
       filters,
