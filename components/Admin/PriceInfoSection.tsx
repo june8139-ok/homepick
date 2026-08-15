@@ -1,4 +1,3 @@
-"use client";
 
 import type {
   ApartmentPriceInfo,
@@ -365,46 +364,30 @@ export default function PriceInfoSection() {
 
       <div className="mt-7 border-t border-zinc-100 pt-7">
         <h3 className="text-lg font-extrabold text-[#132238]">
-          대표 가격
+          비교하기 핵심 입력
         </h3>
 
-        <p className="mt-1 text-xs leading-5 text-zinc-400">
-          검색카드 등에 사용할 대표
-          문구입니다. 비워두면 평형별
-          최저·최고가로 자동 생성됩니다.
+        <p className="mt-1 break-keep text-xs leading-5 text-zinc-400">
+          비교하기는 아래 평형별 숫자 가격을
+          우선 사용합니다. 대표 문구를 직접
+          해석해서 비교하지 않습니다.
         </p>
 
+        <div className="mt-4 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3">
+          <p className="text-sm font-extrabold text-emerald-800">
+            집눈 비교 기준
+          </p>
+
+          <p className="mt-1 break-keep text-xs leading-5 text-emerald-800/80">
+            전용 84㎡가 있으면 84㎡를 우선
+            비교합니다. 84㎡가 없으면
+            80~88㎡ 중 가장 가까운 평형,
+            그것도 없으면 대표 평형을
+            자동으로 사용합니다.
+          </p>
+        </div>
+
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <TextInput
-            label="대표 분양가 문구"
-            value={
-              basicInfo.salePrice
-            }
-            placeholder="예: 84㎡ 5억대"
-            onChange={(value) =>
-              setBasicInfo({
-                ...basicInfo,
-                salePrice:
-                  value,
-              })
-            }
-          />
-
-          <TextInput
-            label="평당가 문구"
-            value={
-              basicInfo.pricePerPyeong
-            }
-            placeholder="예: 평당 약 2,050만원"
-            onChange={(value) =>
-              setBasicInfo({
-                ...basicInfo,
-                pricePerPyeong:
-                  value,
-              })
-            }
-          />
-
           <NumberInput
             label="평균 평당가"
             value={
@@ -479,9 +462,11 @@ export default function PriceInfoSection() {
             </h3>
 
             <p className="mt-1 break-keep text-xs leading-5 text-zinc-400">
-              59㎡, 84㎡처럼 면적을
-              추가하고 필요하면 A·B·C
-              타입별 가격도 등록하세요.
+              59㎡, 84㎡처럼 전용면적과
+              최저·최고가를 숫자로 입력하세요.
+              84A·84B·84C처럼 가격이 다를
+              때만 타입별 상세 가격을 추가하면
+              됩니다.
             </p>
           </div>
 
@@ -583,6 +568,54 @@ export default function PriceInfoSection() {
           </div>
         )}
       </div>
+
+      <details className="mt-8 rounded-2xl border border-zinc-200 bg-zinc-50">
+        <summary className="cursor-pointer px-4 py-4 text-sm font-extrabold text-[#132238]">
+          기존 표시 문구 / 선택 입력
+        </summary>
+
+        <div className="border-t border-zinc-200 bg-white p-4">
+          <p className="break-keep text-xs leading-5 text-zinc-400">
+            검색카드 등에 특별한 문구를
+            직접 보여주고 싶을 때만
+            입력하세요. 비교하기 계산은
+            위의 숫자형 평형별 가격과
+            평균 평당가를 우선 사용합니다.
+          </p>
+
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <TextInput
+              label="대표 분양가 문구"
+              value={
+                basicInfo.salePrice
+              }
+              placeholder="예: 84㎡ 5억대"
+              onChange={(value) =>
+                setBasicInfo({
+                  ...basicInfo,
+                  salePrice:
+                    value,
+                })
+              }
+            />
+
+            <TextInput
+              label="평당가 문구"
+              value={
+                basicInfo.pricePerPyeong
+              }
+              placeholder="예: 평당 약 2,050만원"
+              onChange={(value) =>
+                setBasicInfo({
+                  ...basicInfo,
+                  pricePerPyeong:
+                    value,
+                })
+              }
+            />
+          </div>
+        </div>
+      </details>
     </section>
   );
 }

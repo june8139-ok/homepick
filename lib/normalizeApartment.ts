@@ -525,6 +525,15 @@ export function normalizeApartment(
 
     jibnunSummary,
 
+    evaluation:
+      data.evaluation !== null &&
+      typeof data.evaluation === "object" &&
+      !Array.isArray(data.evaluation)
+        ? (
+            data.evaluation as Apartment["evaluation"]
+          )
+        : undefined,
+
     source,
 
     applyHomeId:
