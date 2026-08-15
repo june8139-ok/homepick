@@ -561,6 +561,10 @@ export default function HomeClient({
           </DashboardPanel>
         </section>
 
+        <DeferredRegionMapSection
+          apartments={visibleApartments}
+        />
+        
         {/* 지역 바로가기 */}
         <section className="mt-4 rounded-2xl border border-zinc-200/70 bg-white px-4 py-5 shadow-[0_16px_42px_rgba(15,118,110,0.05)] sm:mt-6 sm:rounded-[30px] sm:px-8 sm:py-7">
           <div className="flex items-center justify-between gap-3 sm:block lg:flex lg:items-center">
