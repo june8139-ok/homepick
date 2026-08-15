@@ -34,8 +34,11 @@ function RegionMapFallback() {
       className="mt-6 overflow-hidden rounded-[30px] border border-zinc-200/70 bg-white p-4 shadow-[0_18px_48px_rgba(15,118,110,0.05)] sm:p-7"
     >
       <div className="h-4 w-28 rounded bg-zinc-200" />
+
       <div className="mt-3 h-8 w-52 rounded-lg bg-zinc-200" />
+
       <div className="mt-2 h-5 w-full max-w-md rounded bg-zinc-100" />
+
       <div className="mt-5 min-h-[500px] rounded-3xl bg-zinc-100 sm:min-h-[620px] xl:min-h-[660px]" />
     </section>
   );
@@ -67,14 +70,28 @@ export default function DeferredRegionMapSection({
       return;
     }
 
+    /*
+     * 아주 오래된 브라우저에서 IntersectionObserver가
+     * 없을 경우 Effect 본문에서 직접 setState하지 않고
+     * animation frame으로 넘겨 React lint 경고를 피합니다.
+     */
     if (
       !(
         "IntersectionObserver" in
         window
       )
     ) {
-      setShouldLoad(true);
-      return;
+      const frame =
+        requestAnimationFrame(
+          () => {
+            setShouldLoad(true);
+          }
+        );
+
+      return () =>
+        cancelAnimationFrame(
+          frame
+        );
     }
 
     const observer =
@@ -92,14 +109,14 @@ export default function DeferredRegionMapSection({
         },
         {
           /*
-           * 홈 초기 Lighthouse 측정 구간에
-           * 지도 + d3-geo 청크가 너무 일찍
-           * 들어오지 않도록 기존에 가깝게 유지합니다.
-           * 400px 정도만 미리 준비해 실제 스크롤
-           * 직전에는 로딩을 시작합니다.
+           * 데스크톱은 홈 콘텐츠 높이가 짧아 지도 섹션이
+           * 초기 화면과 가까워집니다. 미리보기 여백을 두면
+           * Lighthouse 초기 측정 중 d3-geo 청크까지 불러와
+           * TBT가 튈 수 있으므로 실제 뷰포트 진입 시점에만
+           * 로드합니다.
            */
-          rootMargin:
-            "400px 0px",
+          rootMargin: "0px",
+          threshold: 0.01,
         }
       );
 
