@@ -384,8 +384,8 @@ function KoreaMap({
   }
 
   return (
-    <div className="relative aspect-[580/640] w-full max-w-[620px] select-none overflow-hidden rounded-3xl border border-[#d7eaf0] bg-[#eaf5f8] touch-pan-y">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,_rgba(255,255,255,0.95),_transparent_60%)]" />
+    <div className="relative aspect-[580/640] w-full max-w-[620px] select-none overflow-hidden rounded-3xl border border-[#d7eaf0] bg-[#eaf5f8] touch-pan-y [contain:layout_paint]">
+      <div className="pointer-events-none absolute inset-0 bg-white/20" />
 
       <div className="pointer-events-none absolute left-4 top-4 z-20 sm:left-6 sm:top-6">
         <p className="text-[10px] font-semibold tracking-wide text-zinc-500 sm:text-xs">
@@ -546,7 +546,7 @@ function KoreaMap({
                   stroke="#59c79b"
                   strokeWidth={2}
                   opacity={0.35}
-                  className="animate-pulse"
+                  className=""
                 />
               )}
 
@@ -566,7 +566,7 @@ function KoreaMap({
                 stroke="#ffffff"
                 strokeWidth={3}
                 vectorEffect="non-scaling-stroke"
-                className="drop-shadow-md transition-colors duration-150 hover:fill-[#238b68]"
+                className="transition-colors duration-150 hover:fill-[#238b68]"
               />
 
               <text
