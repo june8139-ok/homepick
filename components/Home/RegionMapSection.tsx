@@ -409,7 +409,7 @@ export default function RegionMapSection({
     regions.length === 0
   ) {
     return (
-      <section className="relative isolate mt-6 overflow-hidden rounded-[30px] border border-emerald-100 bg-[linear-gradient(135deg,#ffffff_0%,#f8fcfa_62%,#fbfdff_100%)] p-5 shadow-[0_20px_55px_rgba(15,118,110,0.07)] sm:p-7 lg:p-9">
+      <section className="relative isolate mt-6 overflow-hidden rounded-[30px] border border-emerald-100 bg-[linear-gradient(135deg,#ffffff_0%,#f8fcfa_62%,#fbfdff_100%)] p-5 shadow-[0_12px_34px_rgba(15,118,110,0.05)] sm:p-7 lg:p-9">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-xs font-extrabold tracking-[0.12em] text-[#0F766E]">
@@ -440,11 +440,11 @@ export default function RegionMapSection({
     <section className="relative isolate mt-6 overflow-hidden rounded-[30px] border border-emerald-100 bg-[linear-gradient(135deg,#ffffff_0%,#f8fcfa_62%,#fbfdff_100%)] p-4 shadow-[0_20px_55px_rgba(15,118,110,0.07)] sm:p-7 lg:p-9">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-emerald-100/55 blur-3xl"
+        className="pointer-events-none absolute -right-20 -top-24 hidden h-72 w-72 rounded-full bg-emerald-100/45 blur-2xl 2xl:block"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -bottom-28 left-[18%] h-64 w-64 rounded-full bg-sky-100/45 blur-3xl"
+        className="pointer-events-none absolute -bottom-28 left-[18%] hidden h-64 w-64 rounded-full bg-sky-100/35 blur-2xl 2xl:block"
       />
       <div className="relative z-10 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div>
@@ -492,8 +492,8 @@ export default function RegionMapSection({
       </div>
 
       <div className="relative z-10 mx-auto mt-5 grid w-full max-w-[1220px] gap-5 xl:grid-cols-[minmax(0,760px)_430px] xl:items-stretch xl:justify-center">
-        <div className="relative isolate flex min-w-0 justify-center overflow-hidden rounded-[28px] border border-emerald-100/90 bg-white/75 shadow-[0_18px_45px_rgba(15,118,110,0.06)] [contain:paint]">
-          <div className="pointer-events-none absolute right-5 top-5 z-10 rounded-full border border-emerald-200 bg-white/92 px-3.5 py-2 shadow-sm backdrop-blur">
+        <div className="relative isolate flex min-w-0 justify-center overflow-hidden rounded-[28px] border border-emerald-100/90 bg-white/80 shadow-[0_10px_28px_rgba(15,118,110,0.045)] [contain:layout_paint] [content-visibility:auto]">
+          <div className="pointer-events-none absolute right-5 top-5 z-10 rounded-full border border-emerald-200 bg-white/95 px-3.5 py-2 shadow-sm">
             <p className="flex items-center gap-2 text-xs font-extrabold text-emerald-800">
               <span
                 aria-hidden="true"
@@ -523,10 +523,10 @@ export default function RegionMapSection({
           }
           className="
             hidden min-h-[560px] h-full
-            min-w-0 animate-[fadeIn_220ms_ease-out]
+            min-w-0
             flex-col overflow-hidden xl:flex
             rounded-[28px] border border-emerald-100 bg-white/95
-            shadow-[0_20px_48px_rgba(15,118,110,0.09)]
+            shadow-[0_12px_30px_rgba(15,118,110,0.06)]
           "
         >
           <Link
@@ -565,9 +565,6 @@ export default function RegionMapSection({
                 sizes="410px"
                 className="
                   object-cover
-                  transition-transform
-                  duration-500
-                  group-hover:scale-105
                 "
               />
             ) : (
@@ -595,7 +592,7 @@ export default function RegionMapSection({
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-black/5 to-transparent" />
 
             <div className="absolute bottom-4 left-4 right-4">
-              <span className="inline-flex rounded-full border border-white/70 bg-white/90 px-3 py-1 text-[10px] font-extrabold text-emerald-700 shadow-sm backdrop-blur">
+              <span className="inline-flex rounded-full border border-white/70 bg-white/95 px-3 py-1 text-[10px] font-extrabold text-emerald-700 shadow-sm">
                 신규 등록 지역
               </span>
 
