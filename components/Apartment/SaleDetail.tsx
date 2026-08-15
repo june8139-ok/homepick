@@ -550,8 +550,28 @@ export default function SaleDetail({
       apartment
     );
 
+  const isSoldOut =
+    apartment.listingStage ===
+    "soldOut";
+
   return (
     <div className="mt-5 space-y-5 sm:mt-8 sm:space-y-8">
+      {isSoldOut && (
+        <section className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 shadow-sm sm:rounded-3xl sm:p-6">
+          <p className="text-xs font-extrabold text-amber-700 sm:text-sm">
+            100% 분양완료
+          </p>
+
+          <h2 className="mt-1 text-xl font-extrabold text-[#132238] sm:text-2xl">
+            분양이 완료된 단지입니다
+          </h2>
+
+          <p className="mt-2 break-keep text-xs leading-6 text-amber-950/80 sm:text-sm sm:leading-7">
+            현재 신규 계약 및 방문예약은 진행하지 않습니다. 아래 분양가·계약조건·평면·입지 정보는 분양 당시 기준의 참고자료로 확인해주세요.
+          </p>
+        </section>
+      )}
+
       <section
         id="price"
         className="scroll-mt-24"
@@ -559,7 +579,11 @@ export default function SaleDetail({
         <SectionHeader
           eyebrow="PRICE & CONTRACT"
           title="가격 및 계약조건"
-          description="분양가와 계약금, 중도금, 잔금 및 제공 혜택을 확인하세요."
+          description={
+            isSoldOut
+              ? "분양 당시 분양가와 계약조건을 참고용으로 확인하세요."
+              : "분양가와 계약금, 중도금, 잔금 및 제공 혜택을 확인하세요."
+          }
           accent="emerald"
         />
 
@@ -574,7 +598,9 @@ export default function SaleDetail({
 
           {apartment.source === "applyhome" && (
             <p className="mt-3 rounded-xl bg-blue-50 px-3 py-2.5 text-[10px] leading-5 text-blue-800 sm:text-xs sm:leading-6">
-              청약홈 공개자료는 타입별 최고 공급금액을 중심으로 제공될 수 있습니다. 실제 계약 가능한 동·호수별 공급금액은 최신 안내를 확인해주세요.
+              {isSoldOut
+                ? "청약홈 공개자료를 기준으로 보관한 정보입니다. 타입별 최고 공급금액 중심으로 제공될 수 있으며 실제 분양 당시 동·호수별 금액과 차이가 있을 수 있습니다."
+                : "청약홈 공개자료는 타입별 최고 공급금액을 중심으로 제공될 수 있습니다. 실제 계약 가능한 동·호수별 공급금액은 최신 안내를 확인해주세요."}
             </p>
           )}
 
@@ -805,34 +831,35 @@ export default function SaleDetail({
               </p>
 
               <p className="mt-1 text-[10px] leading-5 text-emerald-900/70 sm:text-xs sm:leading-6">
-                공급계약서와 실제
-                잔여 호실, 적용
-                계약조건을 다시
-                확인해주세요.
+                {isSoldOut
+                  ? "분양 당시 기준 정보이므로 현재 시점의 거래 조건과 다를 수 있습니다."
+                  : "공급계약서와 실제 잔여 호실, 적용 계약조건을 다시 확인해주세요."}
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      <section
-        id="inquiry"
-        className="scroll-mt-24"
-      >
-        <ReservationCard
-          apartmentSlug={
-            apartment.slug
-          }
-          apartmentName={
-            apartment.name
-          }
-          mode="sale"
-          kakaoUrl="https://pf.kakao.com/_RxfsxnX/chat"
-          floorPlanNames={
-            floorPlanNames
-          }
-        />
-      </section>
+      {!isSoldOut && (
+        <section
+          id="inquiry"
+          className="scroll-mt-24"
+        >
+          <ReservationCard
+            apartmentSlug={
+              apartment.slug
+            }
+            apartmentName={
+              apartment.name
+            }
+            mode="sale"
+            kakaoUrl="https://pf.kakao.com/_RxfsxnX/chat"
+            floorPlanNames={
+              floorPlanNames
+            }
+          />
+        </section>
+      )}
     </div>
   );
 }

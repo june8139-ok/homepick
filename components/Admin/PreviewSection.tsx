@@ -155,6 +155,7 @@ function getListingStageLabel(
   listingStage:
     | "subscription"
     | "firstCome"
+    | "soldOut"
     | "completed"
     | "existing"
 ) {
@@ -166,6 +167,9 @@ function getListingStageLabel(
 
     case "firstCome":
       return "선착순";
+
+    case "soldOut":
+      return "100% 분양완료";
 
     case "completed":
       return "노출 종료";
@@ -182,6 +186,7 @@ function getListingStageClassName(
   listingStage:
     | "subscription"
     | "firstCome"
+    | "soldOut"
     | "completed"
     | "existing"
 ) {
@@ -193,6 +198,9 @@ function getListingStageClassName(
 
     case "firstCome":
       return "bg-emerald-50 text-emerald-700";
+
+    case "soldOut":
+      return "bg-amber-50 text-amber-700";
 
     case "completed":
       return "bg-zinc-100 text-zinc-500";

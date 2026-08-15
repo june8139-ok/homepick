@@ -590,11 +590,21 @@ function createInitialListingStage(
     return "firstCome";
   }
 
-  const isCompleted =
+  const isSoldOut =
+    status.includes("100% 분양완료") ||
     status.includes("분양완료") ||
     status.includes("공급완료") ||
+    status.includes("마감완료");
+
+  if (isSoldOut) {
+    return "soldOut";
+  }
+
+  const isCompleted =
     status.includes("노출종료") ||
-    status.includes("노출 종료");
+    status.includes("노출 종료") ||
+    status.includes("게시종료") ||
+    status.includes("게시 종료");
 
   if (isCompleted) {
     return "completed";

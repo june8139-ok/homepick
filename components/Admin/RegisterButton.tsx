@@ -29,6 +29,140 @@ import type {
   ListingStage,
 } from "../../types/apartment";
 
+function uniqueStrings(values: string[]) {
+  return [
+    ...new Set(
+      values
+        .map((value) =>
+          value
+            .trim()
+            .replace(/\s+/g, " ")
+        )
+        .filter(Boolean)
+    ),
+  ];
+}
+
+/**
+ * 도시개발구역·택지지구·블록명처럼 네이버 주소 지오코더가
+ * 바로 찾기 어려운 주소를 위해 안전한 검색 후보를 만듭니다.
+ *
+ * 원문 주소는 절대 변경하지 않고 좌표 검색에만 사용합니다.
+ */
+function createGeocodeCandidates(
+  address: string,
+  cityName = ""
+) {
+  const normalized = address
+    .trim()
+    .replace(/\s+/g, " ");
+
+  const parentheticalAddresses = [
+    ...normalized.matchAll(
+      /\(([^()]+)\)/g
+    ),
+  ]
+    .map((match) =>
+      match[1]?.trim() ?? ""
+    )
+    .filter(Boolean);
+
+  const withoutParentheses =
+    normalized
+      .replace(/\([^)]*\)/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+  const removeBlockText = (value: string) =>
+    value
+      .replace(
+        /\s+(?:공동주택용지|주상복합용지|도시개발구역|지구단위계획구역|개발구역)?\s*[A-Z]?[0-9]+(?:-[0-9]+)?\s*(?:BL|블록|BLOCK)\b.*$/i,
+        ""
+      )
+      .replace(
+        /\s+(?:공동주택용지|주상복합용지|도시개발구역|지구단위계획구역|개발구역)\b.*$/i,
+        ""
+      )
+      .trim();
+
+  const administrativeAddress = (
+    value: string
+  ) => {
+    const tokens = value
+      .replace(/[(),]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .split(" ")
+      .filter(Boolean);
+
+    let lastIndex = -1;
+
+    for (
+      let index = tokens.length - 1;
+      index >= 0;
+      index -= 1
+    ) {
+      if (
+        /(?:동|읍|면|리)$/.test(
+          tokens[index]
+        )
+      ) {
+        lastIndex = index;
+        break;
+      }
+    }
+
+    return lastIndex >= 0
+      ? tokens
+          .slice(0, lastIndex + 1)
+          .join(" ")
+      : "";
+  };
+
+  const parentAdministrative =
+    parentheticalAddresses.map(
+      administrativeAddress
+    );
+
+  const outerAdministrative =
+    administrativeAddress(
+      withoutParentheses
+    );
+
+  const shortAdministrative = [
+    ...parentAdministrative,
+    outerAdministrative,
+  ]
+    .map((value) => {
+      const tokens = value
+        .split(" ")
+        .filter(Boolean);
+
+      return tokens
+        .slice(-2)
+        .join(" ");
+    })
+    .filter(Boolean);
+
+  return uniqueStrings([
+    normalized,
+    ...parentheticalAddresses,
+    withoutParentheses,
+    removeBlockText(
+      withoutParentheses
+    ),
+    ...parentAdministrative,
+    outerAdministrative,
+    ...shortAdministrative.map(
+      (value) =>
+        cityName.trim()
+          ? `${cityName.trim()} ${value}`
+          : ""
+    ),
+    ...shortAdministrative,
+  ]);
+}
+
 function getListingStageLabel(
   listingStage: ListingStage
 ) {
@@ -38,6 +172,9 @@ function getListingStageLabel(
 
     case "firstCome":
       return "선착순";
+
+    case "soldOut":
+      return "100% 분양완료";
 
     case "completed":
       return "노출 종료";
@@ -59,6 +196,9 @@ function getResolvedStatus(
 
     case "firstCome":
       return "선착순 분양";
+
+    case "soldOut":
+      return "100% 분양완료";
 
     case "completed":
       return "노출 종료";
@@ -150,10 +290,39 @@ export default function RegisterButton({
             return;
           }
 
-          const coordinates =
-            await geocodeAddress(
-              basicInfo.region
+          const candidates =
+            createGeocodeCandidates(
+              basicInfo.region,
+              basicInfo.cityName
             );
+
+          let coordinates:
+            | Awaited<ReturnType<typeof geocodeAddress>>
+            | null = null;
+
+          let lastError: unknown = null;
+
+          for (const candidate of candidates) {
+            try {
+              coordinates =
+                await geocodeAddress(
+                  candidate
+                );
+
+              break;
+            } catch (error) {
+              lastError = error;
+            }
+          }
+
+          if (!coordinates) {
+            throw (
+              lastError ??
+              new Error(
+                "사업지 주소의 위치를 찾지 못했습니다. 기본정보에서 지도 핀을 직접 지정해주세요."
+              )
+            );
+          }
 
           resolvedBasicInfo = {
             ...basicInfo,
@@ -452,9 +621,12 @@ export default function RegisterButton({
                     "firstCome"
                   ? "bg-emerald-100 text-emerald-700"
                   : listingStage ===
-                      "completed"
-                    ? "bg-zinc-200 text-zinc-600"
-                    : "bg-violet-100 text-violet-700",
+                      "soldOut"
+                    ? "bg-amber-100 text-amber-800"
+                    : listingStage ===
+                        "completed"
+                      ? "bg-zinc-200 text-zinc-600"
+                      : "bg-violet-100 text-violet-700",
             ].join(" ")}
           >
             {getListingStageLabel(

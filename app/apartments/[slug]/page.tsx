@@ -15,6 +15,7 @@ import {
 import {
   getListingStage,
   isCompletedListing,
+  isSoldOutListing,
   isSubscriptionListing,
 } from "../../../lib/listingStage";
 
@@ -137,6 +138,12 @@ function getStatusKeyword(
     return "선착순 분양";
   }
 
+  if (
+    listingStage === "soldOut"
+  ) {
+    return "100% 분양완료";
+  }
+
   return (
     apartment.status ||
     "분양 정보"
@@ -172,6 +179,12 @@ function getSeoTitle(
     return `${locationPrefix}${apartment.name} 선착순 분양가·계약조건`;
   }
 
+  if (
+    listingStage === "soldOut"
+  ) {
+    return `${locationPrefix}${apartment.name} 분양완료·분양가`;
+  }
+
   return `${locationPrefix}${apartment.name} 분양정보`;
 }
 
@@ -199,10 +212,17 @@ function getSeoDescription(
     .map(cleanText)
     .filter(Boolean);
 
+  const listingStage =
+    getListingStage(apartment);
+
   return truncateText(
-    `${summaryParts.join(
-      " · "
-    )}. 단지 규모, 평면도, 입지환경과 최신 분양 정보를 집눈에서 확인하세요.`
+    listingStage === "soldOut"
+      ? `${summaryParts.join(
+          " · "
+        )}. 분양 당시 공급가, 평면도, 입지환경과 단지 정보를 집눈에서 확인하세요.`
+      : `${summaryParts.join(
+          " · "
+        )}. 단지 규모, 평면도, 입지환경과 최신 분양 정보를 집눈에서 확인하세요.`
   );
 }
 
@@ -716,7 +736,10 @@ async function RelatedApartmentContent({
           return false;
         }
 
-        if (isCompletedListing(item)) {
+        if (
+          isCompletedListing(item) ||
+          isSoldOutListing(item)
+        ) {
           return false;
         }
 
@@ -787,6 +810,11 @@ export default async function ApartmentDetailPage({
 
   const isCompleted =
     isCompletedListing(
+      apartment
+    );
+
+  const isSoldOut =
+    isSoldOutListing(
       apartment
     );
 
@@ -930,7 +958,9 @@ export default async function ApartmentDetailPage({
                   : listingStage ===
                       "firstCome"
                     ? "bg-emerald-50 text-emerald-700"
-                    : "bg-violet-50 text-violet-700",
+                    : isSoldOut
+                      ? "bg-amber-50 text-amber-800"
+                      : "bg-violet-50 text-violet-700",
               ].join(" ")}
             >
               {listingStage ===
@@ -939,7 +969,9 @@ export default async function ApartmentDetailPage({
                 : listingStage ===
                     "firstCome"
                   ? "선착순 분양"
-                  : "기존 아파트"}
+                  : isSoldOut
+                    ? "100% 분양완료"
+                    : "기존 아파트"}
             </span>
           </div>
 

@@ -15,6 +15,7 @@ import ApartmentDataTrust from "./ApartmentDataTrust";
 type ListingStage =
   | "subscription"
   | "firstCome"
+  | "soldOut"
   | "completed"
   | "existing";
 
@@ -340,6 +341,13 @@ function getSaleStatusLabel(
 
   if (
     apartment.listingStage ===
+    "soldOut"
+  ) {
+    return "100% 분양완료";
+  }
+
+  if (
+    apartment.listingStage ===
     "completed"
   ) {
     return "노출 종료";
@@ -482,6 +490,10 @@ export default function ApartmentHero({
     isFirstComeApartment(
       apartment
     );
+
+  const isSoldOut =
+    apartment.listingStage ===
+    "soldOut";
 
   const heroImage =
     getValidImageUrl(
@@ -629,10 +641,14 @@ export default function ApartmentHero({
                 },
               ]
             : []),
-          {
-            label: "상담신청",
-            href: "#inquiry",
-          },
+          ...(!isSoldOut
+            ? [
+                {
+                  label: "상담신청",
+                  href: "#inquiry",
+                },
+              ]
+            : []),
         ];
 
   return (
@@ -681,7 +697,9 @@ export default function ApartmentHero({
                 ? `${apartment.name} 청약`
                 : isFirstCome
                   ? `${apartment.name} 선착순 분양`
-                  : `${apartment.name} 대표 이미지`}
+                  : isSoldOut
+                    ? `${apartment.name} 분양완료`
+                    : `${apartment.name} 대표 이미지`}
             </div>
           </div>
         ) : (
@@ -702,10 +720,12 @@ export default function ApartmentHero({
                 ? "bg-blue-600"
                 : isFirstCome
                   ? "bg-emerald-600"
-                  : apartment.listingStage ===
-                      "completed"
-                    ? "bg-zinc-500"
-                    : "bg-[#132238]",
+                  : isSoldOut
+                    ? "bg-amber-600"
+                    : apartment.listingStage ===
+                        "completed"
+                      ? "bg-zinc-500"
+                      : "bg-[#132238]",
             ].join(" ")}
           >
             {isSubscription
@@ -746,6 +766,12 @@ export default function ApartmentHero({
             displayApartment
           }
         />
+
+        {isSoldOut && (
+          <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-xs font-semibold leading-5 text-amber-900 sm:mt-5 sm:rounded-2xl sm:px-4 sm:py-3.5 sm:text-sm sm:leading-6">
+            이 단지는 100% 분양이 완료되었습니다. 아래 내용은 분양 당시 공급정보와 단지 정보를 보관한 자료입니다.
+          </div>
+        )}
 
         {isSubscription ? (
           <>

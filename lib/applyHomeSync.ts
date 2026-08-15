@@ -329,6 +329,7 @@ function savedListingStage(
   return [
     "subscription",
     "firstCome",
+    "soldOut",
     "completed",
     "existing",
   ].includes(stage)
@@ -1520,7 +1521,7 @@ async function updateApartment(
     );
 
   /*
-   * 관리자가 청약 단지를 선착순/노출종료/기존단지로
+   * 관리자가 청약 단지를 선착순/분양완료/노출종료/기존단지로
    * 전환한 경우 청약홈 일정 동기화가 표시 상태를
    * 다시 청약으로 되돌리지 않게 보호합니다.
    *

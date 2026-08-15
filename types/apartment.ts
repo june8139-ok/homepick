@@ -91,6 +91,7 @@ export type ApartmentConditionHistoryItem = {
 export type ListingStage =
   | "subscription"
   | "firstCome"
+  | "soldOut"
   | "completed"
   | "existing";
 
