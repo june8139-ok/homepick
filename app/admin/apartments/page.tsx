@@ -13,6 +13,7 @@ import {
 } from "next/navigation";
 
 import { parseSubscriptionDate } from "../../../lib/subscriptionVisibility";
+import { geocodeAddress } from "../../../lib/naverGeocode";
 
 type ListingStage =
   | "subscription"
@@ -165,6 +166,77 @@ function hasLocation(
     typeof longitude === "number" &&
     Number.isFinite(longitude) &&
     longitude !== 0
+  );
+}
+
+function uniqueStrings(
+  values: string[]
+) {
+  return [
+    ...new Set(
+      values
+        .map((value) =>
+          value.trim()
+        )
+        .filter(Boolean)
+    ),
+  ];
+}
+
+function createGeocodeCandidates(
+  address: string
+) {
+  const normalized = address
+    .trim()
+    .replace(/\s+/g, " ");
+
+  const withoutBlock = normalized
+    .replace(
+      /\s+(?:공동주택용지|주상복합용지|도시개발구역|지구단위계획구역|개발구역)?\s*[A-Z]?[0-9]+(?:-[0-9]+)?\s*(?:BL|블록|BLOCK)\b.*$/i,
+      ""
+    )
+    .replace(
+      /\s+(?:공동주택용지|주상복합용지|도시개발구역|지구단위계획구역|개발구역)\b.*$/i,
+      ""
+    )
+    .trim();
+
+  const tokens =
+    normalized.split(" ");
+
+  const dongIndex =
+    tokens.findIndex(
+      (token) =>
+        /(?:동|읍|면|리)$/.test(
+          token
+        )
+    );
+
+  const administrativeAddress =
+    dongIndex >= 0
+      ? tokens
+          .slice(
+            0,
+            dongIndex + 1
+          )
+          .join(" ")
+      : "";
+
+  return uniqueStrings([
+    normalized,
+    withoutBlock,
+    administrativeAddress,
+  ]);
+}
+
+function wait(milliseconds: number) {
+  return new Promise<void>(
+    (resolve) => {
+      window.setTimeout(
+        resolve,
+        milliseconds
+      );
+    }
   );
 }
 
@@ -439,6 +511,18 @@ function AdminApartmentsPageContent() {
     setTransitioningId,
   ] =
     useState<string | null>(null);
+
+  const [
+    locationRepair,
+    setLocationRepair,
+  ] = useState({
+    running: false,
+    total: 0,
+    processed: 0,
+    success: 0,
+    approximate: 0,
+    failed: 0,
+  });
 
   useEffect(() => {
     let mounted = true;
@@ -725,6 +809,244 @@ ${
 
       alert(
         `"${apartment.name}" 단지가 선착순 분양으로 전환되었습니다.`
+      );
+
+      router.refresh();
+    };
+
+  const handleBulkLocationRepair =
+    async () => {
+      if (locationRepair.running) {
+        return;
+      }
+
+      const targets =
+        apartments.filter(
+          (apartment) =>
+            !hasLocation(apartment) &&
+            Boolean(
+              apartment.region?.trim()
+            )
+        );
+
+      const withoutAddress =
+        apartments.filter(
+          (apartment) =>
+            !hasLocation(apartment) &&
+            !apartment.region?.trim()
+        ).length;
+
+      if (targets.length === 0) {
+        alert(
+          withoutAddress > 0
+            ? `자동으로 찾을 수 있는 주소가 없습니다.\n\n주소가 없는 단지 ${withoutAddress}건은 직접 확인해주세요.`
+            : "위치 미확인 단지가 없습니다."
+        );
+        return;
+      }
+
+      const confirmed =
+        window.confirm(
+          `위치 미확인 단지 ${targets.length}건의 좌표를 자동으로 찾아 저장할까요?\n\n전체 주소 → 블록명 제거 주소 → 동·읍·면 주소 순서로 확인합니다.\n\n행정동 기준으로만 찾은 위치는 근사 위치로 저장되므로 나중에 직접 확인하는 것을 권장합니다.${withoutAddress > 0 ? `\n\n주소 자체가 없는 ${withoutAddress}건은 이번 작업에서 제외됩니다.` : ""}\n\n처리 중에는 이 창을 닫지 마세요.`
+        );
+
+      if (!confirmed) {
+        return;
+      }
+
+      setLocationRepair({
+        running: true,
+        total: targets.length,
+        processed: 0,
+        success: 0,
+        approximate: 0,
+        failed: 0,
+      });
+
+      let success = 0;
+      let approximate = 0;
+      let failed = 0;
+
+      for (
+        let index = 0;
+        index < targets.length;
+        index += 1
+      ) {
+        const apartment =
+          targets[index];
+
+        const originalAddress =
+          apartment.region?.trim() ??
+          "";
+
+        let coordinates:
+          | Awaited<
+              ReturnType<
+                typeof geocodeAddress
+              >
+            >
+          | null = null;
+
+        let matchedAddress = "";
+
+        try {
+          const candidates =
+            createGeocodeCandidates(
+              originalAddress
+            );
+
+          for (
+            const candidate of
+            candidates
+          ) {
+            try {
+              coordinates =
+                await geocodeAddress(
+                  candidate
+                );
+
+              matchedAddress =
+                candidate;
+
+              break;
+            } catch {
+              // 다음 후보 주소를 시도합니다.
+            }
+          }
+
+          if (!coordinates) {
+            throw new Error(
+              "주소 위치를 찾지 못했습니다."
+            );
+          }
+
+          const normalizedOriginal =
+            originalAddress
+              .replace(/\s+/g, " ")
+              .trim();
+
+          const accuracy =
+            matchedAddress ===
+            normalizedOriginal
+              ? "exact"
+              : "approximate";
+
+          const response =
+            await fetch(
+              "/api/admin/apartments/location",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type":
+                    "application/json",
+                },
+                body:
+                  JSON.stringify({
+                    apartmentId:
+                      apartment.id,
+                    latitude:
+                      coordinates.latitude,
+                    longitude:
+                      coordinates.longitude,
+                    originalAddress,
+                    matchedAddress,
+                    accuracy,
+                  }),
+              }
+            );
+
+          const result =
+            (await response.json()) as {
+              message?: string;
+            };
+
+          if (!response.ok) {
+            throw new Error(
+              result.message ||
+                "좌표 저장에 실패했습니다."
+            );
+          }
+
+          success += 1;
+
+          if (
+            accuracy ===
+            "approximate"
+          ) {
+            approximate += 1;
+          }
+
+          setApartments(
+            (previous) =>
+              previous.map(
+                (item) =>
+                  item.id ===
+                  apartment.id
+                    ? {
+                        ...item,
+                        latitude:
+                          coordinates?.latitude ??
+                          item.latitude,
+                        longitude:
+                          coordinates?.longitude ??
+                          item.longitude,
+                        data: {
+                          ...(item.data ??
+                            {}),
+                          latitude:
+                            coordinates?.latitude,
+                          longitude:
+                            coordinates?.longitude,
+                          locationGeocodeMeta:
+                            {
+                              originalAddress,
+                              matchedAddress,
+                              accuracy,
+                              updatedAt:
+                                new Date().toISOString(),
+                            },
+                        },
+                      }
+                    : item
+              )
+          );
+        } catch (error) {
+          failed += 1;
+
+          console.warn(
+            "[위치 자동 보완 실패]",
+            apartment.name,
+            error
+          );
+        }
+
+        setLocationRepair({
+          running: true,
+          total: targets.length,
+          processed: index + 1,
+          success,
+          approximate,
+          failed,
+        });
+
+        /*
+         * 네이버 지도 API에 짧은 간격으로
+         * 과도한 요청이 몰리지 않도록 순차 처리합니다.
+         */
+        await wait(300);
+      }
+
+      setLocationRepair({
+        running: false,
+        total: targets.length,
+        processed: targets.length,
+        success,
+        approximate,
+        failed,
+      });
+
+      alert(
+        `위치 자동 보완이 끝났습니다.\n\n저장 성공 ${success}건\n근사 위치 ${approximate}건\n실패 ${failed}건${withoutAddress > 0 ? `\n주소 없음 ${withoutAddress}건` : ""}\n\n근사 위치와 실패 단지는 관리자에서 직접 확인해주세요.`
       );
 
       router.refresh();
@@ -1084,13 +1406,31 @@ ${
                 </p>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <strong className="text-3xl font-black">
                   {currentTaskCount}
                   <span className="ml-1 text-sm">
                     건
                   </span>
                 </strong>
+
+                {task === "location" && (
+                  <button
+                    type="button"
+                    onClick={
+                      handleBulkLocationRepair
+                    }
+                    disabled={
+                      locationRepair.running ||
+                      taskCounts.location === 0
+                    }
+                    className="rounded-xl bg-zinc-900 px-4 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-emerald-600 disabled:cursor-wait disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-current"
+                  >
+                    {locationRepair.running
+                      ? `자동 보완 ${locationRepair.processed}/${locationRepair.total}`
+                      : "위치 자동 보완"}
+                  </button>
+                )}
 
                 <Link
                   href="/admin/apartments"
@@ -1100,6 +1440,16 @@ ${
                 </Link>
               </div>
             </div>
+
+            {task === "location" &&
+              (locationRepair.running ||
+                locationRepair.processed > 0) && (
+                <div className="mt-4 rounded-2xl bg-white/70 px-4 py-3 text-xs font-semibold leading-5">
+                  {locationRepair.running
+                    ? `처리 중 ${locationRepair.processed}/${locationRepair.total} · 저장 ${locationRepair.success} · 근사 ${locationRepair.approximate} · 실패 ${locationRepair.failed}`
+                    : `최근 작업 결과 · 저장 ${locationRepair.success} · 근사 ${locationRepair.approximate} · 실패 ${locationRepair.failed}`}
+                </div>
+              )}
           </section>
         )}
 
