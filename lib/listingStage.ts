@@ -26,10 +26,14 @@ function hasSavedListingStage(
   );
 }
 
-function normalize(value?: string | null) {
-  return value
-    ?.trim()
-    .toLowerCase() ?? "";
+function normalize(
+  value?: string | null
+) {
+  return (
+    value
+      ?.trim()
+      .toLowerCase() ?? ""
+  );
 }
 
 /**
@@ -37,10 +41,14 @@ function normalize(value?: string | null) {
  *
  * 판정 우선순위
  * 1. 관리자가 저장한 listingStage
- * 2. 명시적인 분양완료/노출종료 상태
- * 3. 기존 ApplyHome 및 상태값 자동 판정
- * 4. 계약조건 텍스트 자동 판정
+ * 2. 기존 상태값 자동 판정
+ * 3. 계약조건 텍스트 자동 판정
+ * 4. 청약홈 자동 생성 여부
  * 5. 기존 아파트
+ *
+ * soldOut과 completed는 의미가 다릅니다.
+ * - soldOut: 100% 분양완료, 상세정보/검색/SEO 유지
+ * - completed: 노출 종료, 공개 목록 제외
  */
 export function getListingStage(
   apartment: Apartment
@@ -62,27 +70,43 @@ export function getListingStage(
   );
 
   /*
-   * 실제 분양이 끝난 단지는 검색 자산을 유지하기 위해
-   * soldOut으로 분리합니다. 상세페이지는 계속 공개됩니다.
+   * 분양완료는 공개 아카이브로 유지합니다.
+   * 기존에 listingStage가 completed로 저장된 단지는
+   * 위의 저장값 우선 규칙에 따라 그대로 completed가 유지됩니다.
    */
   if (
-    status.includes("100% 분양완료") ||
-    status.includes("분양완료") ||
-    status.includes("공급완료") ||
-    status.includes("마감완료")
+    status.includes(
+      "100% 분양완료"
+    ) ||
+    status.includes(
+      "100%분양완료"
+    ) ||
+    status.includes(
+      "분양완료"
+    ) ||
+    status.includes(
+      "마감완료"
+    )
   ) {
     return "soldOut";
   }
 
   /*
-   * completed는 잘못된 등록, 중복, 게시 중단처럼
-   * 실제로 검색 노출을 종료해야 하는 경우에만 사용합니다.
+   * 노출 종료는 실제 게시 중단 용도입니다.
    */
   if (
-    status.includes("노출종료") ||
-    status.includes("노출 종료") ||
-    status.includes("게시종료") ||
-    status.includes("게시 종료")
+    status.includes(
+      "노출 종료"
+    ) ||
+    status.includes(
+      "노출종료"
+    ) ||
+    status.includes(
+      "게시 종료"
+    ) ||
+    status.includes(
+      "게시종료"
+    )
   ) {
     return "completed";
   }
@@ -90,16 +114,24 @@ export function getListingStage(
   if (
     status.includes("선착순") ||
     status.includes("분양중") ||
-    condition.includes("동호지정") ||
-    condition.includes("잔여세대") ||
-    condition.includes("회사보유분")
+    condition.includes(
+      "동호지정"
+    ) ||
+    condition.includes(
+      "잔여세대"
+    ) ||
+    condition.includes(
+      "회사보유분"
+    )
   ) {
     return "firstCome";
   }
 
   if (
-    apartment.source === "applyhome" ||
-    apartment.isAutoCreated === true ||
+    apartment.source ===
+      "applyhome" ||
+    apartment.isAutoCreated ===
+      true ||
     subscriptionStatuses.includes(
       apartment.status as
         (typeof subscriptionStatuses)[number]
@@ -156,10 +188,18 @@ export function isExistingListing(
   );
 }
 
+/**
+ * 공개 가능한 단지인지 확인합니다.
+ *
+ * soldOut은 공개 상태입니다.
+ * completed만 공개 목록에서 제외합니다.
+ */
 export function isPublicListing(
   apartment: Apartment
 ) {
-  return !isCompletedListing(apartment);
+  return !isCompletedListing(
+    apartment
+  );
 }
 
 export function getListingStageLabel(
