@@ -21,12 +21,62 @@ export const subscriptionStatuses = [
 const ONE_DAY_MS =
   24 * 60 * 60 * 1000;
 
-function startOfDay(date: Date) {
-  return new Date(
-    date.getFullYear(),
-    date.getMonth(),
-    date.getDate()
+const KST_OFFSET_MS =
+  9 * 60 * 60 * 1000;
+
+/*
+ * 서버(Vercel/UTC)와 한국 사용자 브라우저(KST)가
+ * 같은 순간에도 서로 다른 "오늘"을 계산하지 않도록
+ * 모든 날짜 비교를 한국 표준시(KST) 기준 day number로 통일합니다.
+ *
+ * 예: 한국 2026-08-16 03:00은 Vercel UTC에서 아직 2026-08-15입니다.
+ * 기존 getFullYear/getMonth/getDate 기반 코드는 이 시간대에
+ * 서버/클라이언트 결과가 달라질 수 있었습니다.
+ */
+function getKstDayNumber(
+  value: Date
+) {
+  return Math.floor(
+    (value.getTime() +
+      KST_OFFSET_MS) /
+      ONE_DAY_MS
   );
+}
+
+function createCalendarDate(
+  year: number,
+  month: number,
+  day: number
+) {
+  /*
+   * 입력된 청약 날짜는 "한국 달력 날짜" 자체가 중요합니다.
+   * UTC 정오로 보관하면 서버/브라우저 시간대에 관계없이
+   * 같은 YYYY-MM-DD를 안정적으로 유지할 수 있습니다.
+   */
+  return new Date(
+    Date.UTC(
+      year,
+      month - 1,
+      day,
+      12,
+      0,
+      0,
+      0
+    )
+  );
+}
+
+function getCalendarParts(
+  date: Date
+) {
+  return {
+    year:
+      date.getUTCFullYear(),
+    month:
+      date.getUTCMonth() + 1,
+    day:
+      date.getUTCDate(),
+  };
 }
 
 /**
@@ -78,17 +128,18 @@ export function parseSubscriptionDate(
     const [, year, month, day] =
       compactMatch;
 
-    const date = new Date(
-      Number(year),
-      Number(month) - 1,
-      Number(day)
-    );
+    const date =
+      createCalendarDate(
+        Number(year),
+        Number(month),
+        Number(day)
+      );
 
     return Number.isNaN(
       date.getTime()
     )
       ? null
-      : startOfDay(date);
+      : date;
   }
 
   /*
@@ -103,17 +154,18 @@ export function parseSubscriptionDate(
     const [, year, month, day] =
       fullDateMatch;
 
-    const date = new Date(
-      Number(year),
-      Number(month) - 1,
-      Number(day)
-    );
+    const date =
+      createCalendarDate(
+        Number(year),
+        Number(month),
+        Number(day)
+      );
 
     return Number.isNaN(
       date.getTime()
     )
       ? null
-      : startOfDay(date);
+      : date;
   }
 
   /*
@@ -128,26 +180,46 @@ export function parseSubscriptionDate(
     const [, year, month] =
       monthMatch;
 
-    const date = new Date(
-      Number(year),
-      Number(month) - 1,
-      1
-    );
+    const date =
+      createCalendarDate(
+        Number(year),
+        Number(month),
+        1
+      );
 
     return Number.isNaN(
       date.getTime()
     )
       ? null
-      : startOfDay(date);
+      : date;
   }
 
-  const parsed = new Date(normalized);
+  const parsed =
+    new Date(normalized);
 
-  return Number.isNaN(
-    parsed.getTime()
-  )
-    ? null
-    : startOfDay(parsed);
+  if (
+    Number.isNaN(
+      parsed.getTime()
+    )
+  ) {
+    return null;
+  }
+
+  /*
+   * 자유형 날짜 문자열도 한 번 파싱한 뒤
+   * 해당 KST 달력 날짜를 안정적인 UTC 정오 Date로 변환합니다.
+   */
+  const shifted =
+    new Date(
+      parsed.getTime() +
+        KST_OFFSET_MS
+    );
+
+  return createCalendarDate(
+    shifted.getUTCFullYear(),
+    shifted.getUTCMonth() + 1,
+    shifted.getUTCDate()
+  );
 }
 
 /**
@@ -177,9 +249,10 @@ export function isVisibleHomeSubscription(
   const schedule =
     apartment.subscription;
 
-  const today = startOfDay(
-    referenceDate
-  ).getTime();
+  const today =
+    getKstDayNumber(
+      referenceDate
+    );
 
   const contractEndDate =
     parseSubscriptionDate(
@@ -194,16 +267,13 @@ export function isVisibleHomeSubscription(
   /*
    * 계약 종료일이 지난 청약 단지는
    * 홈의 청약 영역에서 제외합니다.
-   *
-   * 관리자가 선착순으로 전환하면
-   * listingStage가 우선되어 선착순 영역에 표시됩니다.
    */
   if (
     contractEndDate &&
     today >
-      startOfDay(
+      getKstDayNumber(
         contractEndDate
-      ).getTime()
+      )
   ) {
     return false;
   }
@@ -214,12 +284,14 @@ export function isVisibleHomeSubscription(
    */
   if (winnerDate) {
     const visibleUntil =
-      startOfDay(
+      getKstDayNumber(
         winnerDate
-      ).getTime() +
-      15 * ONE_DAY_MS;
+      ) + 15;
 
-    if (today > visibleUntil) {
+    if (
+      today >
+      visibleUntil
+    ) {
       return false;
     }
   }
@@ -325,15 +397,15 @@ export function formatSubscriptionDate(
     return "";
   }
 
-  const year = date.getFullYear();
+  const {
+    year,
+    month,
+    day,
+  } = getCalendarParts(date);
 
-  const month = String(
-    date.getMonth() + 1
-  ).padStart(2, "0");
-
-  const day = String(
-    date.getDate()
-  ).padStart(2, "0");
-
-  return `${year}.${month}.${day}`;
+  return `${year}.${String(
+    month
+  ).padStart(2, "0")}.${String(
+    day
+  ).padStart(2, "0")}`;
 }
