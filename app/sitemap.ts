@@ -11,6 +11,7 @@ import {
 } from "../lib/getBriefings";
 
 import {
+  getListingStage,
   isCompletedListing,
 } from "../lib/listingStage";
 
@@ -43,15 +44,13 @@ function absoluteUrl(
 }
 
 function validDate(
-  value: unknown,
-  fallback: Date
+  value: unknown
 ) {
   if (
-    typeof value !==
-      "string" ||
+    typeof value !== "string" ||
     !value
   ) {
-    return fallback;
+    return undefined;
   }
 
   const date =
@@ -60,8 +59,68 @@ function validDate(
   return Number.isNaN(
     date.getTime()
   )
-    ? fallback
+    ? undefined
     : date;
+}
+
+function getApartmentModifiedDate(
+  apartment: unknown
+) {
+  const record =
+    apartment as Record<
+      string,
+      unknown
+    >;
+
+  return validDate(
+    record.updatedAt ??
+      record.updated_at ??
+      record.createdAt ??
+      record.created_at
+  );
+}
+
+function getBriefingModifiedDate(
+  briefing: {
+    updatedAt?: string | null;
+    publishedAt?: string | null;
+    createdAt?: string | null;
+  }
+) {
+  return validDate(
+    briefing.updatedAt ??
+      briefing.publishedAt ??
+      briefing.createdAt
+  );
+}
+
+function getLatestDate(
+  dates: Array<
+    Date | undefined
+  >
+) {
+  const timestamps =
+    dates
+      .filter(
+        (
+          date
+        ): date is Date =>
+          Boolean(date)
+      )
+      .map(
+        (date) =>
+          date.getTime()
+      );
+
+  if (
+    timestamps.length === 0
+  ) {
+    return undefined;
+  }
+
+  return new Date(
+    Math.max(...timestamps)
+  );
 }
 
 export const revalidate =
@@ -123,14 +182,62 @@ export default async function sitemap(): Promise<
       )
     );
 
-  const now =
-    new Date();
+  const allApartmentLatest =
+    getLatestDate(
+      publicApartments.map(
+        getApartmentModifiedDate
+      )
+    );
+
+  const subscriptionLatest =
+    getLatestDate(
+      publicApartments
+        .filter(
+          (apartment) =>
+            getListingStage(
+              apartment
+            ) ===
+            "subscription"
+        )
+        .map(
+          getApartmentModifiedDate
+        )
+    );
+
+  const firstComeLatest =
+    getLatestDate(
+      publicApartments
+        .filter(
+          (apartment) =>
+            getListingStage(
+              apartment
+            ) ===
+            "firstCome"
+        )
+        .map(
+          getApartmentModifiedDate
+        )
+    );
+
+  const briefingLatest =
+    getLatestDate(
+      publicBriefings.map(
+        getBriefingModifiedDate
+      )
+    );
+
+  const homeLatest =
+    getLatestDate([
+      allApartmentLatest,
+      briefingLatest,
+    ]);
 
   const staticPages: MetadataRoute.Sitemap =
     [
       {
         url: SITE_URL,
-        lastModified: now,
+        lastModified:
+          homeLatest,
         changeFrequency:
           "daily",
         priority: 1,
@@ -139,7 +246,8 @@ export default async function sitemap(): Promise<
       {
         url:
           `${SITE_URL}/region`,
-        lastModified: now,
+        lastModified:
+          allApartmentLatest,
         changeFrequency:
           "daily",
         priority: 0.8,
@@ -148,7 +256,8 @@ export default async function sitemap(): Promise<
       {
         url:
           `${SITE_URL}/search`,
-        lastModified: now,
+        lastModified:
+          allApartmentLatest,
         changeFrequency:
           "daily",
         priority: 0.85,
@@ -157,7 +266,8 @@ export default async function sitemap(): Promise<
       {
         url:
           `${SITE_URL}/subscription`,
-        lastModified: now,
+        lastModified:
+          subscriptionLatest,
         changeFrequency:
           "daily",
         priority: 0.9,
@@ -166,7 +276,8 @@ export default async function sitemap(): Promise<
       {
         url:
           `${SITE_URL}/first-come`,
-        lastModified: now,
+        lastModified:
+          firstComeLatest,
         changeFrequency:
           "daily",
         priority: 0.9,
@@ -175,35 +286,48 @@ export default async function sitemap(): Promise<
       {
         url:
           `${SITE_URL}/briefing`,
-        lastModified: now,
+        lastModified:
+          briefingLatest,
         changeFrequency:
           "daily",
         priority: 0.8,
       },
     ];
+
   const regionPages: MetadataRoute.Sitemap =
     regions.map(
-      (region) => ({
-        url:
-          `${SITE_URL}/region/${encodeURIComponent(
-            region
-          )}`,
-        lastModified: now,
-        changeFrequency:
-          "daily",
-        priority: 0.8,
-      })
+      (region) => {
+        const regionLatest =
+          getLatestDate(
+            publicApartments
+              .filter(
+                (apartment) =>
+                  getApartmentRegionKey(
+                    apartment
+                  ) === region
+              )
+              .map(
+                getApartmentModifiedDate
+              )
+          );
+
+        return {
+          url:
+            `${SITE_URL}/region/${encodeURIComponent(
+              region
+            )}`,
+          lastModified:
+            regionLatest,
+          changeFrequency:
+            "daily",
+          priority: 0.8,
+        };
+      }
     );
 
   const apartmentPages: MetadataRoute.Sitemap =
     publicApartments.map(
       (apartment) => {
-        const record =
-          apartment as unknown as Record<
-            string,
-            unknown
-          >;
-
         const image =
           absoluteUrl(
             typeof apartment.images
@@ -221,12 +345,8 @@ export default async function sitemap(): Promise<
             )}`,
 
           lastModified:
-            validDate(
-              record.updatedAt ??
-                record.updated_at ??
-                record.createdAt ??
-                record.created_at,
-              now
+            getApartmentModifiedDate(
+              apartment
             ),
 
           changeFrequency:
@@ -265,11 +385,8 @@ export default async function sitemap(): Promise<
             )}`,
 
           lastModified:
-            validDate(
-              briefing.updatedAt ??
-                briefing.publishedAt ??
-                briefing.createdAt,
-              now
+            getBriefingModifiedDate(
+              briefing
             ),
 
           changeFrequency:
