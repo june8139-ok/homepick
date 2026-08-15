@@ -492,7 +492,7 @@ export default function RegionMapSection({
       </div>
 
       <div className="relative z-10 mx-auto mt-5 grid w-full max-w-[1220px] gap-5 xl:grid-cols-[minmax(0,760px)_430px] xl:items-stretch xl:justify-center">
-        <div className="relative isolate flex min-w-0 justify-center overflow-hidden rounded-[28px] border border-emerald-100/90 bg-white/80 shadow-[0_10px_28px_rgba(15,118,110,0.045)] [contain:layout_paint] [content-visibility:auto]">
+        <div className="relative isolate flex min-w-0 justify-center overflow-hidden rounded-[28px] border border-emerald-100/90 bg-white/80 shadow-[0_10px_28px_rgba(15,118,110,0.045)] [contain:layout_paint]">
           <div className="pointer-events-none absolute right-5 top-5 z-10 rounded-full border border-emerald-200 bg-white/95 px-3.5 py-2 shadow-sm">
             <p className="flex items-center gap-2 text-xs font-extrabold text-emerald-800">
               <span
