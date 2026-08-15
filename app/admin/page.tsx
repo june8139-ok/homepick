@@ -13,6 +13,7 @@ import { parseSubscriptionDate } from "../../lib/subscriptionVisibility";
 type ListingStage =
   | "subscription"
   | "firstCome"
+  | "soldOut"
   | "completed"
   | "existing";
 
@@ -59,6 +60,7 @@ function getListingStage(
   if (
     savedStage === "subscription" ||
     savedStage === "firstCome" ||
+    savedStage === "soldOut" ||
     savedStage === "completed" ||
     savedStage === "existing"
   ) {
@@ -83,7 +85,18 @@ function getListingStage(
   }
 
   if (
-    status.includes("종료") ||
+    status.includes("분양완료") ||
+    status.includes("공급완료") ||
+    status.includes("마감완료")
+  ) {
+    return "soldOut";
+  }
+
+  if (
+    status.includes("노출 종료") ||
+    status.includes("노출종료") ||
+    status.includes("게시 종료") ||
+    status.includes("게시종료") ||
     apartment.is_published === false
   ) {
     return "completed";
@@ -181,6 +194,7 @@ export default function AdminDashboardPage() {
       total: apartments.length,
       subscription: 0,
       firstCome: 0,
+      soldOut: 0,
       completed: 0,
     };
 
@@ -199,6 +213,12 @@ export default function AdminDashboardPage() {
           stage === "firstCome"
         ) {
           result.firstCome += 1;
+        }
+
+        if (
+          stage === "soldOut"
+        ) {
+          result.soldOut += 1;
         }
 
         if (
@@ -384,7 +404,7 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
           <StatCard
             label="전체 등록 단지"
             value={counts.total}
@@ -409,9 +429,16 @@ export default function AdminDashboardPage() {
           />
 
           <StatCard
+            label="100% 분양완료"
+            value={counts.soldOut}
+            description="상세정보와 검색 노출 유지"
+            loading={loading}
+          />
+
+          <StatCard
             label="노출 종료"
             value={counts.completed}
-            description="종료 또는 비공개 단지"
+            description="중복·오등록·게시 중단 단지"
             loading={loading}
           />
         </div>
@@ -713,6 +740,12 @@ function StageBadge({
       label: "선착순",
       className:
         "bg-emerald-50 text-emerald-700",
+    },
+
+    soldOut: {
+      label: "100% 분양완료",
+      className:
+        "bg-amber-50 text-amber-700",
     },
 
     completed: {

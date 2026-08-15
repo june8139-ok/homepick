@@ -19,10 +19,13 @@ import {
 import type { Apartment } from "../../types/apartment";
 
 import {
-  getHomeVisibleApartments,
   isFirstComeApartment,
   isSubscriptionApartment,
 } from "../../lib/subscriptionVisibility";
+
+import {
+  isPublicListing,
+} from "../../lib/listingStage";
 
 import SearchFilters, {
   type LocationStatus,
@@ -476,8 +479,9 @@ export default function SearchClient({
   const sourceApartments =
     useMemo(
       () =>
-        getHomeVisibleApartments(
-          apartments
+        apartments.filter(
+          (apartment) =>
+            isPublicListing(apartment)
         ),
       [apartments]
     );
@@ -1423,3 +1427,4 @@ export default function SearchClient({
     </main>
   );
 }
+

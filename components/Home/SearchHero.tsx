@@ -436,10 +436,10 @@ function SearchHero({
     suggestions.length > 0;
 
   return (
-    <section className="relative z-30 w-full overflow-x-hidden overflow-y-visible bg-[linear-gradient(115deg,#FFFFFF_0%,#FBFDFB_42%,#EAF6F1_100%)]">
+    <section className="relative z-[200] w-full overflow-visible bg-[linear-gradient(115deg,#FFFFFF_0%,#FBFDFB_42%,#EAF6F1_100%)]">
       <div className="mx-auto grid w-full max-w-[1920px] lg:min-h-[455px] lg:grid-cols-[0.82fr_1.18fr] xl:min-h-[500px]">
         {/* 왼쪽 검색 영역 */}
-        <div className="relative z-20 flex min-w-0 flex-col justify-center px-5 pb-8 pt-7 sm:px-12 sm:py-14 lg:pl-[max(3.5rem,calc((100vw-1680px)/2+3.5rem))] lg:pr-14 xl:pl-[max(4.5rem,calc((100vw-1680px)/2+4.5rem))] xl:pr-[72px]">
+        <div className="relative z-[220] flex min-w-0 flex-col justify-center px-5 pb-8 pt-7 sm:px-12 sm:py-14 lg:pl-[max(3.5rem,calc((100vw-1680px)/2+3.5rem))] lg:pr-14 xl:pl-[max(4.5rem,calc((100vw-1680px)/2+4.5rem))] xl:pr-[72px]">
           <div className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-200/70 bg-white/68 px-3 py-1.5 text-[10px] font-extrabold text-[#0F766E] shadow-sm sm:px-4 sm:py-2 sm:text-xs">
             <span
               aria-hidden="true"
@@ -478,7 +478,7 @@ function SearchHero({
           </p>
 
           {/* 검색창 */}
-          <div className="relative mt-4 w-full min-w-0 max-w-2xl sm:mt-7">
+          <div className="relative z-[240] mt-4 w-full min-w-0 max-w-2xl sm:mt-7">
             <div className="relative w-full min-w-0 rounded-2xl border border-emerald-100 bg-gradient-to-r from-white via-white to-emerald-50/60 p-1.5 shadow-[0_10px_30px_rgba(17,24,39,0.09)] transition-all focus-within:border-emerald-400 focus-within:ring-4 focus-within:ring-emerald-500/10 sm:p-2 sm:shadow-[0_12px_35px_rgba(17,24,39,0.09)]">
               <svg
                 aria-hidden="true"
@@ -574,7 +574,7 @@ function SearchHero({
               <div
                 id="home-search-results"
                 role="listbox"
-                className="absolute left-0 right-0 top-[62px] z-[100] max-h-[300px] overflow-y-auto rounded-xl border border-zinc-200 bg-white p-1.5 shadow-2xl sm:top-[76px] sm:max-h-[320px] sm:rounded-2xl sm:p-2"
+                className="absolute left-0 right-0 top-[62px] z-[999] max-h-[360px] overflow-y-auto rounded-xl border border-zinc-200 bg-white p-1.5 shadow-2xl sm:top-[76px] sm:max-h-[420px] sm:rounded-2xl sm:p-2"
               >
                 {suggestions.map(
                   (
@@ -707,7 +707,7 @@ function SearchHero({
         </div>
 
         {/* 오른쪽 대표 단지 */}
-        <div className="relative hidden min-h-[280px] overflow-hidden bg-gradient-to-br from-emerald-50 via-white to-stone-50 sm:block lg:min-h-full">
+        <div className="relative z-10 hidden min-h-[280px] overflow-hidden bg-gradient-to-br from-emerald-50 via-white to-stone-50 sm:block lg:min-h-full">
           {featuredImage &&
           featuredApartment ? (
             <Image

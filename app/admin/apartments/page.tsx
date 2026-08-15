@@ -17,6 +17,7 @@ import { parseSubscriptionDate } from "../../../lib/subscriptionVisibility";
 type ListingStage =
   | "subscription"
   | "firstCome"
+  | "soldOut"
   | "completed"
   | "existing";
 
@@ -94,6 +95,7 @@ type StageFilter =
   | "all"
   | "subscription"
   | "firstCome"
+  | "soldOut"
   | "completed"
   | "existing";
 
@@ -185,6 +187,7 @@ function getListingStage(
   if (
     savedStage === "subscription" ||
     savedStage === "firstCome" ||
+    savedStage === "soldOut" ||
     savedStage === "completed" ||
     savedStage === "existing"
   ) {
@@ -202,8 +205,18 @@ function getListingStage(
       .toLowerCase() ?? "";
 
   if (
-    status.includes("종료") ||
-    status.includes("분양완료")
+    status.includes("분양완료") ||
+    status.includes("공급완료") ||
+    status.includes("마감완료")
+  ) {
+    return "soldOut";
+  }
+
+  if (
+    status.includes("노출 종료") ||
+    status.includes("노출종료") ||
+    status.includes("게시 종료") ||
+    status.includes("게시종료")
   ) {
     return "completed";
   }
@@ -829,6 +842,7 @@ ${
       all: apartments.length,
       subscription: 0,
       firstCome: 0,
+      soldOut: 0,
       completed: 0,
       existing: 0,
     };
@@ -848,6 +862,12 @@ ${
           stage === "firstCome"
         ) {
           result.firstCome += 1;
+        }
+
+        if (
+          stage === "soldOut"
+        ) {
+          result.soldOut += 1;
         }
 
         if (
@@ -1083,7 +1103,7 @@ ${
           </section>
         )}
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
           <SummaryCard
             label="전체"
             value={counts.all}
@@ -1099,6 +1119,11 @@ ${
           <SummaryCard
             label="선착순"
             value={counts.firstCome}
+          />
+
+          <SummaryCard
+            label="100% 분양완료"
+            value={counts.soldOut}
           />
 
           <SummaryCard
@@ -1210,6 +1235,21 @@ ${
             >
               선착순{" "}
               {counts.firstCome}
+            </FilterButton>
+
+            <FilterButton
+              active={
+                stageFilter ===
+                "soldOut"
+              }
+              onClick={() =>
+                setStageFilter(
+                  "soldOut"
+                )
+              }
+            >
+              100% 분양완료{" "}
+              {counts.soldOut}
             </FilterButton>
 
             <FilterButton
@@ -1591,6 +1631,12 @@ function StageBadge({
       label: "선착순",
       className:
         "bg-emerald-50 text-emerald-700",
+    },
+
+    soldOut: {
+      label: "100% 분양완료",
+      className:
+        "bg-amber-50 text-amber-700",
     },
 
     completed: {
