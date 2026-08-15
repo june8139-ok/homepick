@@ -23,6 +23,10 @@ import {
   isSubscriptionApartment,
 } from "../../lib/subscriptionVisibility";
 
+import {
+  isPublicListing,
+} from "../../lib/listingStage";
+
 import SearchHero from "./SearchHero";
 import DeferredRegionMapSection from "./DeferredRegionMapSection";
 import HomeBriefingSection from "./HomeBriefingSection";
@@ -231,6 +235,25 @@ export default function HomeClient({
     [apartments]
   );
 
+  /*
+   * 홈 검색 자동완성은 홈 카드 노출 기준과 분리합니다.
+   *
+   * - 청약 일정이 지난 단지도 검색 가능
+   * - 100% 분양완료(soldOut)도 검색 가능
+   * - 노출 종료(completed)만 검색에서 제외
+   *
+   * 실제 홈 청약/선착순/최근 업데이트 영역은
+   * 기존 visibleApartments 기준을 그대로 사용합니다.
+   */
+  const searchApartments = useMemo(
+    () =>
+      apartments.filter(
+        (apartment) =>
+          isPublicListing(apartment)
+      ),
+    [apartments]
+  );
+
   const allSubscriptions = useMemo(
     () =>
       getVisibleSubscriptions(
@@ -300,7 +323,7 @@ export default function HomeClient({
   return (
     <main className="min-h-screen bg-white pb-3 text-[#111827] sm:pb-6">
       <SearchHero
-        apartments={visibleApartments}
+        apartments={searchApartments}
       />
 
       <section className="mx-auto w-full max-w-[1680px] px-3 sm:px-7 lg:px-10">
