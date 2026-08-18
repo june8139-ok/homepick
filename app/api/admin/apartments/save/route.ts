@@ -4,6 +4,10 @@ import {
 } from "next/server";
 
 import {
+  revalidateTag,
+} from "next/cache";
+
+import {
   createClient,
 } from "../../../../../lib/supabase/server";
 
@@ -831,6 +835,11 @@ export async function POST(
           ),
       });
 
+      revalidateTag(
+        "apartments",
+        "max"
+      );
+
       return NextResponse.json({
         message:
           "단지 정보가 수정되었습니다.",
@@ -949,6 +958,11 @@ export async function POST(
         isPublished: true,
       });
     }
+
+    revalidateTag(
+      "apartments",
+      "max"
+    );
 
     return NextResponse.json({
       message:

@@ -1,3 +1,5 @@
+import { unstable_cache } from "next/cache";
+
 import { supabase } from "./supabase";
 
 import type {
@@ -40,6 +42,122 @@ function mapBriefing(
   };
 }
 
+async function fetchPublishedBriefings(
+  limit?: number
+) {
+  let query = supabase
+    .from("briefings")
+    .select("*")
+    .eq(
+      "is_published",
+      true
+    )
+    .order("published_at", {
+      ascending: false,
+      nullsFirst: false,
+    })
+    .order("created_at", {
+      ascending: false,
+    });
+
+  if (
+    typeof limit ===
+      "number" &&
+    limit > 0
+  ) {
+    query = query.limit(limit);
+  }
+
+  const {
+    data,
+    error,
+  } = await query;
+
+  if (error) {
+    console.error(
+      "브리핑 목록 조회 오류:",
+      error
+    );
+
+    return [];
+  }
+
+  return (
+    (data as BriefingRow[]) ??
+    []
+  ).map(mapBriefing);
+}
+
+const getCachedPublishedBriefings =
+  unstable_cache(
+    async (limit?: number) => {
+      return fetchPublishedBriefings(
+        limit
+      );
+    },
+    ["published-briefings"],
+    {
+      revalidate: 60,
+      tags: ["briefings"],
+    }
+  );
+
+async function fetchPublishedBriefing(
+  normalizedSlug: string
+) {
+  const {
+    data,
+    error,
+  } = await supabase
+    .from("briefings")
+    .select("*")
+    .eq(
+      "slug",
+      normalizedSlug
+    )
+    .eq(
+      "is_published",
+      true
+    )
+    .maybeSingle();
+
+  if (error) {
+    console.error(
+      "브리핑 상세 조회 오류:",
+      {
+        normalizedSlug,
+        error,
+      }
+    );
+
+    return null;
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  return mapBriefing(
+    data as BriefingRow
+  );
+}
+
+const getCachedPublishedBriefing =
+  unstable_cache(
+    async (
+      normalizedSlug: string
+    ) => {
+      return fetchPublishedBriefing(
+        normalizedSlug
+      );
+    },
+    ["published-briefing"],
+    {
+      revalidate: 60,
+      tags: ["briefings"],
+    }
+  );
+
 export async function getBriefings({
   publishedOnly = true,
   limit,
@@ -47,6 +165,12 @@ export async function getBriefings({
   publishedOnly?: boolean;
   limit?: number;
 } = {}) {
+  if (publishedOnly) {
+    return getCachedPublishedBriefings(
+      limit
+    );
+  }
+
   let query = supabase
     .from("briefings")
     .select("*")
@@ -57,13 +181,6 @@ export async function getBriefings({
     .order("created_at", {
       ascending: false,
     });
-
-  if (publishedOnly) {
-    query = query.eq(
-      "is_published",
-      true
-    );
-  }
 
   if (
     typeof limit ===
@@ -110,35 +227,10 @@ export async function getBriefing(
       .normalize("NFC")
       .trim();
 
-  const {
-    data,
-    error,
-  } = await supabase
-    .from("briefings")
-    .select("*")
-    .eq(
-      "slug",
+  const data =
+    await getCachedPublishedBriefing(
       normalizedSlug
-    )
-    .eq(
-      "is_published",
-      true
-    )
-    .maybeSingle();
-
-  if (error) {
-    console.error(
-      "브리핑 상세 조회 오류:",
-      {
-        slug,
-        decodedSlug,
-        normalizedSlug,
-        error,
-      }
     );
-
-    return null;
-  }
 
   if (!data) {
     console.error(
@@ -153,7 +245,5 @@ export async function getBriefing(
     return null;
   }
 
-  return mapBriefing(
-    data as BriefingRow
-  );
+  return data;
 }
