@@ -794,11 +794,22 @@ export default function SearchClient({
   ]);
 
   /*
-   * PC 목록은 검색 결과 전체를 유지합니다.
-   * 모바일 카드 목록은 현재 지도 화면 안에 보이는 단지만 표시합니다.
+   * PC 목록도 모바일과 동일하게 현재 지도 화면 안에
+   * 보이는 단지만 렌더링합니다.
+   *
+   * 지도가 아직 준비되지 않은 순간에는 PC에서 전체 결과를
+   * 먼저 렌더링하지 않아, 단지 수가 많아져도 초기 DOM이
+   * 불필요하게 커지는 것을 막습니다.
    */
   const listResults =
-    filteredResults;
+    visibleSlugs === null
+      ? []
+      : filteredResults.filter(
+          (apartment) =>
+            visibleSlugs.includes(
+              apartment.slug
+            )
+        );
 
   const mobileListResults =
     visibleSlugs === null
@@ -1379,19 +1390,31 @@ export default function SearchClient({
                 )
               )}
 
-              {listResults.length ===
-                0 && (
+              {visibleSlugs === null ? (
                 <div className="rounded-3xl border border-zinc-200 bg-white p-10 text-center">
-                  <h3 className="text-xl font-bold">
-                    검색 조건에 맞는 단지가
-                    없습니다.
+                  <h3 className="text-lg font-bold">
+                    지도 안 단지를 불러오고 있습니다.
                   </h3>
 
                   <p className="mt-2 text-sm text-zinc-500">
-                    검색어 또는 필터를
-                    다시 확인해보세요.
+                    지도가 준비되면 현재 화면의
+                    단지만 표시됩니다.
                   </p>
                 </div>
+              ) : (
+                listResults.length === 0 && (
+                  <div className="rounded-3xl border border-zinc-200 bg-white p-10 text-center">
+                    <h3 className="text-xl font-bold">
+                      현재 지도 화면에 단지가
+                      없습니다.
+                    </h3>
+
+                    <p className="mt-2 text-sm text-zinc-500">
+                      지도를 이동하거나 확대·축소해
+                      확인해보세요.
+                    </p>
+                  </div>
+                )
               )}
             </div>
           </div>
