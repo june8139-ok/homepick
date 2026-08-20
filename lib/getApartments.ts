@@ -35,7 +35,7 @@ const getCachedPublishedApartments =
     fetchPublishedApartments,
     ["published-apartments"],
     {
-      revalidate: 60,
+      revalidate: 3600,
       tags: ["apartments"],
     }
   );
@@ -51,6 +51,9 @@ export async function getApartments(
     return getCachedPublishedApartments();
   }
 
+  /*
+   * 관리자/비공개 포함 조회는 캐시하지 않습니다.
+   */
   const { data, error } = await supabase
     .from("apartments")
     .select("*")

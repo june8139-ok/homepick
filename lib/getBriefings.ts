@@ -97,7 +97,7 @@ const getCachedPublishedBriefings =
     },
     ["published-briefings"],
     {
-      revalidate: 60,
+      revalidate: 3600,
       tags: ["briefings"],
     }
   );
@@ -153,7 +153,7 @@ const getCachedPublishedBriefing =
     },
     ["published-briefing"],
     {
-      revalidate: 60,
+      revalidate: 3600,
       tags: ["briefings"],
     }
   );
@@ -171,6 +171,9 @@ export async function getBriefings({
     );
   }
 
+  /*
+   * 관리자/비공개 포함 조회는 캐시하지 않습니다.
+   */
   let query = supabase
     .from("briefings")
     .select("*")

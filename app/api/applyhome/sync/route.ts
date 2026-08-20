@@ -1,4 +1,8 @@
 import {
+  revalidateTag,
+} from "next/cache";
+
+import {
   NextRequest,
   NextResponse,
 } from "next/server";
@@ -73,6 +77,23 @@ async function runSync(
 
     const result =
       await syncApplyHomeApartments();
+
+    /*
+     * 실제 신규 등록 또는 의미 있는 변경이 있었을 때만
+     * 공개 단지 목록 캐시를 무효화합니다.
+     *
+     * 변경이 없는 매일 동기화에서는 캐시를 그대로 유지해
+     * 불필요한 Supabase 재조회와 Egress를 줄입니다.
+     */
+    if (
+      result.inserted > 0 ||
+      result.changed > 0
+    ) {
+      revalidateTag(
+        "apartments",
+        "max"
+      );
+    }
 
     return NextResponse.json({
       success: true,
