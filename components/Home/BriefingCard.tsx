@@ -73,7 +73,14 @@ export default function BriefingCard({
         href={`/briefing/${briefing.slug}`}
         className="block h-full outline-none"
       >
-        <div className="relative h-36 overflow-hidden bg-white sm:h-44">
+        <div
+          className="
+            relative h-44
+            overflow-hidden
+            bg-zinc-100
+            sm:h-52
+          "
+        >
           {briefing.thumbnailUrl ? (
             <Image
               src={
@@ -81,17 +88,41 @@ export default function BriefingCard({
               }
               alt={`${briefing.title} 대표 이미지`}
               fill
-              sizes="(max-width: 640px) 82vw, (max-width: 1280px) 50vw, 33vw"
-              className="object-contain"
+              sizes="
+                (max-width: 640px) 82vw,
+                (max-width: 1280px) 50vw,
+                33vw
+              "
+              className="
+                object-cover
+                object-center
+              "
             />
           ) : (
-            <div className="flex h-full items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-sky-50">
+            <div
+              className="
+                flex h-full
+                items-center
+                justify-center
+                bg-gradient-to-br
+                from-emerald-50
+                via-white
+                to-sky-50
+              "
+            >
               <div className="text-center">
                 <p className="text-3xl">
                   📰
                 </p>
 
-                <p className="mt-2 text-[10px] font-bold text-zinc-400 sm:text-xs">
+                <p
+                  className="
+                    mt-2 text-[10px]
+                    font-bold
+                    text-zinc-400
+                    sm:text-xs
+                  "
+                >
                   집눈 브리핑
                 </p>
               </div>
@@ -119,11 +150,33 @@ export default function BriefingCard({
             )}
           </div>
 
-          <h3 className="mt-3 line-clamp-2 min-h-12 break-keep text-base font-black leading-6 text-[#132238] transition-colors group-hover:text-emerald-700 sm:text-lg sm:leading-7">
+          <h3
+            className="
+              mt-3 line-clamp-2
+              min-h-12
+              break-keep
+              text-base font-black
+              leading-6
+              text-[#132238]
+              transition-colors
+              group-hover:text-emerald-700
+              sm:text-lg sm:leading-7
+            "
+          >
             {briefing.title}
           </h3>
 
-          <p className="mt-2 line-clamp-2 min-h-10 break-keep text-xs leading-5 text-zinc-500 sm:text-sm sm:leading-6">
+          <p
+            className="
+              mt-2 line-clamp-2
+              min-h-10
+              break-keep
+              text-xs leading-5
+              text-zinc-500
+              sm:text-sm
+              sm:leading-6
+            "
+          >
             {briefing.summary}
           </p>
 
@@ -135,7 +188,16 @@ export default function BriefingCard({
               )}
             </time>
 
-            <span className="shrink-0 text-xs font-black text-emerald-700 transition-transform group-hover:translate-x-1 sm:text-sm">
+            <span
+              className="
+                shrink-0 text-xs
+                font-black
+                text-emerald-700
+                transition-transform
+                group-hover:translate-x-1
+                sm:text-sm
+              "
+            >
               읽어보기 →
             </span>
           </div>
