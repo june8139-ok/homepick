@@ -73,7 +73,7 @@ export default function BriefingCard({
         href={`/briefing/${briefing.slug}`}
         className="block h-full outline-none"
       >
-        <div className="relative h-36 overflow-hidden bg-zinc-100 sm:h-44">
+        <div className="relative h-36 overflow-hidden bg-white sm:h-44">
           {briefing.thumbnailUrl ? (
             <Image
               src={
@@ -82,7 +82,7 @@ export default function BriefingCard({
               alt={`${briefing.title} 대표 이미지`}
               fill
               sizes="(max-width: 640px) 82vw, (max-width: 1280px) 50vw, 33vw"
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              className="object-contain"
             />
           ) : (
             <div className="flex h-full items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-sky-50">

@@ -527,7 +527,7 @@ export default async function BriefingDetailPage({
         </header>
 
         {briefing.thumbnailUrl && (
-          <div className="relative mt-5 h-[240px] overflow-hidden rounded-2xl bg-zinc-100 shadow-sm sm:mt-6 sm:h-[420px] sm:rounded-3xl">
+          <div className="relative mt-5 h-[240px] overflow-hidden rounded-2xl bg-white shadow-sm sm:mt-6 sm:h-[420px] sm:rounded-3xl">
             <Image
               src={
                 briefing.thumbnailUrl
@@ -536,7 +536,7 @@ export default async function BriefingDetailPage({
               fill
               priority
               sizes="(max-width: 896px) 100vw, 896px"
-              className="object-cover"
+              className="object-contain"
             />
           </div>
         )}
