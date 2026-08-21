@@ -429,32 +429,38 @@ export default function BriefingEditor({
           publishedDate,
       };
 
-      const query =
-        mode === "edit" &&
-        initialBriefing
-          ? supabase
-              .from(
-                "briefings"
-              )
-              .update(payload)
-              .eq(
-                "id",
-                initialBriefing.id
-              )
-          : supabase
-              .from(
-                "briefings"
-              )
-              .insert(payload);
+      const response =
+        await fetch(
+          "/api/admin/briefings",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+            body: JSON.stringify({
+              action: "save",
+              mode,
+              id:
+                mode === "edit"
+                  ? initialBriefing?.id
+                  : undefined,
+              payload,
+            }),
+          }
+        );
 
-      const {
-        error,
-      } = await query;
+      const result =
+        (await response.json()) as {
+          success?: boolean;
+          message?: string;
+          code?: string;
+        };
 
-      if (error) {
+      if (!response.ok) {
         if (
-          error.code ===
-          "23505"
+          response.status === 409 ||
+          result.code === "23505"
         ) {
           alert(
             "같은 URL 주소가 이미 사용 중입니다."
@@ -463,7 +469,10 @@ export default function BriefingEditor({
           return;
         }
 
-        throw error;
+        throw new Error(
+          result.message ??
+            "브리핑 저장에 실패했습니다."
+        );
       }
 
       alert(

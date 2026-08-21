@@ -1,17 +1,12 @@
 "use client";
 
 import {
-  useMemo,
   useState,
 } from "react";
 
 import {
   useRouter,
 } from "next/navigation";
-
-import {
-  createClient,
-} from "../../lib/supabase/browser";
 
 export default function BriefingActions({
   id,
@@ -21,11 +16,6 @@ export default function BriefingActions({
   isPublished: boolean;
 }) {
   const router = useRouter();
-
-  const supabase = useMemo(
-    () => createClient(),
-    []
-  );
 
   const [
     working,
@@ -54,23 +44,35 @@ export default function BriefingActions({
     setWorking(true);
 
     try {
-      const {
-        error,
-      } = await supabase
-        .from("briefings")
-        .update({
-          is_published:
-            nextPublished,
+      const response =
+        await fetch(
+          "/api/admin/briefings",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+            body: JSON.stringify({
+              action:
+                "togglePublished",
+              id,
+              isPublished:
+                nextPublished,
+            }),
+          }
+        );
 
-          published_at:
-            nextPublished
-              ? new Date().toISOString()
-              : null,
-        })
-        .eq("id", id);
+      const result =
+        (await response.json()) as {
+          message?: string;
+        };
 
-      if (error) {
-        throw error;
+      if (!response.ok) {
+        throw new Error(
+          result.message ??
+            "상태 변경에 실패했습니다."
+        );
       }
 
       alert(
@@ -113,15 +115,32 @@ export default function BriefingActions({
     setWorking(true);
 
     try {
-      const {
-        error,
-      } = await supabase
-        .from("briefings")
-        .delete()
-        .eq("id", id);
+      const response =
+        await fetch(
+          "/api/admin/briefings",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+            body: JSON.stringify({
+              action: "delete",
+              id,
+            }),
+          }
+        );
 
-      if (error) {
-        throw error;
+      const result =
+        (await response.json()) as {
+          message?: string;
+        };
+
+      if (!response.ok) {
+        throw new Error(
+          result.message ??
+            "삭제에 실패했습니다."
+        );
       }
 
       alert(
