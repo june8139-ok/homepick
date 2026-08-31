@@ -84,12 +84,119 @@ function normalize(value: unknown) {
     .replace(/\s+/g, "");
 }
 
-function keywordMatch(
+function splitSearchTokens(
+  value: unknown
+) {
+  return String(value ?? "")
+    .toLowerCase()
+    .split(/[\s,/·|()\[\]{}_-]+/)
+    .map((item) =>
+      normalize(item)
+    )
+    .filter(Boolean);
+}
+
+function isLocationSearch(
+  apartments: Apartment[],
+  keyword: string
+) {
+  if (!keyword) {
+    return false;
+  }
+
+  return apartments.some(
+    (apartment) => {
+      const directLocations = [
+        apartment.city,
+        apartment.cityName,
+        apartment.district,
+        apartment.districtName,
+      ]
+        .filter(Boolean)
+        .map((value) =>
+          normalize(value)
+        );
+
+      if (
+        directLocations.some(
+          (value) =>
+            value === keyword ||
+            value.startsWith(keyword)
+        )
+      ) {
+        return true;
+      }
+
+      return splitSearchTokens(
+        apartment.region
+      ).some((token) =>
+        token.startsWith(keyword)
+      );
+    }
+  );
+}
+
+function locationKeywordMatch(
   apartment: Apartment,
   keyword: string
 ) {
   if (!keyword) {
     return true;
+  }
+
+  const directLocations = [
+    apartment.city,
+    apartment.cityName,
+    apartment.district,
+    apartment.districtName,
+  ]
+    .filter(Boolean)
+    .map((value) =>
+      normalize(value)
+    );
+
+  if (
+    directLocations.some(
+      (value) =>
+        value === keyword ||
+        value.startsWith(keyword)
+    )
+  ) {
+    return true;
+  }
+
+  const locationTokens = [
+    ...splitSearchTokens(
+      apartment.region
+    ),
+    ...splitSearchTokens(
+      apartment.name
+    ),
+    ...splitSearchTokens(
+      apartment.slug
+    ),
+  ];
+
+  return locationTokens.some(
+    (token) =>
+      token.startsWith(keyword)
+  );
+}
+
+function keywordMatch(
+  apartment: Apartment,
+  keyword: string,
+  locationMode = false
+) {
+  if (!keyword) {
+    return true;
+  }
+
+  if (locationMode) {
+    return locationKeywordMatch(
+      apartment,
+      keyword
+    );
   }
 
   return [
@@ -645,6 +752,12 @@ export default function SearchClient({
           ? recentApartments
           : sourceApartments;
 
+      const locationMode =
+        isLocationSearch(
+          searchSource,
+          normalizedQuery
+        );
+
       const result =
         searchSource.filter(
           (apartment) => {
@@ -660,7 +773,8 @@ export default function SearchClient({
             return (
               keywordMatch(
                 apartment,
-                normalizedQuery
+                normalizedQuery,
+                locationMode
               ) &&
               statusMatch(
                 apartment,
@@ -855,11 +969,18 @@ export default function SearchClient({
         return [];
       }
 
+      const locationMode =
+        isLocationSearch(
+          sourceApartments,
+          value
+        );
+
       return sourceApartments
         .filter((apartment) =>
           keywordMatch(
             apartment,
-            value
+            value,
+            locationMode
           )
         )
         .slice(0, 6);
@@ -1450,4 +1571,3 @@ export default function SearchClient({
     </main>
   );
 }
-

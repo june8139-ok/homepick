@@ -57,7 +57,7 @@ function splitConditionText(
   condition?: string
 ) {
   return normalizeText(condition)
-    .split(/[·|,\n]/)
+    .split(/[·|\n]|(?<!\d),(?!\d)/)
     .map((item) => item.trim())
     .filter(Boolean);
 }

@@ -153,6 +153,119 @@ function getSearchTargets(
   ].filter(Boolean);
 }
 
+function splitSearchTokens(
+  value: unknown
+) {
+  return String(value ?? "")
+    .toLowerCase()
+    .split(/[\s,/·|()\[\]{}_-]+/)
+    .map((item) =>
+      normalizeText(item)
+    )
+    .filter(Boolean);
+}
+
+function isLocationSearch(
+  apartments: Apartment[],
+  keyword: string
+) {
+  const normalizedKeyword =
+    normalizeText(keyword);
+
+  if (!normalizedKeyword) {
+    return false;
+  }
+
+  return apartments.some(
+    (apartment) => {
+      const directLocations = [
+        apartment.city,
+        apartment.cityName,
+        apartment.district,
+        apartment.districtName,
+      ]
+        .filter(Boolean)
+        .map((value) =>
+          normalizeText(value)
+        );
+
+      if (
+        directLocations.some(
+          (value) =>
+            value === normalizedKeyword ||
+            value.startsWith(
+              normalizedKeyword
+            )
+        )
+      ) {
+        return true;
+      }
+
+      return splitSearchTokens(
+        apartment.region
+      ).some((token) =>
+        token.startsWith(
+          normalizedKeyword
+        )
+      );
+    }
+  );
+}
+
+function locationSearchMatch(
+  apartment: Apartment,
+  keyword: string
+) {
+  const normalizedKeyword =
+    normalizeText(keyword);
+
+  if (!normalizedKeyword) {
+    return true;
+  }
+
+  const directLocations = [
+    apartment.city,
+    apartment.cityName,
+    apartment.district,
+    apartment.districtName,
+  ]
+    .filter(Boolean)
+    .map((value) =>
+      normalizeText(value)
+    );
+
+  if (
+    directLocations.some(
+      (value) =>
+        value === normalizedKeyword ||
+        value.startsWith(
+          normalizedKeyword
+        )
+    )
+  ) {
+    return true;
+  }
+
+  const locationTokens = [
+    ...splitSearchTokens(
+      apartment.region
+    ),
+    ...splitSearchTokens(
+      apartment.name
+    ),
+    ...splitSearchTokens(
+      apartment.slug
+    ),
+  ];
+
+  return locationTokens.some(
+    (token) =>
+      token.startsWith(
+        normalizedKeyword
+      )
+  );
+}
+
 function findExactApartment(
   apartments: Apartment[],
   keyword: string
@@ -278,9 +391,22 @@ function SearchHero({
         return [];
       }
 
+      const locationMode =
+        isLocationSearch(
+          apartments,
+          normalizedKeyword
+        );
+
       return apartments
-        .filter((apartment) =>
-          getSearchTargets(
+        .filter((apartment) => {
+          if (locationMode) {
+            return locationSearchMatch(
+              apartment,
+              normalizedKeyword
+            );
+          }
+
+          return getSearchTargets(
             apartment
           ).some((target) =>
             normalizeText(
@@ -288,8 +414,8 @@ function SearchHero({
             ).includes(
               normalizedKeyword
             )
-          )
-        )
+          );
+        })
         .slice(0, 6);
     }, [
       apartments,
