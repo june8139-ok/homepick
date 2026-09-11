@@ -7,6 +7,22 @@ import type {
   BriefingRow,
 } from "../types/briefing";
 
+type BriefingListRow = Pick<
+  BriefingRow,
+  | "id"
+  | "slug"
+  | "title"
+  | "summary"
+  | "category"
+  | "region"
+  | "thumbnail_url"
+  | "related_apartment_slugs"
+  | "is_published"
+  | "published_at"
+  | "created_at"
+  | "updated_at"
+>;
+
 function mapBriefing(
   row: BriefingRow
 ): Briefing {
@@ -42,12 +58,54 @@ function mapBriefing(
   };
 }
 
+function mapBriefingList(
+  row: BriefingListRow
+): Briefing {
+  return {
+    id: row.id,
+
+    slug: row.slug,
+    title: row.title,
+    summary: row.summary,
+
+    /*
+     * 목록/카드에서는 본문 content를 사용하지 않습니다.
+     * 긴 본문을 Supabase에서 전송하지 않아 Egress를 줄입니다.
+     */
+    content: "",
+
+    category: row.category,
+    region: row.region,
+
+    thumbnailUrl:
+      row.thumbnail_url,
+
+    relatedApartmentSlugs:
+      row.related_apartment_slugs ??
+      [],
+
+    isPublished:
+      row.is_published,
+
+    publishedAt:
+      row.published_at,
+
+    createdAt:
+      row.created_at,
+
+    updatedAt:
+      row.updated_at,
+  };
+}
+
 async function fetchPublishedBriefings(
   limit?: number
 ) {
   let query = supabase
     .from("briefings")
-    .select("*")
+    .select(
+      "id, slug, title, summary, category, region, thumbnail_url, related_apartment_slugs, is_published, published_at, created_at, updated_at"
+    )
     .eq(
       "is_published",
       true
@@ -82,10 +140,12 @@ async function fetchPublishedBriefings(
     return [];
   }
 
-  return (
-    (data as BriefingRow[]) ??
-    []
-  ).map(mapBriefing);
+  return (data ?? []).map(
+    (row) =>
+      mapBriefingList(
+        row as BriefingListRow
+      )
+  );
 }
 
 const getCachedPublishedBriefings =
@@ -172,7 +232,7 @@ export async function getBriefings({
   }
 
   /*
-   * 관리자/비공개 포함 조회는 캐시하지 않습니다.
+   * 관리자/비공개 포함 조회는 기존 동작을 그대로 유지합니다.
    */
   let query = supabase
     .from("briefings")
