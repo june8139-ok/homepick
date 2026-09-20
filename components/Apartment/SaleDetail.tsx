@@ -826,24 +826,10 @@ export default function SaleDetail({
               </div>
 
               <div className="px-4 py-4 sm:px-5 sm:py-5">
-                <div className="space-y-2.5">
-                  {apartment.contractDetails
-                    .split(/\n|•|·/)
-                    .map((line) => line.trim())
-                    .filter(Boolean)
-                    .map((line, index) => (
-                      <div
-                        key={`${line}-${index}`}
-                        className="flex items-start gap-2.5 rounded-xl border border-amber-100 bg-[#fffdf8] px-3 py-2.5 text-xs font-bold leading-6 text-[#2B2418] sm:px-4 sm:py-3 sm:text-sm sm:leading-7"
-                      >
-                        <span className="mt-0.5 shrink-0 text-amber-600">
-                          ✓
-                        </span>
-                        <span className="break-keep">
-                          {line}
-                        </span>
-                      </div>
-                    ))}
+                <div className="rounded-2xl border-l-4 border-amber-400 bg-[#fffdf8] px-4 py-4 sm:px-5 sm:py-5">
+                  <p className="whitespace-pre-line break-keep text-sm font-bold leading-7 text-[#2B2418] sm:text-[15px] sm:leading-8">
+                    {apartment.contractDetails}
+                  </p>
                 </div>
 
                 <p className="mt-3 text-[10px] leading-5 text-zinc-400 sm:text-xs sm:leading-6">
@@ -1020,7 +1006,7 @@ export default function SaleDetail({
             eyebrow="LOCATION & LIVING"
             title="입지·생활정보"
             description="교통, 교육, 생활환경과 개발계획을 항목별로 확인해보세요."
-            accent="blue"
+            accent="emerald"
           />
 
           <div className="mt-4 grid grid-cols-2 gap-2.5 sm:mt-6 sm:gap-4 lg:grid-cols-4">
