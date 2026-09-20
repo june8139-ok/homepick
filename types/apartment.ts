@@ -126,6 +126,7 @@ export type Apartment = {
   };
 
   keywords: string[];
+  searchAliases?: string[];
   status: string;
   listingStage?: ListingStage;
   housingSupplyType?: HousingSupplyType;
@@ -196,3 +197,5 @@ export type Apartment = {
   pros: string[];
   cons: string[];
 };
+
+

@@ -230,6 +230,36 @@ interface RegisterButtonProps {
   mode?: "create" | "edit";
 }
 
+function normalizeSearchAliases(
+  value: string,
+  apartmentName: string
+) {
+  const normalizedName =
+    apartmentName
+      .trim()
+      .replace(/\s+/g, " ")
+      .toLowerCase();
+
+  return [
+    ...new Set(
+      value
+        .split(/[,;\n]/)
+        .map((item) =>
+          item
+            .trim()
+            .replace(/\s+/g, " ")
+        )
+        .filter(Boolean)
+    ),
+  ]
+    .filter(
+      (item) =>
+        item.toLowerCase() !==
+        normalizedName
+    )
+    .slice(0, 3);
+}
+
 export default function RegisterButton({
   mode = "create",
 }: RegisterButtonProps) {
@@ -383,6 +413,13 @@ export default function RegisterButton({
 
           housingSupplyType,
 
+          searchAliases:
+            normalizeSearchAliases(
+              resolvedBasicInfo
+                .searchAliases,
+              resolvedBasicInfo.name
+            ),
+
           status:
             resolvedStatus,
 
@@ -495,6 +532,7 @@ export default function RegisterButton({
               data?: {
                 listingStage?: ListingStage;
                 housingSupplyType?: HousingSupplyType;
+                searchAliases?: string[];
                 priceInfo?: ApartmentPriceInfo;
               };
             };
@@ -536,6 +574,28 @@ export default function RegisterButton({
         ) {
           throw new Error(
             "선택한 공급 유형이 DB에 정상적으로 저장되지 않았습니다."
+          );
+        }
+
+        const requestedSearchAliases =
+          finalApartmentData
+            .searchAliases;
+
+        const savedSearchAliases =
+          result.apartment
+            ?.data
+            ?.searchAliases ?? [];
+
+        if (
+          JSON.stringify(
+            savedSearchAliases
+          ) !==
+          JSON.stringify(
+            requestedSearchAliases
+          )
+        ) {
+          throw new Error(
+            "대표 검색명이 DB에 정상적으로 저장되지 않았습니다."
           );
         }
 
@@ -640,6 +700,20 @@ export default function RegisterButton({
             "privateRental"
               ? "민간임대"
               : "일반분양"}
+          </strong>
+        </StatusRow>
+
+        <StatusRow label="대표 검색명">
+          <strong className="text-zinc-700">
+            {normalizeSearchAliases(
+              basicInfo.searchAliases,
+              basicInfo.name
+            ).length > 0
+              ? normalizeSearchAliases(
+                  basicInfo.searchAliases,
+                  basicInfo.name
+                ).join(" · ")
+              : "미입력"}
           </strong>
         </StatusRow>
 
@@ -775,3 +849,5 @@ function StatusRow({
     </div>
   );
 }
+
+

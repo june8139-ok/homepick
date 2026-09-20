@@ -436,6 +436,28 @@ export default function BasicInfoSection() {
             }
           />
 
+          <div className="sm:col-span-2">
+            <Input
+              label="대표 검색명"
+              value={
+                basicInfo.searchAliases
+              }
+              placeholder="예: 음성자이, 음성 자이, 금왕 자이"
+              onChange={(value) =>
+                setBasicInfo({
+                  ...basicInfo,
+                  searchAliases:
+                    value,
+                })
+              }
+            />
+
+            <p className="mt-2 break-keep text-xs leading-5 text-zinc-400">
+              정식 단지명과 다른 검색 표현만 쉼표(,)로 구분해 최대 3개 입력하세요.
+              예: 서대전 상떼빌, 유천동 상떼빌
+            </p>
+          </div>
+
           <Input
             label="브랜드"
             value={
@@ -937,3 +959,5 @@ function StageButton({
     </button>
   );
 }
+
+

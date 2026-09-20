@@ -126,6 +126,20 @@ function isPrivateRentalApartment(
   );
 }
 
+function getSearchAliases(
+  apartment: Apartment
+) {
+  return (apartment.searchAliases ?? [])
+    .map(cleanText)
+    .filter(Boolean)
+    .filter(
+      (alias, index, array) =>
+        array.indexOf(alias) ===
+        index
+    )
+    .slice(0, 3);
+}
+
 function getRentalKeywordFlags(
   apartment: Apartment
 ) {
@@ -245,8 +259,12 @@ function getSeoDescription(
       apartment
     );
 
+    const searchAliases =
+      getSearchAliases(apartment);
+
     const rentalTerms = [
       `${apartment.name} 민간임대`,
+      searchAliases[0] || "",
       apartment.region,
       apartment.priceDetail
         ?.contractPrice,
@@ -277,8 +295,12 @@ function getSeoDescription(
   const status =
     getStatusKeyword(apartment);
 
+  const searchAliases =
+    getSearchAliases(apartment);
+
   const summaryParts = [
     `${apartment.name} ${status}`,
+    searchAliases[0] || "",
     apartment.region,
     apartment.priceDetail?.salePrice ||
       apartment.price,
@@ -354,6 +376,13 @@ function getSeoKeywords(
       district
         ? `${district} 민간임대 아파트`
         : "",
+      ...getSearchAliases(
+        apartment
+      ).flatMap((alias) => [
+        alias,
+        `${alias} 민간임대`,
+        `${alias} 임대조건`,
+      ]),
       ...(apartment.keywords ?? []),
     ]
       .map(cleanText)
@@ -387,6 +416,13 @@ function getSeoKeywords(
     district
       ? `${district} 아파트 분양`
       : "",
+    ...getSearchAliases(
+      apartment
+    ).flatMap((alias) => [
+      alias,
+      `${alias} 분양가`,
+      `${alias} 계약조건`,
+    ]),
     ...(apartment.keywords ?? []),
   ]
     .map(cleanText)
@@ -585,6 +621,13 @@ function createJsonLd(
       `${canonicalUrl}#apartment`,
 
     name: apartment.name,
+    alternateName:
+      getSearchAliases(apartment)
+        .length > 0
+        ? getSearchAliases(
+            apartment
+          )
+        : undefined,
     description,
     url: canonicalUrl,
 
@@ -1109,6 +1152,20 @@ export default async function ApartmentDetailPage({
               )}
             </div>
           </div>
+
+          {getSearchAliases(
+            apartment
+          ).length > 0 && (
+            <p className="mt-2 break-keep text-xs leading-5 text-zinc-500 sm:text-sm">
+              <span className="font-bold text-zinc-700">
+                함께 찾는 이름
+              </span>
+              {" · "}
+              {getSearchAliases(
+                apartment
+              ).join(" · ")}
+            </p>
+          )}
 
           <ApartmentHero
             apartment={apartment}

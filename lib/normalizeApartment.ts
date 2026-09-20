@@ -171,6 +171,22 @@ function normalizeStringArray(
   );
 }
 
+function normalizeSearchAliases(
+  value: unknown
+): string[] {
+  return [
+    ...new Set(
+      normalizeStringArray(value)
+        .map((item) =>
+          item
+            .trim()
+            .replace(/\s+/g, " ")
+        )
+        .filter(Boolean)
+    ),
+  ].slice(0, 3);
+}
+
 function normalizeHeroImage(
   value: unknown
 ): string | null {
@@ -504,6 +520,11 @@ export function normalizeApartment(
         data.keywords
       ),
 
+    searchAliases:
+      normalizeSearchAliases(
+        data.searchAliases
+      ),
+
     status,
 
     listingStage:
@@ -691,3 +712,4 @@ export function normalizeApartment(
       ),
   };
 }
+

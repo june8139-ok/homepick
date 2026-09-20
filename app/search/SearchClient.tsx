@@ -215,6 +215,7 @@ function keywordMatch(
     "soldOut"
       ? "분양완료 100%분양완료"
       : "",
+    ...(apartment.searchAliases ?? []),
     ...(apartment.keywords ?? []),
     ...(apartment.pros ?? []),
     ...(apartment.cons ?? []),
@@ -1571,3 +1572,4 @@ export default function SearchClient({
     </main>
   );
 }
+
