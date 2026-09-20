@@ -117,9 +117,49 @@ function parseHouseholdCount(
     : undefined;
 }
 
+function isPrivateRentalApartment(
+  apartment: Apartment
+) {
+  return (
+    apartment.housingSupplyType ===
+    "privateRental"
+  );
+}
+
+function getRentalKeywordFlags(
+  apartment: Apartment
+) {
+  const rentalText = [
+    apartment.condition,
+    apartment.contractDetails,
+    apartment.priceDetail?.contractPrice,
+    apartment.priceDetail?.salePrice,
+    apartment.price,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  return {
+    hasJeonse:
+      rentalText.includes("전세"),
+    hasMonthlyRent:
+      rentalText.includes("월세") ||
+      rentalText.includes("월 임대료") ||
+      rentalText.includes("월임대료"),
+  };
+}
+
 function getStatusKeyword(
   apartment: Apartment
 ) {
+  if (
+    isPrivateRentalApartment(
+      apartment
+    )
+  ) {
+    return "민간임대";
+  }
+
   const listingStage =
     getListingStage(apartment);
 
@@ -153,44 +193,87 @@ function getStatusKeyword(
 function getSeoTitle(
   apartment: Apartment
 ) {
+  /*
+   * SEO 핵심 원칙:
+   * 단지명을 항상 제목 맨 앞에 둡니다.
+   * 공급유형에 따라 뒤쪽 검색 의도를 분리합니다.
+   */
+  if (
+    isPrivateRentalApartment(
+      apartment
+    )
+  ) {
+    return `${apartment.name} 민간임대·임대보증금·임대조건`;
+  }
+
   const listingStage =
     getListingStage(apartment);
-
-  const city =
-    apartment.cityName ||
-    apartment.city ||
-    "";
-
-  const locationPrefix =
-    city &&
-    !apartment.name.includes(city)
-      ? `${city} `
-      : "";
 
   if (
     listingStage === "subscription"
   ) {
-    return `${locationPrefix}${apartment.name} 청약일정·분양가`;
+    return `${apartment.name} 청약일정·분양가`;
   }
 
   if (
     listingStage === "firstCome"
   ) {
-    return `${locationPrefix}${apartment.name} 선착순 분양가·계약조건`;
+    return `${apartment.name} 분양가·선착순·계약조건`;
   }
 
   if (
     listingStage === "soldOut"
   ) {
-    return `${locationPrefix}${apartment.name} 분양완료·분양가`;
+    return `${apartment.name} 분양완료·분양가`;
   }
 
-  return `${locationPrefix}${apartment.name} 분양정보`;
+  return `${apartment.name} 분양정보`;
 }
 
 function getSeoDescription(
   apartment: Apartment
 ) {
+  if (
+    isPrivateRentalApartment(
+      apartment
+    )
+  ) {
+    const {
+      hasJeonse,
+      hasMonthlyRent,
+    } = getRentalKeywordFlags(
+      apartment
+    );
+
+    const rentalTerms = [
+      `${apartment.name} 민간임대`,
+      apartment.region,
+      apartment.priceDetail
+        ?.contractPrice,
+      apartment.condition,
+      hasJeonse
+        ? "전세조건"
+        : "",
+      hasMonthlyRent
+        ? "월 임대료"
+        : "",
+      apartment.projectInfo
+        ?.totalHouseholds,
+      apartment.projectInfo
+        ?.moveInDate
+        ? `입주 예정 ${apartment.projectInfo.moveInDate}`
+        : "",
+    ]
+      .map(cleanText)
+      .filter(Boolean);
+
+    return truncateText(
+      `${rentalTerms.join(
+        " · "
+      )}. 임대보증금, 임대조건, 임대기간과 단지 규모·입지환경을 집눈에서 확인하세요.`
+    );
+  }
+
   const status =
     getStatusKeyword(apartment);
 
@@ -238,6 +321,49 @@ function getSeoKeywords(
     apartment.districtName ||
     apartment.district ||
     "";
+
+  if (
+    isPrivateRentalApartment(
+      apartment
+    )
+  ) {
+    const {
+      hasJeonse,
+      hasMonthlyRent,
+    } = getRentalKeywordFlags(
+      apartment
+    );
+
+    return [
+      apartment.name,
+      `${apartment.name} 민간임대`,
+      `${apartment.name} 임대조건`,
+      `${apartment.name} 임대보증금`,
+      `${apartment.name} 장기민간임대`,
+      `${apartment.name} 위치`,
+      `${apartment.name} 입주`,
+      hasJeonse
+        ? `${apartment.name} 전세`
+        : "",
+      hasMonthlyRent
+        ? `${apartment.name} 월세`
+        : "",
+      city
+        ? `${city} 민간임대 아파트`
+        : "",
+      district
+        ? `${district} 민간임대 아파트`
+        : "",
+      ...(apartment.keywords ?? []),
+    ]
+      .map(cleanText)
+      .filter(Boolean)
+      .filter(
+        (keyword, index, array) =>
+          array.indexOf(keyword) ===
+          index
+      );
+  }
 
   const status =
     getStatusKeyword(apartment);
