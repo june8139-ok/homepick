@@ -151,7 +151,7 @@ function FormInput({
           h-11 w-full min-w-0
           rounded-xl border
           border-zinc-200 bg-white
-          px-3 text-xs text-zinc-900
+          px-3 text-base text-zinc-900
           outline-none transition
           placeholder:text-zinc-400
           hover:border-zinc-300
@@ -455,7 +455,7 @@ export default function ReservationCard({
                     h-11 w-full min-w-0
                     cursor-pointer rounded-xl
                     border border-zinc-200
-                    bg-white px-3 text-xs
+                    bg-white px-3 text-base
                     text-zinc-900 outline-none
                     transition hover:border-zinc-300
                     focus:border-emerald-500
@@ -495,7 +495,7 @@ export default function ReservationCard({
                     h-11 w-full min-w-0
                     rounded-xl border
                     border-zinc-200 bg-white
-                    px-3 text-xs outline-none
+                    px-3 text-base outline-none
                     transition
                     placeholder:text-zinc-400
                     hover:border-zinc-300
@@ -610,7 +610,7 @@ export default function ReservationCard({
                     aria-label="희망 방문일 선택"
                     className="
                       absolute inset-0
-                      h-full w-full
+                      h-full w-full text-base
                       cursor-pointer opacity-0
                     "
                   />
@@ -644,7 +644,7 @@ export default function ReservationCard({
                 w-full resize-none
                 rounded-xl border
                 border-zinc-200 bg-white
-                px-3 py-3 text-xs
+                px-3 py-3 text-base
                 outline-none transition
                 placeholder:text-zinc-400
                 hover:border-zinc-300
@@ -882,3 +882,4 @@ export default function ReservationCard({
     </section>
   );
 }
+

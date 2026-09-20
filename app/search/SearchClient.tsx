@@ -1297,7 +1297,7 @@ export default function SearchClient({
                 }}
                 placeholder="단지명, 지역, 계약조건 검색"
                 autoComplete="off"
-                className="h-10 min-w-0 flex-1 rounded-lg border border-zinc-200 px-3 text-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 sm:h-12 sm:rounded-xl sm:px-4 sm:text-base"
+                className="h-10 min-w-0 flex-1 rounded-lg border border-zinc-200 px-3 text-base outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 sm:h-12 sm:rounded-xl sm:px-4 sm:text-base"
               />
 
               <button
@@ -1572,4 +1572,5 @@ export default function SearchClient({
     </main>
   );
 }
+
 
