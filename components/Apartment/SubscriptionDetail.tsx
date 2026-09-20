@@ -467,7 +467,7 @@ export default function SubscriptionDetail({
       {/* 사업개요 */}
       <section
         id="overview"
-        className="scroll-mt-24 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-7"
+        className="scroll-mt-24 overflow-hidden rounded-2xl border border-zinc-200 bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-4 shadow-sm sm:rounded-3xl sm:p-7"
       >
         <p className="text-xs font-bold text-zinc-500 sm:text-sm">
           PROJECT OVERVIEW
@@ -477,7 +477,7 @@ export default function SubscriptionDetail({
           사업개요
         </h2>
 
-        <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-6 sm:gap-3 lg:grid-cols-3">
+        <div className="mt-4 grid grid-cols-2 overflow-hidden rounded-2xl border border-zinc-200 bg-white sm:mt-6 lg:grid-cols-3 [&>*]:border-b [&>*]:border-zinc-100 [&>*:not(:nth-child(2n))]:border-r lg:[&>*:not(:nth-child(2n))]:border-r-0 lg:[&>*:not(:nth-child(3n))]:border-r">
           <InfoItem
             label="사업지 주소"
             value={apartment.region}
