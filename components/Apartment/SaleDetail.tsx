@@ -797,14 +797,59 @@ export default function SaleDetail({
           )}
 
           {apartment.contractDetails?.trim() && (
-            <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50/70 p-4 sm:mt-4 sm:p-5">
-              <p className="text-xs font-extrabold text-amber-800 sm:text-sm">
-                계약조건·혜택 상세
-              </p>
+            <div className="mt-4 overflow-hidden rounded-2xl border border-amber-300 bg-white shadow-sm sm:mt-5 sm:rounded-3xl">
+              <div className="flex items-center gap-3 border-b border-amber-100 bg-[linear-gradient(90deg,#fff8e7_0%,#ffffff_100%)] px-4 py-3.5 sm:px-5 sm:py-4">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700 ring-1 ring-amber-200">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    className="h-5 w-5 stroke-current"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M12 3v18M7 7.5C7 5.6 8.7 4.5 12 4.5s5 1.1 5 3-1.7 3-5 3-5 1.1-5 3 1.7 3 5 3 5 1.1 5 3"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </span>
 
-              <p className="mt-2 whitespace-pre-line break-keep text-xs font-semibold leading-6 text-amber-950/80 sm:text-sm sm:leading-7">
-                {apartment.contractDetails}
-              </p>
+                <div>
+                  <p className="text-[10px] font-black tracking-[0.16em] text-amber-600 sm:text-xs">
+                    CONTRACT BENEFITS
+                  </p>
+
+                  <h3 className="mt-0.5 text-base font-black text-[#132238] sm:text-lg">
+                    계약조건·혜택 상세
+                  </h3>
+                </div>
+              </div>
+
+              <div className="px-4 py-4 sm:px-5 sm:py-5">
+                <div className="space-y-2.5">
+                  {apartment.contractDetails
+                    .split(/\n|•|·/)
+                    .map((line) => line.trim())
+                    .filter(Boolean)
+                    .map((line, index) => (
+                      <div
+                        key={`${line}-${index}`}
+                        className="flex items-start gap-2.5 rounded-xl bg-amber-50/60 px-3 py-2.5 text-xs font-bold leading-6 text-[#3B2A0B] sm:px-4 sm:py-3 sm:text-sm sm:leading-7"
+                      >
+                        <span className="mt-0.5 shrink-0 text-amber-600">
+                          ✓
+                        </span>
+                        <span className="break-keep">
+                          {line}
+                        </span>
+                      </div>
+                    ))}
+                </div>
+
+                <p className="mt-3 text-[10px] leading-5 text-zinc-400 sm:text-xs sm:leading-6">
+                  적용 세대와 시점에 따라 조건이 달라질 수 있으므로 계약 전 최신 조건을 다시 확인해주세요.
+                </p>
+              </div>
             </div>
           )}
         </div>
@@ -838,7 +883,7 @@ export default function SaleDetail({
           eyebrow="PROJECT OVERVIEW"
           title="사업개요"
           description="단지 규모와 공급 세대수, 주차 및 입주 정보를 한눈에 정리했습니다."
-          accent="zinc"
+          accent="emerald"
         />
 
         <div className="mt-4 grid grid-cols-2 overflow-hidden rounded-2xl border border-zinc-200 bg-white sm:mt-6 lg:grid-cols-3 [&>*]:border-b [&>*]:border-zinc-100 [&>*:not(:nth-child(2n))]:border-r lg:[&>*:not(:nth-child(2n))]:border-r-0 lg:[&>*:not(:nth-child(3n))]:border-r">
