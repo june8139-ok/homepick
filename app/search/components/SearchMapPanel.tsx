@@ -51,6 +51,15 @@ const DEFAULT_CENTER = {
 
 const SELECTED_ZOOM = 16;
 
+/*
+ * 집눈 지도 마커는 기본/hover/선택 상태에서
+ * 같은 좌표 기준점을 사용합니다.
+ * 이름 말풍선은 absolute로 위쪽에 펼쳐져
+ * 마커 높이와 anchor가 변하지 않습니다.
+ */
+const MARKER_ANCHOR_X = 90;
+const MARKER_ANCHOR_Y = 56;
+
 
 function getListingStage(
   apartment: Apartment
@@ -635,24 +644,63 @@ function clusterHtml(
 ) {
   return `
     <div style="
+      position:relative;
       display:flex;
-      height:50px;
-      min-width:50px;
+      height:54px;
+      min-width:54px;
       align-items:center;
       justify-content:center;
-      border:4px solid #ffffff;
-      border-radius:999px;
-      background:#0f766e;
-      box-shadow:0 10px 26px rgba(15,23,42,.25);
+      gap:5px;
+      padding:0 11px;
+      border:3px solid #ffffff;
+      border-radius:18px;
+      background:#132238;
+      box-shadow:
+        0 10px 24px rgba(19,34,56,.22),
+        0 0 0 2px rgba(16,185,129,.14);
       color:#ffffff;
       cursor:pointer;
-      font-size:14px;
-      font-weight:900;
-      line-height:1;
-      padding:0 12px;
       white-space:nowrap;
     ">
-      ${count}
+      <span style="
+        display:flex;
+        height:22px;
+        width:22px;
+        align-items:center;
+        justify-content:center;
+        border-radius:7px;
+        background:#10b981;
+        color:#ffffff;
+        font-size:11px;
+        font-weight:950;
+        line-height:1;
+      ">
+        집
+      </span>
+
+      <span style="
+        display:flex;
+        flex-direction:column;
+        align-items:flex-start;
+        line-height:1;
+      ">
+        <strong style="
+          font-size:14px;
+          font-weight:950;
+          letter-spacing:-.02em;
+        ">
+          ${count}
+        </strong>
+        <span style="
+          margin-top:3px;
+          color:rgba(255,255,255,.72);
+          font-size:8px;
+          font-weight:800;
+          letter-spacing:.04em;
+        ">
+          단지
+        </span>
+      </span>
     </div>
   `;
 }
@@ -669,89 +717,167 @@ function markerHtml(
 
   return `
     <div style="
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      transform:${
-        highlighted
-          ? "scale(1.14) translateY(-3px)"
-          : "scale(1)"
-      };
-      transform-origin:center bottom;
-      transition:
-        transform .18s ease,
-        filter .18s ease;
-      filter:${
-        highlighted
-          ? "drop-shadow(0 12px 18px rgba(15,23,42,.28))"
-          : "none"
-      };
+      position:relative;
+      width:${MARKER_ANCHOR_X * 2}px;
+      height:${MARKER_ANCHOR_Y}px;
       cursor:pointer;
+      user-select:none;
+      -webkit-user-select:none;
     ">
       <div style="
-        min-width:64px;
-        padding:9px 13px;
-        border-radius:999px;
-        background:${status.color};
-        border:3px solid #ffffff;
-        box-shadow:0 8px 24px rgba(15,23,42,.22);
-        color:#ffffff;
-        font-size:12px;
-        line-height:1;
-        font-weight:900;
-        text-align:center;
-        white-space:nowrap;
+        position:absolute;
+        left:50%;
+        bottom:62px;
+        max-width:220px;
+        transform:translateX(-50%) translateY(${
+          highlighted ? "0" : "4px"
+        });
+        opacity:${highlighted ? "1" : "0"};
+        visibility:${highlighted ? "visible" : "hidden"};
+        transition:
+          opacity .16s ease,
+          transform .16s ease,
+          visibility .16s ease;
+        pointer-events:none;
       ">
-        ${escapeHtml(status.label)}
+        <div style="
+          position:relative;
+          overflow:hidden;
+          max-width:220px;
+          padding:9px 12px 9px 15px;
+          border:1px solid rgba(19,34,56,.12);
+          border-radius:12px;
+          background:rgba(255,255,255,.98);
+          box-shadow:0 12px 28px rgba(19,34,56,.18);
+          color:#132238;
+          font-size:11px;
+          font-weight:900;
+          line-height:1.25;
+          text-overflow:ellipsis;
+          white-space:nowrap;
+        ">
+          <span style="
+            position:absolute;
+            left:0;
+            top:0;
+            bottom:0;
+            width:4px;
+            background:${status.color};
+          "></span>
+          ${escapeHtml(
+            apartment.name
+          )}
+        </div>
       </div>
 
-      ${
-        privateRental
-          ? `
-              <div style="
-                margin-top:4px;
-                padding:5px 9px;
-                border:1px solid rgba(19,34,56,.16);
-                border-radius:999px;
+      <div style="
+        position:absolute;
+        left:50%;
+        bottom:10px;
+        display:flex;
+        min-height:38px;
+        max-width:170px;
+        align-items:center;
+        gap:7px;
+        transform:translateX(-50%);
+        padding:6px 9px 6px 7px;
+        border:2px solid #ffffff;
+        border-radius:14px;
+        background:#132238;
+        box-shadow:${
+          highlighted
+            ? "0 12px 26px rgba(19,34,56,.32), 0 0 0 3px rgba(16,185,129,.14)"
+            : "0 8px 20px rgba(19,34,56,.22)"
+        };
+        transition:
+          box-shadow .16s ease,
+          filter .16s ease;
+        filter:${
+          highlighted
+            ? "brightness(1.03)"
+            : "none"
+        };
+        color:#ffffff;
+        white-space:nowrap;
+        pointer-events:none;
+      ">
+        <span style="
+          display:flex;
+          height:24px;
+          width:24px;
+          flex:0 0 24px;
+          align-items:center;
+          justify-content:center;
+          border-radius:8px;
+          background:${status.color};
+          color:#ffffff;
+          font-size:11px;
+          font-weight:950;
+          line-height:1;
+          box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);
+        ">
+          집
+        </span>
+
+        <span style="
+          overflow:hidden;
+          color:#ffffff;
+          font-size:11px;
+          font-weight:950;
+          letter-spacing:-.02em;
+          line-height:1;
+          text-overflow:ellipsis;
+        ">
+          ${escapeHtml(status.label)}
+        </span>
+
+        ${
+          privateRental
+            ? `
+              <span style="
+                flex:0 0 auto;
+                padding:4px 6px;
+                border-radius:7px;
                 background:rgba(255,255,255,.96);
-                box-shadow:0 6px 16px rgba(15,23,42,.12);
                 color:#132238;
-                font-size:10px;
-                font-weight:900;
+                font-size:8px;
+                font-weight:950;
                 line-height:1;
-                white-space:nowrap;
               ">
                 민간임대
-              </div>
+              </span>
             `
-          : ""
-      }
+            : ""
+        }
+      </div>
 
-      ${
-        highlighted
-          ? `
-            <div style="
-              max-width:210px;
-              margin-top:6px;
-              padding:8px 11px;
-              overflow:hidden;
-              border:1px solid #e4e4e7;
-              border-radius:11px;
-              background:#ffffff;
-              box-shadow:0 10px 24px rgba(15,23,42,.18);
-              color:#18181b;
-              font-size:11px;
-              font-weight:900;
-              text-overflow:ellipsis;
-              white-space:nowrap;
-            ">
-              ${escapeHtml(
-                apartment.name
-              )}
-            </div>
-          `
-          : ""
-      }
+      <div style="
+        position:absolute;
+        left:50%;
+        bottom:2px;
+        width:14px;
+        height:14px;
+        transform:translateX(-50%) rotate(45deg);
+        border-right:2px solid #ffffff;
+        border-bottom:2px solid #ffffff;
+        border-radius:0 0 4px 0;
+        background:#132238;
+        box-shadow:4px 4px 8px rgba(19,34,56,.08);
+        pointer-events:none;
+      "></div>
+
+      <div style="
+        position:absolute;
+        left:50%;
+        bottom:0;
+        width:6px;
+        height:6px;
+        transform:translateX(-50%);
+        border-radius:999px;
+        background:${status.color};
+        box-shadow:0 0 0 2px #ffffff;
+        pointer-events:none;
+      "></div>
     </div>
   `;
 }
@@ -1368,22 +1494,10 @@ export default function SearchMapPanel({
               ),
 
               anchor:
-                new window.naver.maps.Point(
-                  isSelected
-                    ? 48
-                    : 34,
-                  isSelected
-                    ? isPrivateRental(
-                        apartment
-                      )
-                      ? 103
-                      : 75
-                    : isPrivateRental(
-                        apartment
-                      )
-                      ? 72
-                      : 46
-                ),
+                  new window.naver.maps.Point(
+                    MARKER_ANCHOR_X,
+                    MARKER_ANCHOR_Y
+                  ),
             },
 
             zIndex:
@@ -1533,12 +1647,8 @@ export default function SearchMapPanel({
 
           anchor:
             new window.naver.maps.Point(
-              34,
-              isPrivateRental(
-                previous.apartment
-              )
-                ? 72
-                : 46
+              MARKER_ANCHOR_X,
+              MARKER_ANCHOR_Y
             ),
         });
 
@@ -1567,12 +1677,8 @@ export default function SearchMapPanel({
 
           anchor:
             new window.naver.maps.Point(
-              48,
-              isPrivateRental(
-                active.apartment
-              )
-                ? 103
-                : 75
+              MARKER_ANCHOR_X,
+              MARKER_ANCHOR_Y
             ),
         });
 
@@ -1754,12 +1860,8 @@ export default function SearchMapPanel({
 
       anchor:
         new window.naver.maps.Point(
-          48,
-          isPrivateRental(
-            entry.apartment
-          )
-            ? 103
-            : 75
+          MARKER_ANCHOR_X,
+          MARKER_ANCHOR_Y
         ),
     });
 
