@@ -222,24 +222,28 @@ function InfoItem({
   return (
     <article
       className={[
-        "min-w-0 bg-white px-4 py-4 transition-colors duration-200 hover:bg-emerald-50/35 sm:px-5 sm:py-5",
+        "min-w-0 rounded-xl border border-zinc-100 bg-zinc-50 p-3",
+        "transition-all duration-200",
+        "sm:rounded-2xl sm:p-4",
+        "sm:hover:-translate-y-0.5",
+        "sm:hover:border-emerald-200",
+        "sm:hover:bg-emerald-50/40",
+        "sm:hover:shadow-sm",
         wide
           ? "col-span-2"
           : "",
       ].join(" ")}
     >
-      <p className="text-[10px] font-bold tracking-tight text-zinc-400 sm:text-xs">
+      <p className="text-[10px] font-semibold leading-4 text-zinc-500 sm:text-xs">
         {label}
       </p>
 
-      <p className="mt-1 break-words text-xs font-black leading-5 text-[#132238] sm:text-[15px] sm:leading-6">
+      <p className="mt-1 break-words text-xs font-extrabold leading-5 text-zinc-900 sm:mt-2 sm:text-sm sm:leading-6">
         {value}
       </p>
     </article>
   );
 }
-
-
 
 function ScheduleCard({
   index,
@@ -425,7 +429,7 @@ export default function SubscriptionDetail({
       {/* 청약 일정 */}
       <section
         id="schedule"
-        className="scroll-mt-24 overflow-hidden rounded-2xl border border-zinc-200 bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-4 shadow-sm sm:rounded-3xl sm:p-7"
+        className="scroll-mt-24 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-7"
       >
         <p className="text-xs font-bold text-emerald-700 sm:text-sm">
           SUBSCRIPTION SCHEDULE
@@ -439,7 +443,7 @@ export default function SubscriptionDetail({
           모집공고부터 계약기간까지 주요 일정을 확인하세요.
         </p>
 
-        <div className="mt-4 grid grid-cols-2 overflow-hidden rounded-2xl border border-zinc-200 bg-white sm:mt-6 lg:grid-cols-3 [&>*]:border-b [&>*]:border-zinc-100 [&>*:not(:nth-child(2n))]:border-r lg:[&>*:not(:nth-child(2n))]:border-r-0 lg:[&>*:not(:nth-child(3n))]:border-r">
+        <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-6 sm:gap-3 lg:grid-cols-3">
           {items.map(
             (item, index) => (
               <ScheduleCard
@@ -467,7 +471,7 @@ export default function SubscriptionDetail({
       {/* 사업개요 */}
       <section
         id="overview"
-        className="scroll-mt-24 overflow-hidden rounded-2xl border border-zinc-200 bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-4 shadow-sm sm:rounded-3xl sm:p-7"
+        className="scroll-mt-24 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-7"
       >
         <p className="text-xs font-bold text-zinc-500 sm:text-sm">
           PROJECT OVERVIEW
@@ -477,7 +481,7 @@ export default function SubscriptionDetail({
           사업개요
         </h2>
 
-        <div className="mt-4 grid grid-cols-2 overflow-hidden rounded-2xl border border-zinc-200 bg-white sm:mt-6 lg:grid-cols-3 [&>*]:border-b [&>*]:border-zinc-100 [&>*:not(:nth-child(2n))]:border-r lg:[&>*:not(:nth-child(2n))]:border-r-0 lg:[&>*:not(:nth-child(3n))]:border-r">
+        <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-6 sm:gap-3 lg:grid-cols-3">
           <InfoItem
             label="사업지 주소"
             value={apartment.region}

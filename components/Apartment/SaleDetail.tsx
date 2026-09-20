@@ -622,13 +622,13 @@ function InformationCard({
   return (
     <article
       className={[
-        "group min-w-0 overflow-hidden rounded-2xl border border-zinc-200 bg-white",
+        "group flex min-w-0 h-full flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white",
         "transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md",
         "sm:rounded-3xl",
         style.border,
       ].join(" ")}
     >
-      <div className="p-3 sm:p-4 lg:p-5">
+      <div className="flex-1 p-3 sm:p-4 lg:p-5">
         <div className="flex items-center gap-3">
           <span className="sr-only" aria-hidden="true">
             {item.icon}
@@ -685,7 +685,7 @@ function InformationCard({
       {visual && (
         <div
           aria-hidden="true"
-          className="h-[76px] w-full border-t border-zinc-100 bg-cover bg-center sm:h-[92px] lg:h-[96px]"
+          className="mt-auto h-[76px] w-full shrink-0 border-t border-zinc-100 bg-cover bg-center sm:h-[92px] lg:h-[96px]"
           style={{
             backgroundImage:
               `url("${visual}")`,
