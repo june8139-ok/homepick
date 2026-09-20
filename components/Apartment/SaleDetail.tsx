@@ -797,9 +797,9 @@ export default function SaleDetail({
           )}
 
           {apartment.contractDetails?.trim() && (
-            <div className="mt-4 overflow-hidden rounded-2xl border border-amber-300 bg-white shadow-sm sm:mt-5 sm:rounded-3xl">
-              <div className="flex items-center gap-3 border-b border-amber-100 bg-[linear-gradient(90deg,#fff8e7_0%,#ffffff_100%)] px-4 py-3.5 sm:px-5 sm:py-4">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700 ring-1 ring-amber-200">
+            <div className="mt-4 overflow-hidden rounded-2xl border border-amber-200 bg-white shadow-sm sm:mt-5 sm:rounded-3xl">
+              <div className="flex items-center gap-3 border-b border-amber-100 bg-[linear-gradient(90deg,#fffdf7_0%,#ffffff_78%)] px-4 py-3.5 sm:px-5 sm:py-4">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-700 ring-1 ring-amber-200">
                   <svg
                     viewBox="0 0 24 24"
                     fill="none"
@@ -834,7 +834,7 @@ export default function SaleDetail({
                     .map((line, index) => (
                       <div
                         key={`${line}-${index}`}
-                        className="flex items-start gap-2.5 rounded-xl bg-amber-50/60 px-3 py-2.5 text-xs font-bold leading-6 text-[#3B2A0B] sm:px-4 sm:py-3 sm:text-sm sm:leading-7"
+                        className="flex items-start gap-2.5 rounded-xl border border-amber-100 bg-[#fffdf8] px-3 py-2.5 text-xs font-bold leading-6 text-[#2B2418] sm:px-4 sm:py-3 sm:text-sm sm:leading-7"
                       >
                         <span className="mt-0.5 shrink-0 text-amber-600">
                           ✓
