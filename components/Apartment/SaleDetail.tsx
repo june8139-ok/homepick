@@ -628,7 +628,7 @@ function InformationCard({
         style.border,
       ].join(" ")}
     >
-      <div className="p-4 sm:p-5">
+      <div className="p-3 sm:p-4 lg:p-5">
         <div className="flex items-center gap-3">
           <span className="sr-only" aria-hidden="true">
             {item.icon}
@@ -645,13 +645,10 @@ function InformationCard({
             />
           </span>
 
-          <div>
-            <p className="text-[9px] font-black tracking-[0.16em] text-emerald-600">
-              JIBNUN LIVING
-            </p>
+          <div className="min-w-0">
             <h3
               className={[
-                "mt-0.5 break-keep text-base font-black sm:text-lg",
+                "break-keep text-base font-black sm:text-lg",
                 style.title,
               ].join(" ")}
             >
@@ -688,7 +685,7 @@ function InformationCard({
       {visual && (
         <div
           aria-hidden="true"
-          className="h-28 w-full border-t border-zinc-100 bg-cover bg-center sm:h-32"
+          className="h-[76px] w-full border-t border-zinc-100 bg-cover bg-center sm:h-[92px] lg:h-[96px]"
           style={{
             backgroundImage:
               `url("${visual}")`,
@@ -981,7 +978,7 @@ export default function SaleDetail({
             accent="blue"
           />
 
-          <div className="mt-4 grid grid-cols-1 gap-3 sm:mt-6 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
+          <div className="mt-4 grid grid-cols-2 gap-2.5 sm:mt-6 sm:gap-4 lg:grid-cols-4">
             {informationCards.map(
               (item) => (
                 <InformationCard
