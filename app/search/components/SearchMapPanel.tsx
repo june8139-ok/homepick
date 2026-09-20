@@ -646,34 +646,36 @@ function clusterHtml(
     <div style="
       position:relative;
       display:flex;
-      height:54px;
-      min-width:54px;
+      height:48px;
+      min-width:58px;
       align-items:center;
       justify-content:center;
-      gap:5px;
-      padding:0 11px;
-      border:3px solid #ffffff;
-      border-radius:18px;
-      background:#132238;
+      gap:7px;
+      padding:0 12px 0 8px;
+      border:2px solid rgba(19,34,56,.12);
+      border-radius:16px;
+      background:rgba(255,255,255,.98);
       box-shadow:
-        0 10px 24px rgba(19,34,56,.22),
-        0 0 0 2px rgba(16,185,129,.14);
-      color:#ffffff;
+        0 8px 20px rgba(19,34,56,.14),
+        0 0 0 3px rgba(16,185,129,.08);
+      color:#132238;
       cursor:pointer;
       white-space:nowrap;
+      backdrop-filter:blur(6px);
     ">
       <span style="
         display:flex;
-        height:22px;
-        width:22px;
+        height:28px;
+        width:28px;
         align-items:center;
         justify-content:center;
-        border-radius:7px;
+        border-radius:9px;
         background:#10b981;
         color:#ffffff;
         font-size:11px;
         font-weight:950;
         line-height:1;
+        box-shadow:0 3px 8px rgba(16,185,129,.22);
       ">
         집
       </span>
@@ -685,18 +687,19 @@ function clusterHtml(
         line-height:1;
       ">
         <strong style="
+          color:#132238;
           font-size:14px;
           font-weight:950;
-          letter-spacing:-.02em;
+          letter-spacing:-.03em;
         ">
           ${count}
         </strong>
         <span style="
           margin-top:3px;
-          color:rgba(255,255,255,.72);
+          color:#64748b;
           font-size:8px;
-          font-weight:800;
-          letter-spacing:.04em;
+          font-weight:850;
+          letter-spacing:.02em;
         ">
           단지
         </span>
@@ -728,7 +731,7 @@ function markerHtml(
         position:absolute;
         left:50%;
         bottom:62px;
-        max-width:220px;
+        max-width:230px;
         transform:translateX(-50%) translateY(${
           highlighted ? "0" : "4px"
         });
@@ -743,15 +746,15 @@ function markerHtml(
         <div style="
           position:relative;
           overflow:hidden;
-          max-width:220px;
-          padding:9px 12px 9px 15px;
-          border:1px solid rgba(19,34,56,.12);
+          max-width:230px;
+          padding:9px 13px 9px 16px;
+          border:1px solid rgba(19,34,56,.10);
           border-radius:12px;
-          background:rgba(255,255,255,.98);
-          box-shadow:0 12px 28px rgba(19,34,56,.18);
+          background:rgba(255,255,255,.99);
+          box-shadow:0 12px 28px rgba(19,34,56,.16);
           color:#132238;
           font-size:11px;
-          font-weight:900;
+          font-weight:950;
           line-height:1.25;
           text-overflow:ellipsis;
           white-space:nowrap;
@@ -775,31 +778,32 @@ function markerHtml(
         left:50%;
         bottom:10px;
         display:flex;
-        min-height:38px;
-        max-width:170px;
+        min-height:36px;
+        max-width:166px;
         align-items:center;
-        gap:7px;
+        gap:6px;
         transform:translateX(-50%);
-        padding:6px 9px 6px 7px;
-        border:2px solid #ffffff;
-        border-radius:14px;
-        background:#132238;
+        padding:5px 8px 5px 6px;
+        border:${
+          highlighted
+            ? "2px solid rgba(16,185,129,.45)"
+            : "2px solid rgba(255,255,255,.98)"
+        };
+        border-radius:13px;
+        background:rgba(255,255,255,.98);
         box-shadow:${
           highlighted
-            ? "0 12px 26px rgba(19,34,56,.32), 0 0 0 3px rgba(16,185,129,.14)"
-            : "0 8px 20px rgba(19,34,56,.22)"
+            ? "0 12px 24px rgba(19,34,56,.20), 0 0 0 3px rgba(16,185,129,.10)"
+            : "0 7px 18px rgba(19,34,56,.14)"
         };
         transition:
+          border-color .16s ease,
           box-shadow .16s ease,
-          filter .16s ease;
-        filter:${
-          highlighted
-            ? "brightness(1.03)"
-            : "none"
-        };
-        color:#ffffff;
+          background .16s ease;
+        color:#132238;
         white-space:nowrap;
         pointer-events:none;
+        backdrop-filter:blur(6px);
       ">
         <span style="
           display:flex;
@@ -811,20 +815,20 @@ function markerHtml(
           border-radius:8px;
           background:${status.color};
           color:#ffffff;
-          font-size:11px;
+          font-size:10px;
           font-weight:950;
           line-height:1;
-          box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);
+          box-shadow:0 2px 6px rgba(15,23,42,.10);
         ">
           집
         </span>
 
         <span style="
           overflow:hidden;
-          color:#ffffff;
+          color:#132238;
           font-size:11px;
           font-weight:950;
-          letter-spacing:-.02em;
+          letter-spacing:-.025em;
           line-height:1;
           text-overflow:ellipsis;
         ">
@@ -837,8 +841,9 @@ function markerHtml(
               <span style="
                 flex:0 0 auto;
                 padding:4px 6px;
+                border:1px solid rgba(19,34,56,.10);
                 border-radius:7px;
-                background:rgba(255,255,255,.96);
+                background:#f8fafc;
                 color:#132238;
                 font-size:8px;
                 font-weight:950;
@@ -854,15 +859,15 @@ function markerHtml(
       <div style="
         position:absolute;
         left:50%;
-        bottom:2px;
-        width:14px;
-        height:14px;
+        bottom:3px;
+        width:13px;
+        height:13px;
         transform:translateX(-50%) rotate(45deg);
-        border-right:2px solid #ffffff;
-        border-bottom:2px solid #ffffff;
+        border-right:2px solid rgba(19,34,56,.08);
+        border-bottom:2px solid rgba(19,34,56,.08);
         border-radius:0 0 4px 0;
-        background:#132238;
-        box-shadow:4px 4px 8px rgba(19,34,56,.08);
+        background:#ffffff;
+        box-shadow:3px 3px 7px rgba(19,34,56,.05);
         pointer-events:none;
       "></div>
 
