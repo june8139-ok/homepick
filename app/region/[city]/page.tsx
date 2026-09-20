@@ -564,11 +564,34 @@ export async function generateMetadata({
         )}`
       : `${SITE_URL}/region`;
 
+  const hasPrivateRental =
+    regionApartments.some(
+      isPrivateRental
+    );
+
   const title =
-    `${safeCityName} 분양 아파트·청약·선착순 정보`;
+    hasPrivateRental
+      ? `${safeCityName} 아파트 분양·청약·선착순·민간임대`
+      : `${safeCityName} 아파트 분양·청약·선착순 정보`;
 
   const description =
-    `${safeCityName} 분양 아파트와 청약 일정, 선착순 분양 단지의 분양가, 계약조건, 입지 정보를 집눈에서 확인하고 비교하세요.`;
+    hasPrivateRental
+      ? `${safeCityName} 아파트 분양과 청약 일정, 선착순 분양, 민간임대 단지의 분양가·임대조건·계약조건·입지 정보를 집눈에서 확인하고 비교하세요.`
+      : `${safeCityName} 아파트 분양과 청약 일정, 선착순 분양 단지의 분양가, 계약조건, 입지 정보를 집눈에서 확인하고 비교하세요.`;
+
+  const keywords = [
+    `${safeCityName} 아파트 분양`,
+    `${safeCityName} 분양 아파트`,
+    `${safeCityName} 청약`,
+    `${safeCityName} 선착순 아파트`,
+    `${safeCityName} 선착순 분양`,
+    hasPrivateRental
+      ? `${safeCityName} 민간임대`
+      : "",
+    hasPrivateRental
+      ? `${safeCityName} 민간임대 아파트`
+      : "",
+  ].filter(Boolean);
 
   if (
     !cityKey ||
@@ -578,6 +601,7 @@ export async function generateMetadata({
     return {
       title,
       description,
+      keywords,
 
       alternates: {
         canonical,
@@ -598,6 +622,7 @@ export async function generateMetadata({
   return {
     title,
     description,
+    keywords,
 
     alternates: {
       canonical,
@@ -909,6 +934,7 @@ function CompactBenefitCard({
 }
 
 function MainApartmentSection({
+  id,
   eyebrow,
   title,
   description,
@@ -916,6 +942,7 @@ function MainApartmentSection({
   accent,
   initialLimit,
 }: {
+  id?: string;
   eyebrow: string;
   title: string;
   description: string;
@@ -939,7 +966,10 @@ function MainApartmentSection({
       : [];
 
   return (
-    <section className="mt-9 sm:mt-12">
+    <section
+      id={id}
+      className="mt-9 scroll-mt-24 sm:mt-12"
+    >
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p
@@ -1079,6 +1109,10 @@ export default async function RegionPage({
         )
     );
 
+  const privateRentalApartments =
+    regionApartments.filter(
+      isPrivateRental
+    );
 
   const freeMiddlePaymentApartments =
     regionApartments.filter(
@@ -1123,6 +1157,10 @@ export default async function RegionPage({
     firstComeApartments.length >
     0
       ? `선착순 분양 단지는 ${firstComeApartments.length}개입니다.`
+      : "",
+    privateRentalApartments.length >
+    0
+      ? `민간임대 단지는 ${privateRentalApartments.length}개입니다.`
       : "",
     freeMiddlePaymentApartments.length >
     0
@@ -1376,17 +1414,29 @@ export default async function RegionPage({
             </h1>
 
             <p className="mt-3 max-w-3xl break-keep text-sm leading-6 text-zinc-600 sm:mt-4 sm:text-base sm:leading-8">
-              {cityName} 지역에서 공개
-              중인 청약 아파트와 선착순
-              분양 단지의 분양가,
-              계약조건과 입지 정보를
+              {cityName} 지역에서 공개 중인
+              청약 아파트와 선착순 분양
+              {privateRentalApartments.length > 0
+                ? ", 민간임대"
+                : ""}{" "}
+              단지의 분양가
+              {privateRentalApartments.length > 0
+                ? "·임대조건"
+                : ""}, 계약조건과 입지 정보를
               한눈에 확인해보세요.
             </p>
 
           </div>
         </section>
 
-        <section className="mt-6 grid grid-cols-3 gap-2 sm:mt-8 sm:gap-4">
+        <section
+          className={[
+            "mt-6 grid gap-2 sm:mt-8 sm:gap-4",
+            privateRentalApartments.length > 0
+              ? "grid-cols-2 sm:grid-cols-4"
+              : "grid-cols-3",
+          ].join(" ")}
+        >
           <SummaryBox
             label="전체 공개"
             count={
@@ -1410,7 +1460,54 @@ export default async function RegionPage({
             }
             className="border-blue-100 bg-blue-50 text-blue-700"
           />
+
+          {privateRentalApartments.length >
+            0 && (
+            <SummaryBox
+              label="민간임대"
+              count={
+                privateRentalApartments.length
+              }
+              className="border-[#132238]/10 bg-slate-50 text-[#132238]"
+            />
+          )}
         </section>
+
+        <nav
+          aria-label={`${safeCityName} 분양정보 바로가기`}
+          className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-y border-zinc-200/80 py-3 text-xs font-bold text-zinc-600 sm:mt-5 sm:text-sm"
+        >
+          <Link
+            href="#first-come"
+            className="transition hover:text-emerald-700"
+          >
+            {safeCityName} 선착순 분양
+          </Link>
+
+          <Link
+            href="#subscription"
+            className="transition hover:text-blue-700"
+          >
+            {safeCityName} 청약 아파트
+          </Link>
+
+          {privateRentalApartments.length >
+            0 && (
+            <Link
+              href="#private-rental"
+              className="transition hover:text-[#132238]"
+            >
+              {safeCityName} 민간임대
+            </Link>
+          )}
+
+          <Link
+            href="/briefing"
+            className="transition hover:text-emerald-700"
+          >
+            집눈 브리핑
+          </Link>
+        </nav>
 
         {featuredConditionApartments.length >
           0 && (
@@ -1449,6 +1546,7 @@ export default async function RegionPage({
         )}
 
         <MainApartmentSection
+          id="first-come"
           eyebrow="FIRST COME"
           title={`${cityName} 선착순 분양`}
           description="현재 선착순 방식으로 확인할 수 있는 단지를 2열 카드로 모았습니다."
@@ -1458,7 +1556,23 @@ export default async function RegionPage({
           accent="emerald"
         />
 
+        {privateRentalApartments.length >
+          0 && (
+          <MainApartmentSection
+            id="private-rental"
+            eyebrow="PRIVATE RENTAL"
+            title={`${cityName} 민간임대`}
+            description={`${cityName} 지역에서 현재 공개된 민간임대 단지의 임대조건과 계약조건을 확인할 수 있습니다.`}
+            apartments={
+              privateRentalApartments
+            }
+            accent="emerald"
+            initialLimit={8}
+          />
+        )}
+
         <MainApartmentSection
+          id="subscription"
           eyebrow="SUBSCRIPTION"
           title={`${cityName} 청약 아파트`}
           description="현재 공개된 청약 단지를 한곳에서 확인할 수 있습니다."
@@ -1469,7 +1583,10 @@ export default async function RegionPage({
           initialLimit={12}
         />
 
-        <section className="mt-10 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm sm:mt-12 sm:rounded-3xl sm:p-7 lg:p-8">
+        <section
+          id="region-guide"
+          className="mt-10 scroll-mt-24 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm sm:mt-12 sm:rounded-3xl sm:p-7 lg:p-8"
+        >
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
             <div>
               <p className="text-xs font-extrabold text-emerald-600 sm:text-sm">
@@ -1530,6 +1647,20 @@ export default async function RegionPage({
                   className="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#132238] px-4 text-sm font-bold text-white transition hover:bg-emerald-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
                 >
                   {safeCityName} 지도검색 →
+                </Link>
+
+                <Link
+                  href="/first-come"
+                  className="inline-flex min-h-11 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-4 text-sm font-bold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+                >
+                  전국 선착순 단지 보기
+                </Link>
+
+                <Link
+                  href="/subscription"
+                  className="inline-flex min-h-11 items-center justify-center rounded-xl border border-blue-200 bg-blue-50 px-4 text-sm font-bold text-blue-700 transition hover:border-blue-300 hover:bg-blue-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                >
+                  전국 청약 단지 보기
                 </Link>
 
                 <Link
