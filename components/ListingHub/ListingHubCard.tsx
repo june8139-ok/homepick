@@ -11,6 +11,15 @@ import {
   isSubscriptionApartment,
 } from "../../lib/subscriptionVisibility";
 
+function isPrivateRental(
+  apartment: Apartment
+) {
+  return (
+    apartment.housingSupplyType ===
+    "privateRental"
+  );
+}
+
 function getHeroImage(
   apartment: Apartment
 ) {
@@ -41,11 +50,16 @@ function getHeroImage(
 function getPriceText(
   apartment: Apartment
 ) {
+  const privateRental =
+    isPrivateRental(apartment);
+
   return (
     apartment.priceDetail
       ?.salePrice ||
     apartment.price ||
-    "분양가 확인 중"
+    (privateRental
+      ? "임대조건 확인 중"
+      : "분양가 확인 중")
   );
 }
 
@@ -151,6 +165,9 @@ export default function ListingHubCard({
   const priceText =
     getPriceText(apartment);
 
+  const privateRental =
+    isPrivateRental(apartment);
+
   return (
     <article className="group overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md sm:rounded-3xl">
       <Link
@@ -179,14 +196,22 @@ export default function ListingHubCard({
             </div>
           )}
 
-          <span
-            className={[
-              "absolute left-3 top-3 rounded-full px-3 py-1 text-xs font-extrabold shadow-sm",
-              status.className,
-            ].join(" ")}
-          >
-            {status.label}
-          </span>
+          <div className="absolute left-3 top-3 flex flex-wrap items-center gap-1.5">
+            <span
+              className={[
+                "rounded-full px-3 py-1 text-xs font-extrabold shadow-sm",
+                status.className,
+              ].join(" ")}
+            >
+              {status.label}
+            </span>
+
+            {privateRental && (
+              <span className="rounded-full border border-[#132238]/15 bg-white/95 px-3 py-1 text-xs font-extrabold text-[#132238] shadow-sm backdrop-blur">
+                민간임대
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="p-4 sm:p-5">
@@ -208,7 +233,9 @@ export default function ListingHubCard({
 
           <div className="mt-4 rounded-2xl border border-emerald-100 bg-emerald-50/70 px-4 py-3">
             <p className="text-[10px] font-bold text-emerald-800">
-              분양가
+              {privateRental
+                ? "임대조건"
+                : "분양가"}
             </p>
 
             <p className="mt-0.5 truncate text-base font-black text-zinc-950">
