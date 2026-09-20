@@ -70,7 +70,7 @@ export default function RelatedBriefings({
             sm:text-sm
           "
         >
-          전체보기 →
+          집눈 브리핑 전체보기 →
         </Link>
       </div>
 
@@ -154,3 +154,5 @@ export default function RelatedBriefings({
     </section>
   );
 }
+
+

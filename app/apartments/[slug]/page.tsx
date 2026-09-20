@@ -204,6 +204,43 @@ function getStatusKeyword(
   );
 }
 
+function getListingHubLink(
+  apartment: Apartment
+) {
+  const stage =
+    getListingStage(apartment);
+
+  if (stage === "subscription") {
+    return {
+      href: "/subscription",
+      label: "청약 단지",
+      backLabel: "청약 단지 목록으로",
+    };
+  }
+
+  if (stage === "firstCome") {
+    return {
+      href: "/first-come",
+      label: "선착순 단지",
+      backLabel: "선착순 단지 목록으로",
+    };
+  }
+
+  if (stage === "soldOut") {
+    return {
+      href: "/search?q=분양완료",
+      label: "분양완료 단지",
+      backLabel: "분양완료 단지 목록으로",
+    };
+  }
+
+  return {
+    href: "/search",
+    label: "전체 단지",
+    backLabel: "단지 목록으로",
+  };
+}
+
 function getSeoTitle(
   apartment: Apartment
 ) {
@@ -1055,6 +1092,14 @@ export default async function ApartmentDetailPage({
     apartment.city ||
     cityName;
 
+  const listingHub =
+    getListingHubLink(apartment);
+
+  const regionHref =
+    `/region/${encodeURIComponent(
+      cityPathValue
+    )}`;
+
   const jsonLdItems =
     createJsonLd(apartment);
 
@@ -1090,9 +1135,7 @@ export default async function ApartmentDetailPage({
             </span>
 
             <Link
-              href={`/region/${encodeURIComponent(
-                cityPathValue
-              )}`}
+              href={regionHref}
               className="shrink-0 transition hover:text-emerald-700"
             >
               {cityName}
@@ -1112,10 +1155,10 @@ export default async function ApartmentDetailPage({
 
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Link
-              href="/search"
+              href={listingHub.href}
               className="inline-flex min-h-9 items-center text-xs font-semibold text-zinc-500 transition hover:text-emerald-700 sm:text-sm"
             >
-              ← 분양 단지 목록으로
+              ← {listingHub.backLabel}
             </Link>
 
             <div className="flex flex-wrap items-center justify-end gap-1.5">
@@ -1167,6 +1210,32 @@ export default async function ApartmentDetailPage({
             </p>
           )}
 
+          <nav
+            aria-label="단지 관련 정보"
+            className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 border-y border-zinc-200/80 py-3 text-xs font-bold text-zinc-600 sm:text-sm"
+          >
+            <Link
+              href={regionHref}
+              className="transition hover:text-emerald-700"
+            >
+              {cityName} 지역 분양정보
+            </Link>
+
+            <Link
+              href={listingHub.href}
+              className="transition hover:text-emerald-700"
+            >
+              {listingHub.label}
+            </Link>
+
+            <Link
+              href="/briefing"
+              className="transition hover:text-emerald-700"
+            >
+              집눈 브리핑
+            </Link>
+          </nav>
+
           <ApartmentHero
             apartment={apartment}
           />
@@ -1202,3 +1271,5 @@ export default async function ApartmentDetailPage({
     </>
   );
 }
+
+

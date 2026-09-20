@@ -16,6 +16,10 @@ import {
   isApplyHomeUnverified,
 } from "../../lib/apartmentDisplay";
 
+import {
+  getApartmentRegionKey,
+} from "../../lib/regionUtils";
+
 type Props = {
   apartment: Apartment;
   relatedApartments: Apartment[];
@@ -573,6 +577,29 @@ export default function RelatedApartments({
     return null;
   }
 
+  const regionKey =
+    getApartmentRegionKey(
+      apartment
+    );
+
+  const regionLabel =
+    regionKey ||
+    apartment.cityName ||
+    apartment.city ||
+    "같은 지역";
+
+  const regionHref =
+    regionKey
+      ? `/region/${encodeURIComponent(
+          regionKey
+        )}`
+      : `/search?q=${encodeURIComponent(
+          apartment.cityName ||
+            apartment.city ||
+            apartment.region ||
+            ""
+        )}`;
+
   const moveCarousel = (
     direction: "prev" | "next"
   ) => {
@@ -687,7 +714,10 @@ export default function RelatedApartments({
   };
 
   return (
-    <section className="mt-6 rounded-2xl border border-zinc-200 bg-white py-4 shadow-sm sm:mt-8 sm:rounded-3xl sm:p-6">
+    <section
+      id="related-apartments"
+      className="mt-6 scroll-mt-24 rounded-2xl border border-zinc-200 bg-white py-4 shadow-sm sm:mt-8 sm:rounded-3xl sm:p-6"
+    >
       <div className="flex items-end justify-between gap-3 px-4 sm:px-0">
         <div>
           <p className="text-xs font-extrabold text-emerald-600 sm:text-sm">
@@ -704,15 +734,10 @@ export default function RelatedApartments({
         </div>
 
         <Link
-          href={`/search?q=${encodeURIComponent(
-            apartment.cityName ||
-              apartment.city ||
-              apartment.region ||
-              ""
-          )}`}
+          href={regionHref}
           className="shrink-0 text-xs font-bold text-emerald-700 transition hover:translate-x-0.5 sm:text-sm"
         >
-          더 보기 →
+          {regionLabel} 단지 더 보기 →
         </Link>
       </div>
 
@@ -827,3 +852,4 @@ export default function RelatedApartments({
     </section>
   );
 }
+
