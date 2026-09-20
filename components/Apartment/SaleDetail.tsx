@@ -33,47 +33,49 @@ type InformationCardItem = {
 
 const CARD_ACCENT_CLASS = {
   emerald: {
-    icon: "bg-emerald-100 text-emerald-700",
+    icon: "bg-emerald-50 text-emerald-700",
     border: "hover:border-emerald-300",
-    title: "text-emerald-700",
+    title: "text-[#132238]",
     check: "text-emerald-600",
   },
 
   blue: {
-    icon: "bg-blue-100 text-blue-700",
-    border: "hover:border-blue-300",
-    title: "text-blue-700",
-    check: "text-blue-600",
+    icon: "bg-emerald-50 text-emerald-700",
+    border: "hover:border-emerald-300",
+    title: "text-[#132238]",
+    check: "text-emerald-600",
   },
 
   amber: {
-    icon: "bg-amber-100 text-amber-700",
-    border: "hover:border-amber-300",
-    title: "text-amber-700",
-    check: "text-amber-600",
+    icon: "bg-emerald-50 text-emerald-700",
+    border: "hover:border-emerald-300",
+    title: "text-[#132238]",
+    check: "text-emerald-600",
   },
 
   rose: {
-    icon: "bg-rose-100 text-rose-700",
+    icon: "bg-rose-50 text-rose-700",
     border: "hover:border-rose-300",
     title: "text-rose-700",
     check: "text-rose-600",
   },
 
   violet: {
-    icon: "bg-violet-100 text-violet-700",
-    border: "hover:border-violet-300",
-    title: "text-violet-700",
-    check: "text-violet-600",
+    icon: "bg-emerald-50 text-emerald-700",
+    border: "hover:border-emerald-300",
+    title: "text-[#132238]",
+    check: "text-emerald-600",
   },
 
   zinc: {
-    icon: "bg-zinc-100 text-zinc-700",
-    border: "hover:border-zinc-400",
-    title: "text-zinc-800",
-    check: "text-zinc-500",
+    icon: "bg-emerald-50 text-emerald-700",
+    border: "hover:border-emerald-300",
+    title: "text-[#132238]",
+    check: "text-emerald-600",
   },
 } as const;
+
+
 
 function joinMatchingTexts(
   items: string[],
@@ -364,6 +366,147 @@ function splitInformationLines(
     .filter(Boolean);
 }
 
+function ProjectGlyph({
+  label,
+}: {
+  label: string;
+}) {
+  const common =
+    "h-5 w-5 stroke-current sm:h-6 sm:w-6";
+
+  if (label.includes("주소")) {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" className={common} aria-hidden="true">
+        <path d="M12 21s6-5.1 6-11a6 6 0 1 0-12 0c0 5.9 6 11 6 11Z" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="12" cy="10" r="2.2" strokeWidth="1.8" />
+      </svg>
+    );
+  }
+
+  if (label.includes("세대")) {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" className={common} aria-hidden="true">
+        <path d="M4 20V8l8-4 8 4v12M8 20v-7h8v7M8 9h.01M12 9h.01M16 9h.01" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  if (label.includes("평형") || label.includes("타입")) {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" className={common} aria-hidden="true">
+        <rect x="4" y="4" width="16" height="16" rx="2" strokeWidth="1.8" />
+        <path d="M12 4v16M4 12h16" strokeWidth="1.8" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  if (label.includes("주차")) {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" className={common} aria-hidden="true">
+        <rect x="5" y="3" width="14" height="18" rx="3" strokeWidth="1.8" />
+        <path d="M9 17V7h4.2a3.2 3.2 0 0 1 0 6.4H9" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  if (label.includes("입주")) {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" className={common} aria-hidden="true">
+        <rect x="4" y="5" width="16" height="15" rx="2" strokeWidth="1.8" />
+        <path d="M8 3v4M16 3v4M4 10h16M8 14h3M13 14h3M8 17h3" strokeWidth="1.8" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  if (label.includes("시공") || label.includes("사업주체")) {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" className={common} aria-hidden="true">
+        <path d="M5 20V7h6v13M11 11h8v9M8 10h.01M8 13h.01M8 16h.01M15 14h.01M15 17h.01" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={common} aria-hidden="true">
+      <path d="m4 11 8-7 8 7v9H4v-9Z" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M9 20v-6h6v6" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function CategoryGlyph({
+  title,
+}: {
+  title: string;
+}) {
+  const common =
+    "h-5 w-5 stroke-current sm:h-6 sm:w-6";
+
+  if (title === "교통") {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" className={common} aria-hidden="true">
+        <rect x="5" y="3" width="14" height="15" rx="4" strokeWidth="1.8" />
+        <path d="M8 8h8M8 13h8M8 21l2-3M16 18l2 3" strokeWidth="1.8" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  if (title === "교육") {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" className={common} aria-hidden="true">
+        <path d="m3 9 9-5 9 5-9 5-9-5Z" strokeWidth="1.8" strokeLinejoin="round" />
+        <path d="M7 12v4.5c2.8 2 7.2 2 10 0V12M21 9v6" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  if (title === "생활환경") {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" className={common} aria-hidden="true">
+        <path d="M6 8h12l-1 12H7L6 8Z" strokeWidth="1.8" strokeLinejoin="round" />
+        <path d="M9 9V7a3 3 0 0 1 6 0v2" strokeWidth="1.8" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  if (title === "자연환경") {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" className={common} aria-hidden="true">
+        <path d="M12 21v-8M12 13c-5 0-7-3.2-7-7 4.5 0 7 2.4 7 7ZM12 13c5 0 7-3.2 7-7-4.5 0-7 2.4-7 7Z" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  if (title === "직주근접") {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" className={common} aria-hidden="true">
+        <path d="M4 20V8h7v12M11 12h9v8M7 11h.01M7 14h.01M7 17h.01M15 15h.01M15 18h.01" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={common} aria-hidden="true">
+      <path d="M4 18 9 13l3 3 7-8M15 8h4v4" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function getInformationVisual(
+  title: string
+) {
+  const visualMap: Record<string, string> = {
+    교통: "/images/jibnun/location/transport.svg",
+    교육: "/images/jibnun/location/education.svg",
+    생활환경: "/images/jibnun/location/living.svg",
+    자연환경: "/images/jibnun/location/nature.svg",
+    직주근접: "/images/jibnun/location/work.svg",
+    미래가치: "/images/jibnun/location/future.svg",
+  };
+
+  return visualMap[title] ?? "";
+}
+
 function ProjectInfoCard({
   icon,
   label,
@@ -382,29 +525,28 @@ function ProjectInfoCard({
   return (
     <article
       className={[
-        "min-w-0 rounded-xl border border-zinc-200 bg-zinc-50 p-2.5",
-        "transition-all duration-200",
-        "sm:rounded-2xl sm:p-5",
-        "sm:hover:-translate-y-0.5",
-        "sm:hover:border-emerald-300",
-        "sm:hover:bg-emerald-50/40",
-        "sm:hover:shadow-md",
+        "group min-w-0 bg-white px-4 py-4 sm:px-5 sm:py-5",
+        "transition-colors duration-200 hover:bg-emerald-50/35",
         wide
           ? "col-span-2 lg:col-span-3"
           : "",
       ].join(" ")}
     >
-      <div className="flex items-start gap-2 sm:gap-3">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-base shadow-sm sm:h-10 sm:w-10 sm:rounded-xl sm:text-xl">
-          {icon}
+      <span className="sr-only" aria-hidden="true">
+        {icon}
+      </span>
+
+      <div className="flex items-start gap-3">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100 sm:h-11 sm:w-11">
+          <ProjectGlyph label={label} />
         </span>
 
         <div className="min-w-0">
-          <p className="text-[10px] font-bold leading-4 text-zinc-500 sm:text-xs">
+          <p className="text-[10px] font-bold tracking-tight text-zinc-400 sm:text-xs">
             {label}
           </p>
 
-          <p className="mt-1 break-words text-xs font-extrabold leading-5 text-[#132238] sm:mt-2 sm:text-sm sm:leading-6">
+          <p className="mt-1 break-words text-xs font-black leading-5 text-[#132238] sm:text-[15px] sm:leading-6">
             {value}
           </p>
         </div>
@@ -428,83 +570,136 @@ function InformationCard({
       item.description
     );
 
+  if (item.wide) {
+    return (
+      <article className="col-span-full overflow-hidden rounded-2xl border border-zinc-200 bg-white sm:rounded-3xl">
+        <div className="flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:px-6 sm:py-5">
+          <div className="flex shrink-0 items-center gap-3">
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 text-rose-700 ring-1 ring-rose-100">
+              <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5 stroke-current" aria-hidden="true">
+                <path d="M12 4 3.8 19h16.4L12 4Z" strokeWidth="1.8" strokeLinejoin="round" />
+                <path d="M12 9v4M12 16h.01" strokeWidth="1.8" strokeLinecap="round" />
+              </svg>
+            </span>
+
+            <div>
+              <p className="text-[10px] font-black tracking-[0.16em] text-rose-500">
+                CHECK POINT
+              </p>
+              <h3 className="mt-0.5 text-base font-black text-[#132238]">
+                {item.title}
+              </h3>
+            </div>
+          </div>
+
+          <div className="grid flex-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {lines.map(
+              (line, index) => (
+                <div
+                  key={`${line}-${index}`}
+                  className="flex min-w-0 items-start gap-2 border-l-2 border-rose-100 pl-3 text-xs leading-5 text-zinc-600 sm:text-sm sm:leading-6"
+                >
+                  <span className="mt-0.5 shrink-0 font-black text-rose-500">
+                    ✓
+                  </span>
+                  <span className="break-keep">
+                    {line}
+                  </span>
+                </div>
+              )
+            )}
+          </div>
+        </div>
+      </article>
+    );
+  }
+
+  const visual =
+    getInformationVisual(
+      item.title
+    );
+
   return (
     <article
       className={[
-        "min-w-0 rounded-xl border border-zinc-200 bg-white p-3",
-        "transition-all duration-200",
-        "hover:-translate-y-0.5",
-        "hover:shadow-md",
-        "sm:rounded-2xl sm:p-5",
+        "group min-w-0 overflow-hidden rounded-2xl border border-zinc-200 bg-white",
+        "transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md",
+        "sm:rounded-3xl",
         style.border,
-        item.wide
-          ? "col-span-2 xl:col-span-3"
-          : "",
       ].join(" ")}
     >
-      <div className="flex items-center gap-2 sm:gap-3">
-        <span
-          className={[
-            "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-base",
-            "sm:h-11 sm:w-11 sm:rounded-xl sm:text-xl",
-            style.icon,
-          ].join(" ")}
-        >
-          {item.icon}
-        </span>
+      <div className="p-4 sm:p-5">
+        <div className="flex items-center gap-3">
+          <span className="sr-only" aria-hidden="true">
+            {item.icon}
+          </span>
 
-        <h3
-          className={[
-            "min-w-0 break-keep text-sm font-extrabold sm:text-lg",
-            style.title,
-          ].join(" ")}
-        >
-          {item.title}
-        </h3>
-      </div>
+          <span
+            className={[
+              "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ring-1 ring-emerald-100",
+              style.icon,
+            ].join(" ")}
+          >
+            <CategoryGlyph
+              title={item.title}
+            />
+          </span>
 
-      <div
-        className={[
-          "mt-3 grid gap-x-4 gap-y-1.5",
-          "sm:mt-4 sm:gap-x-6 sm:gap-y-2",
-          item.wide &&
-          lines.length >= 3
-            ? "sm:grid-cols-2 xl:grid-cols-3"
-            : "grid-cols-1",
-        ].join(" ")}
-      >
-        {lines.map(
-          (line, index) => (
-            <div
-              key={`${line}-${index}`}
-              className="
-                flex min-w-0
-                items-start gap-1.5
-                text-[10px] leading-4
-                text-zinc-600
-                sm:gap-2 sm:text-sm
-                sm:leading-6
-              "
+          <div>
+            <p className="text-[9px] font-black tracking-[0.16em] text-emerald-600">
+              JIBNUN LIVING
+            </p>
+            <h3
+              className={[
+                "mt-0.5 break-keep text-base font-black sm:text-lg",
+                style.title,
+              ].join(" ")}
             >
-              <span
-                className={[
-                  "mt-0.5 shrink-0 font-extrabold",
-                  style.check,
-                ].join(" ")}
-              >
-                ✓
-              </span>
+              {item.title}
+            </h3>
+          </div>
+        </div>
 
-              <span className="min-w-0 break-keep">
-                {line}
-              </span>
-            </div>
-          )
-        )}
+        <div className="mt-4 space-y-2">
+          {lines.map(
+            (line, index) => (
+              <div
+                key={`${line}-${index}`}
+                className="flex min-w-0 items-start gap-2 text-xs leading-5 text-zinc-600 sm:text-sm sm:leading-6"
+              >
+                <span
+                  className={[
+                    "mt-0.5 shrink-0 font-black",
+                    style.check,
+                  ].join(" ")}
+                >
+                  ✓
+                </span>
+
+                <span className="min-w-0 break-keep">
+                  {line}
+                </span>
+              </div>
+            )
+          )}
+        </div>
       </div>
+
+      {visual && (
+        <div
+          aria-hidden="true"
+          className="h-28 w-full border-t border-zinc-100 bg-cover bg-center sm:h-32"
+          style={{
+            backgroundImage:
+              `url("${visual}")`,
+          }}
+        />
+      )}
     </article>
   );
 }
+
+
 
 export default function SaleDetail({
   apartment,
@@ -640,7 +835,7 @@ export default function SaleDetail({
 
       <section
         id="overview"
-        className="scroll-mt-24 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-7"
+        className="scroll-mt-24 overflow-hidden rounded-2xl border border-zinc-200 bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-4 shadow-sm sm:rounded-3xl sm:p-7"
       >
         <SectionHeader
           eyebrow="PROJECT OVERVIEW"
@@ -649,7 +844,7 @@ export default function SaleDetail({
           accent="zinc"
         />
 
-        <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-6 sm:gap-3 lg:grid-cols-3">
+        <div className="mt-4 grid grid-cols-2 overflow-hidden rounded-2xl border border-zinc-200 bg-white sm:mt-6 lg:grid-cols-3 [&>*]:border-b [&>*]:border-zinc-100 [&>*:not(:nth-child(2n))]:border-r lg:[&>*:not(:nth-child(2n))]:border-r-0 lg:[&>*:not(:nth-child(3n))]:border-r">
           <ProjectInfoCard
             icon="📍"
             label="사업지 주소"
@@ -777,7 +972,7 @@ export default function SaleDetail({
         0 && (
         <section
           id="location"
-          className="scroll-mt-24 rounded-2xl border border-zinc-200 bg-[#F8FAF7] p-4 shadow-sm sm:rounded-3xl sm:p-7"
+          className="scroll-mt-24 rounded-2xl border border-zinc-200 bg-[linear-gradient(180deg,#f9fcfb_0%,#ffffff_100%)] p-4 shadow-sm sm:rounded-3xl sm:p-7"
         >
           <SectionHeader
             eyebrow="LOCATION & LIVING"
@@ -786,7 +981,7 @@ export default function SaleDetail({
             accent="blue"
           />
 
-          <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-6 sm:gap-4 xl:grid-cols-3">
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:mt-6 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
             {informationCards.map(
               (item) => (
                 <InformationCard
