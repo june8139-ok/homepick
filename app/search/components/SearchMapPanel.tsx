@@ -95,6 +95,15 @@ function escapeHtml(value: unknown) {
     .replace(/'/g, "&#039;");
 }
 
+function isPrivateRental(
+  apartment: Apartment
+) {
+  return (
+    apartment.housingSupplyType ===
+    "privateRental"
+  );
+}
+
 function statusInfo(apartment: Apartment) {
   const stage =
     getListingStage(
@@ -655,6 +664,9 @@ function markerHtml(
   const status =
     statusInfo(apartment);
 
+  const privateRental =
+    isPrivateRental(apartment);
+
   return `
     <div style="
       display:flex;
@@ -692,6 +704,28 @@ function markerHtml(
       ">
         ${escapeHtml(status.label)}
       </div>
+
+      ${
+        privateRental
+          ? `
+              <div style="
+                margin-top:4px;
+                padding:5px 9px;
+                border:1px solid rgba(19,34,56,.16);
+                border-radius:999px;
+                background:rgba(255,255,255,.96);
+                box-shadow:0 6px 16px rgba(15,23,42,.12);
+                color:#132238;
+                font-size:10px;
+                font-weight:900;
+                line-height:1;
+                white-space:nowrap;
+              ">
+                민간임대
+              </div>
+            `
+          : ""
+      }
 
       ${
         highlighted
@@ -1339,8 +1373,16 @@ export default function SearchMapPanel({
                     ? 48
                     : 34,
                   isSelected
-                    ? 75
-                    : 46
+                    ? isPrivateRental(
+                        apartment
+                      )
+                      ? 103
+                      : 75
+                    : isPrivateRental(
+                        apartment
+                      )
+                      ? 72
+                      : 46
                 ),
             },
 
@@ -1492,7 +1534,11 @@ export default function SearchMapPanel({
           anchor:
             new window.naver.maps.Point(
               34,
-              46
+              isPrivateRental(
+                previous.apartment
+              )
+                ? 72
+                : 46
             ),
         });
 
@@ -1522,7 +1568,11 @@ export default function SearchMapPanel({
           anchor:
             new window.naver.maps.Point(
               48,
-              75
+              isPrivateRental(
+                active.apartment
+              )
+                ? 103
+                : 75
             ),
         });
 
@@ -1705,7 +1755,11 @@ export default function SearchMapPanel({
       anchor:
         new window.naver.maps.Point(
           48,
-          75
+          isPrivateRental(
+            entry.apartment
+          )
+            ? 103
+            : 75
         ),
     });
 
@@ -1939,6 +1993,13 @@ export default function SearchMapPanel({
         )
       : "";
 
+  const floatingPrivateRental =
+    floatingApartment
+      ? isPrivateRental(
+          floatingApartment
+        )
+      : false;
+
   return (
     <section className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm lg:sticky lg:top-4 lg:rounded-3xl">
       <div className="flex items-center justify-between border-b border-zinc-200 px-5 py-4">
@@ -2005,20 +2066,28 @@ export default function SearchMapPanel({
 
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
-                    <span
-                      style={{
-                        backgroundColor:
-                          floatingStatus.light,
+                    <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+                      <span
+                        style={{
+                          backgroundColor:
+                            floatingStatus.light,
 
-                        color:
-                          floatingStatus.text,
-                      }}
-                      className="rounded-full px-2.5 py-1 text-[10px] font-extrabold"
-                    >
-                      {
-                        floatingStatus.label
-                      }
-                    </span>
+                          color:
+                            floatingStatus.text,
+                        }}
+                        className="rounded-full px-2.5 py-1 text-[10px] font-extrabold"
+                      >
+                        {
+                          floatingStatus.label
+                        }
+                      </span>
+
+                      {floatingPrivateRental && (
+                        <span className="rounded-full border border-[#132238]/15 bg-zinc-50 px-2.5 py-1 text-[10px] font-extrabold text-[#132238]">
+                          민간임대
+                        </span>
+                      )}
+                    </div>
 
                     {floatingDistance && (
                       <span className="text-[11px] font-bold text-blue-600">

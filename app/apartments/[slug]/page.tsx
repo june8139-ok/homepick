@@ -1075,30 +1075,39 @@ export default async function ApartmentDetailPage({
               ← 분양 단지 목록으로
             </Link>
 
-            <span
-              className={[
-                "rounded-full px-3 py-1.5 text-xs font-bold",
-                listingStage ===
+            <div className="flex flex-wrap items-center justify-end gap-1.5">
+              <span
+                className={[
+                  "rounded-full px-3 py-1.5 text-xs font-bold",
+                  listingStage ===
+                  "subscription"
+                    ? "bg-blue-50 text-blue-700"
+                    : listingStage ===
+                        "firstCome"
+                      ? "bg-emerald-50 text-emerald-700"
+                      : isSoldOut
+                        ? "bg-amber-50 text-amber-800"
+                        : "bg-violet-50 text-violet-700",
+                ].join(" ")}
+              >
+                {listingStage ===
                 "subscription"
-                  ? "bg-blue-50 text-blue-700"
+                  ? "청약 상세"
                   : listingStage ===
                       "firstCome"
-                    ? "bg-emerald-50 text-emerald-700"
+                    ? "선착순 분양"
                     : isSoldOut
-                      ? "bg-amber-50 text-amber-800"
-                      : "bg-violet-50 text-violet-700",
-              ].join(" ")}
-            >
-              {listingStage ===
-              "subscription"
-                ? "청약 상세"
-                : listingStage ===
-                    "firstCome"
-                  ? "선착순 분양"
-                  : isSoldOut
-                    ? "100% 분양완료"
-                    : "기존 아파트"}
-            </span>
+                      ? "100% 분양완료"
+                      : "기존 아파트"}
+              </span>
+
+              {apartment.housingSupplyType ===
+                "privateRental" && (
+                <span className="rounded-full border border-[#132238]/15 bg-white px-3 py-1.5 text-xs font-extrabold text-[#132238] shadow-sm">
+                  민간임대
+                </span>
+              )}
+            </div>
           </div>
 
           <ApartmentHero

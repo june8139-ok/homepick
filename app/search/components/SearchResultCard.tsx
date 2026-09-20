@@ -19,6 +19,15 @@ import {
   isApplyHomeUnverified,
 } from "../../../lib/apartmentDisplay";
 
+function isPrivateRental(
+  apartment: Apartment
+) {
+  return (
+    apartment.housingSupplyType ===
+    "privateRental"
+  );
+}
+
 function heroImage(apartment: Apartment) {
   const hero = apartment.images?.hero;
 
@@ -111,6 +120,8 @@ const SearchResultCard = forwardRef<HTMLElement, Props>(
     const distance = distanceText(distanceKm);
     const active = selected || hovered;
     const representativePrice = getRepresentativePrice(apartment);
+    const privateRental =
+      isPrivateRental(apartment);
     const moveInText = getMoveInText(apartment);
     const benefits =
       getKeyBenefits(
@@ -161,15 +172,23 @@ const SearchResultCard = forwardRef<HTMLElement, Props>(
             </div>
           )}
 
-          <span
-            className={[
-              "absolute left-3 top-3 rounded-full px-3 py-1",
-              "text-xs font-bold shadow-sm",
-              status.className,
-            ].join(" ")}
-          >
-            {status.label}
-          </span>
+          <div className="absolute left-3 top-3 flex flex-wrap items-center gap-1.5">
+            <span
+              className={[
+                "rounded-full px-3 py-1",
+                "text-xs font-bold shadow-sm",
+                status.className,
+              ].join(" ")}
+            >
+              {status.label}
+            </span>
+
+            {privateRental && (
+              <span className="rounded-full border border-[#132238]/15 bg-white/95 px-3 py-1 text-xs font-extrabold text-[#132238] shadow-sm">
+                민간임대
+              </span>
+            )}
+          </div>
 
           {distance && (
             <span className="absolute bottom-3 left-3 rounded-full bg-white/95 px-3 py-1 text-xs font-extrabold text-blue-700 shadow-sm">
@@ -202,7 +221,9 @@ const SearchResultCard = forwardRef<HTMLElement, Props>(
           <div className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3">
             <div className="min-w-0">
               <p className="text-[10px] font-bold text-emerald-800">
-                {representativePrice.label}
+                {privateRental
+                  ? "임대조건"
+                  : representativePrice.label}
               </p>
               <p className="mt-0.5 truncate text-base font-black text-zinc-950">
                 {representativePrice.text}

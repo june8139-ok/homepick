@@ -83,6 +83,15 @@ function getHeroImage(
 }
 
 
+function isPrivateRental(
+  apartment: Apartment
+) {
+  return (
+    apartment.housingSupplyType ===
+    "privateRental"
+  );
+}
+
 function formatPriceAmount(
   amountInTenThousands: number
 ) {
@@ -1190,6 +1199,11 @@ function MobileApartmentCarousel({
                   apartment
                 );
 
+              const privateRental =
+                isPrivateRental(
+                  apartment
+                );
+
               return (
                 <Link
                   data-home-card
@@ -1256,21 +1270,29 @@ function MobileApartmentCarousel({
                       </div>
                     )}
 
-                    <span
-                      className={[
-                        "absolute left-2 top-2 rounded-full px-2 py-1 text-[10px] font-bold shadow-sm",
-                        type ===
+                    <div className="absolute left-2 top-2 flex flex-wrap items-center gap-1">
+                      <span
+                        className={[
+                          "rounded-full px-2 py-1 text-[10px] font-bold shadow-sm",
+                          type ===
+                          "subscription"
+                            ? "bg-blue-600 text-white"
+                            : "bg-emerald-600 text-white",
+                        ].join(" ")}
+                      >
+                        {type ===
                         "subscription"
-                          ? "bg-blue-600 text-white"
-                          : "bg-emerald-600 text-white",
-                      ].join(" ")}
-                    >
-                      {type ===
-                      "subscription"
-                        ? apartment.status ||
-                          "청약"
-                        : "선착순"}
-                    </span>
+                          ? apartment.status ||
+                            "청약"
+                          : "선착순"}
+                      </span>
+
+                      {privateRental && (
+                        <span className="rounded-full border border-[#132238]/15 bg-white/95 px-2 py-1 text-[10px] font-extrabold text-[#132238] shadow-sm">
+                          민간임대
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <div className="p-3">
@@ -1317,6 +1339,9 @@ function CompactApartmentCard({
   const image =
     getHeroImage(apartment);
 
+  const privateRental =
+    isPrivateRental(apartment);
+
   return (
     <Link
       href={`/apartments/${apartment.slug}`}
@@ -1354,21 +1379,29 @@ function CompactApartmentCard({
           </div>
         )}
 
-        <span
-          className={[
-            "absolute left-2 top-2 rounded-full px-2 py-1 text-[10px] font-bold shadow-sm",
-            type ===
+        <div className="absolute left-2 top-2 flex flex-wrap items-center gap-1">
+          <span
+            className={[
+              "rounded-full px-2 py-1 text-[10px] font-bold shadow-sm",
+              type ===
+              "subscription"
+                ? "bg-blue-600 text-white"
+                : "bg-emerald-600 text-white",
+            ].join(" ")}
+          >
+            {type ===
             "subscription"
-              ? "bg-blue-600 text-white"
-              : "bg-emerald-600 text-white",
-          ].join(" ")}
-        >
-          {type ===
-          "subscription"
-            ? apartment.status ||
-              "청약"
-            : "선착순"}
-        </span>
+              ? apartment.status ||
+                "청약"
+              : "선착순"}
+          </span>
+
+          {privateRental && (
+            <span className="rounded-full border border-[#132238]/15 bg-white/95 px-2 py-1 text-[10px] font-extrabold text-[#132238] shadow-sm">
+              민간임대
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="p-3">
@@ -1401,6 +1434,9 @@ function RecentApartmentRow({
 }) {
   const image =
     getHeroImage(apartment);
+
+  const privateRental =
+    isPrivateRental(apartment);
 
   return (
     <Link
@@ -1442,9 +1478,17 @@ function RecentApartmentRow({
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-extrabold text-[#111827] transition-colors group-hover:text-emerald-700">
-          {apartment.name}
-        </p>
+        <div className="flex min-w-0 items-center gap-1.5">
+          <p className="min-w-0 truncate text-sm font-extrabold text-[#111827] transition-colors group-hover:text-emerald-700">
+            {apartment.name}
+          </p>
+
+          {privateRental && (
+            <span className="shrink-0 rounded-full border border-[#132238]/15 bg-zinc-50 px-2 py-0.5 text-[9px] font-extrabold text-[#132238]">
+              민간임대
+            </span>
+          )}
+        </div>
 
         <p className="mt-0.5 truncate text-[11px] text-zinc-500 sm:mt-1 sm:text-xs">
           {apartment.cityName ||
@@ -1488,3 +1532,4 @@ function EmptyMessage({
     </div>
   );
 }
+

@@ -41,6 +41,7 @@ type ApartmentLike = {
   condition?: string;
 
   listingStage?: ListingStage;
+  housingSupplyType?: "sale" | "privateRental";
 
   source?:
     | "manual"
@@ -495,6 +496,10 @@ export default function ApartmentHero({
     apartment.listingStage ===
     "soldOut";
 
+  const privateRental =
+    apartment.housingSupplyType ===
+    "privateRental";
+
   const heroImage =
     getValidImageUrl(
       apartment.images?.hero
@@ -736,6 +741,12 @@ export default function ApartmentHero({
                   apartment
                 )}
           </span>
+
+          {privateRental && (
+            <span className="inline-flex rounded-full border border-[#132238]/15 bg-zinc-50 px-2.5 py-1 text-[11px] font-extrabold text-[#132238] sm:px-3 sm:text-sm">
+              민간임대
+            </span>
+          )}
 
           <p className="min-w-0 truncate text-xs leading-5 text-zinc-500 sm:hidden">
             {apartment.region ||

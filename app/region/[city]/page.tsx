@@ -230,6 +230,15 @@ function decodeRouteValue(
   }
 }
 
+function isPrivateRental(
+  apartment: Apartment
+) {
+  return (
+    apartment.housingSupplyType ===
+    "privateRental"
+  );
+}
+
 function getHeroImage(
   apartment: Apartment
 ) {
@@ -302,7 +311,9 @@ function getPriceText(
     apartment.priceDetail
       ?.salePrice ||
     apartment.price ||
-    "분양가 확인 중"
+    (isPrivateRental(apartment)
+      ? "임대조건 확인 중"
+      : "분양가 확인 중")
   );
 }
 
@@ -696,6 +707,9 @@ function ApartmentCard({
   const condition =
     getConditionText(apartment);
 
+  const privateRental =
+    isPrivateRental(apartment);
+
   return (
     <article className="group min-w-0 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition hover:border-emerald-300 hover:shadow-md sm:rounded-3xl">
       <Link
@@ -718,15 +732,23 @@ function ApartmentCard({
           </div>
         )}
 
-        <span
-          className={[
-            "absolute left-3 top-3 rounded-full px-3 py-1.5",
-            "text-xs font-black shadow-sm",
-            status.className,
-          ].join(" ")}
-        >
-          {status.label}
-        </span>
+        <div className="absolute left-3 top-3 flex flex-wrap items-center gap-1.5">
+          <span
+            className={[
+              "rounded-full px-3 py-1.5",
+              "text-xs font-black shadow-sm",
+              status.className,
+            ].join(" ")}
+          >
+            {status.label}
+          </span>
+
+          {privateRental && (
+            <span className="rounded-full border border-[#132238]/15 bg-white/95 px-3 py-1.5 text-xs font-black text-[#132238] shadow-sm backdrop-blur">
+              민간임대
+            </span>
+          )}
+        </div>
       </Link>
 
       <div className="p-3 sm:p-4">
@@ -761,7 +783,9 @@ function ApartmentCard({
         <div className="mt-3 space-y-1.5">
           <div className="min-w-0 rounded-lg bg-zinc-50 px-2.5 py-2">
             <p className="text-[9px] font-bold text-zinc-500 sm:text-[10px]">
-              분양가
+              {privateRental
+                ? "임대조건"
+                : "분양가"}
             </p>
 
             <p className="mt-0.5 line-clamp-1 break-keep text-[11px] font-black leading-4 text-[#132238] sm:text-xs">
@@ -1522,3 +1546,4 @@ export default async function RegionPage({
     </main>
   );
 }
+
