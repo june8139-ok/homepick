@@ -144,6 +144,7 @@ function getSearchTargets(
     apartment.status,
     apartment.condition,
     apartment.price,
+    ...(apartment.searchAliases ?? []),
     ...(apartment.keywords ?? []),
 
     ...(apartment.images
@@ -281,6 +282,11 @@ function findExactApartment(
       normalizeText(
         apartment.slug
       ) === normalizedKeyword ||
+      apartment.searchAliases?.some(
+        (item) =>
+          normalizeText(item) ===
+          normalizedKeyword
+      ) ||
       apartment.keywords?.some(
         (item) =>
           normalizeText(item) ===
@@ -450,11 +456,17 @@ function SearchHero({
     setActiveIndex(-1);
     closeSearchKeyboard();
 
-    router.push(
+    const href =
       `/search?q=${encodeURIComponent(
         trimmed
-      )}`
-    );
+      )}`;
+
+    /*
+     * 홈에서 검색결과 페이지로 이동할 때
+     * 이전 /search 쿼리와 클라이언트 상태가 남지 않도록
+     * 새 URL을 브라우저 주소에 확실히 반영합니다.
+     */
+    window.location.assign(href);
   };
 
   const handleSubmit = () => {
