@@ -26,6 +26,7 @@ import {
 
 import type {
   ApartmentPriceInfo,
+  HousingSupplyType,
   ListingStage,
 } from "../../types/apartment";
 
@@ -251,6 +252,7 @@ export default function RegisterButton({
     images,
 
     listingStage,
+    housingSupplyType,
     editingSlug,
 
     setIsDirty,
@@ -379,6 +381,8 @@ export default function RegisterButton({
 
           listingStage,
 
+          housingSupplyType,
+
           status:
             resolvedStatus,
 
@@ -490,6 +494,7 @@ export default function RegisterButton({
 
               data?: {
                 listingStage?: ListingStage;
+                housingSupplyType?: HousingSupplyType;
                 priceInfo?: ApartmentPriceInfo;
               };
             };
@@ -517,6 +522,20 @@ export default function RegisterButton({
         ) {
           throw new Error(
             "선택한 노출 단계가 DB에 정상적으로 저장되지 않았습니다."
+          );
+        }
+
+        const savedHousingSupplyType =
+          result.apartment
+            ?.data
+            ?.housingSupplyType;
+
+        if (
+          savedHousingSupplyType !==
+          housingSupplyType
+        ) {
+          throw new Error(
+            "선택한 공급 유형이 DB에 정상적으로 저장되지 않았습니다."
           );
         }
 
@@ -608,6 +627,22 @@ export default function RegisterButton({
       </p>
 
       <div className="mt-5 divide-y divide-zinc-200 rounded-2xl bg-[#F8FAF7] px-4">
+        <StatusRow label="공급 유형">
+          <strong
+            className={
+              housingSupplyType ===
+              "privateRental"
+                ? "text-amber-700"
+                : "text-emerald-600"
+            }
+          >
+            {housingSupplyType ===
+            "privateRental"
+              ? "민간임대"
+              : "일반분양"}
+          </strong>
+        </StatusRow>
+
         <StatusRow
           label="단지 노출 상태"
         >

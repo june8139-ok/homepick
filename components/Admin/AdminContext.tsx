@@ -14,6 +14,7 @@ import type {
 import type {
   ApartmentConditionHistoryItem,
   ApartmentPriceInfo,
+  HousingSupplyType,
   ListingStage,
   UnitPrice,
 } from "../../types/apartment";
@@ -104,6 +105,7 @@ type InitialApartment = {
   jibnunSummary?: string;
   conditionHistory?: ApartmentConditionHistoryItem[];
   listingStage?: ListingStage;
+  housingSupplyType?: HousingSupplyType;
 
   source?:
     | "manual"
@@ -171,6 +173,11 @@ type AdminContextType = {
     listingStage: ListingStage
   ) => void;
 
+  housingSupplyType: HousingSupplyType;
+  setHousingSupplyType: (
+    housingSupplyType: HousingSupplyType
+  ) => void;
+
   basicInfo: BasicInfo;
   setBasicInfo: (
     basicInfo: BasicInfo
@@ -234,6 +241,9 @@ type AdminContextType = {
 
 const defaultListingStage: ListingStage =
   "subscription";
+
+const defaultHousingSupplyType: HousingSupplyType =
+  "sale";
 
 const defaultBasicInfo: BasicInfo = {
   name: "",
@@ -621,6 +631,15 @@ function createInitialListingStage(
   return "subscription";
 }
 
+function createInitialHousingSupplyType(
+  apartment?: InitialApartment
+): HousingSupplyType {
+  return apartment?.housingSupplyType ===
+    "privateRental"
+    ? "privateRental"
+    : defaultHousingSupplyType;
+}
+
 function createInitialBasicInfo(
   apartment?: InitialApartment
 ): BasicInfo {
@@ -837,6 +856,15 @@ export function AdminProvider({
   );
 
   const [
+    housingSupplyType,
+    setHousingSupplyTypeState,
+  ] = useState<HousingSupplyType>(
+    createInitialHousingSupplyType(
+      initialApartment
+    )
+  );
+
+  const [
     basicInfo,
     setBasicInfoState,
   ] = useState<BasicInfo>(
@@ -919,6 +947,16 @@ export function AdminProvider({
   ) => {
     setListingStageState(
       nextListingStage
+    );
+
+    setIsDirty(true);
+  };
+
+  const setHousingSupplyType = (
+    nextHousingSupplyType: HousingSupplyType
+  ) => {
+    setHousingSupplyTypeState(
+      nextHousingSupplyType
     );
 
     setIsDirty(true);
@@ -1019,6 +1057,9 @@ export function AdminProvider({
 
         listingStage,
         setListingStage,
+
+        housingSupplyType,
+        setHousingSupplyType,
 
         basicInfo,
         setBasicInfo,

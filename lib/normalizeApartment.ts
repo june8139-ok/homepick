@@ -512,6 +512,12 @@ export function normalizeApartment(
         data
       ),
 
+    housingSupplyType:
+      data.housingSupplyType ===
+      "privateRental"
+        ? "privateRental"
+        : "sale",
+
     price: toStringValue(
       firstDefined(
         data.price,

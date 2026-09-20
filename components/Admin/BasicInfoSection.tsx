@@ -159,6 +159,9 @@ export default function BasicInfoSection() {
 
     listingStage,
     setListingStage,
+
+    housingSupplyType,
+    setHousingSupplyType,
   } = useAdmin();
 
   const [
@@ -282,6 +285,41 @@ export default function BasicInfoSection() {
           입력합니다.
         </p>
       </div>
+
+      {/* 공급 유형 */}
+      <SectionBlock
+        title="공급 유형"
+        description="일반분양과 민간임대를 구분합니다. 기존 단지는 기본적으로 일반분양으로 처리됩니다."
+      >
+        <div className="grid gap-2 sm:grid-cols-2">
+          <StageButton
+            active={
+              housingSupplyType === "sale"
+            }
+            onClick={() =>
+              setHousingSupplyType(
+                "sale"
+              )
+            }
+            label="일반분양"
+            description="청약·선착순 일반 분양 아파트"
+          />
+
+          <StageButton
+            active={
+              housingSupplyType ===
+              "privateRental"
+            }
+            onClick={() =>
+              setHousingSupplyType(
+                "privateRental"
+              )
+            }
+            label="민간임대"
+            description="장기 민간임대·임차인 모집 단지"
+          />
+        </div>
+      </SectionBlock>
 
       {/* 노출 상태 */}
       <SectionBlock

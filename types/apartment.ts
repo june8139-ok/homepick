@@ -43,7 +43,10 @@ export type LocationInfo = {
   cautions?: string;
 };
 
-export type UnitPriceSource = "applyhome" | "manual" | "mixed";
+export type UnitPriceSource =
+  | "applyhome"
+  | "manual"
+  | "mixed";
 
 export type UnitTypePrice = {
   typeName: string;
@@ -95,6 +98,10 @@ export type ListingStage =
   | "completed"
   | "existing";
 
+export type HousingSupplyType =
+  | "sale"
+  | "privateRental";
+
 export type Apartment = {
   slug: string;
   city: string;
@@ -109,6 +116,7 @@ export type Apartment = {
   leadType?: "consult" | "schedule" | "closed";
   latitude?: number | null;
   longitude?: number | null;
+
   images: {
     hero: string | null;
     location: string[];
@@ -116,9 +124,12 @@ export type Apartment = {
     community: string[];
     gallery: string[];
   };
+
   keywords: string[];
   status: string;
   listingStage?: ListingStage;
+  housingSupplyType?: HousingSupplyType;
+
   price: string;
   condition: string;
 
@@ -154,6 +165,7 @@ export type Apartment = {
   applyHome?: Record<string, unknown>;
   conditionHistory: ApartmentConditionHistoryItem[];
   priceInfo?: ApartmentPriceInfo;
+
   priceDetail: {
     salePrice: string;
     pricePerPyeong: string;
@@ -162,6 +174,7 @@ export type Apartment = {
     balance: string;
     options: string[];
   };
+
   score: {
     total: number;
     price: number;
@@ -171,6 +184,7 @@ export type Apartment = {
     future: number;
     risk: number;
   };
+
   aiReview: {
     summary: string;
     liveScore: number;
@@ -178,6 +192,7 @@ export type Apartment = {
     safetyScore: number;
     strengths: string[];
   };
+
   pros: string[];
   cons: string[];
 };
