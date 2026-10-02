@@ -1196,19 +1196,7 @@ export default async function ApartmentDetailPage({
             </div>
           </div>
 
-          {getSearchAliases(
-            apartment
-          ).length > 0 && (
-            <p className="mt-2 break-keep text-xs leading-5 text-zinc-500 sm:text-sm">
-              <span className="font-bold text-zinc-700">
-                함께 찾는 이름
-              </span>
-              {" · "}
-              {getSearchAliases(
-                apartment
-              ).join(" · ")}
-            </p>
-          )}
+
 
           <nav
             aria-label="단지 관련 정보"
