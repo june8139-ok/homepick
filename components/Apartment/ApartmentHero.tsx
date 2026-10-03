@@ -377,6 +377,40 @@ function cleanSummaryText(
     .trim();
 }
 
+function getKoreanTopicParticle(
+  value: string
+) {
+  const trimmed =
+    value.trim();
+
+  if (!trimmed) {
+    return "는";
+  }
+
+  const lastCharacter =
+    trimmed[
+      trimmed.length - 1
+    ];
+
+  const code =
+    lastCharacter.charCodeAt(0);
+
+  if (
+    code >= 0xac00 &&
+    code <= 0xd7a3
+  ) {
+    const hasFinalConsonant =
+      (code - 0xac00) % 28 !==
+      0;
+
+    return hasFinalConsonant
+      ? "은"
+      : "는";
+  }
+
+  return "는";
+}
+
 function getHeroSummary(
   apartment: ApartmentLike,
   representativePrice: {
@@ -394,35 +428,32 @@ function getHeroSummary(
       representativePrice.text
     );
 
-  const condition =
-    cleanSummaryText(
-      apartment.condition
+  const topicParticle =
+    getKoreanTopicParticle(
+      apartment.name
+    );
+
+  const locationPrefix =
+    region
+      ? `${region}에 위치한 `
+      : "";
+
+  const hasPrice =
+    Boolean(priceText) &&
+    !priceText.includes(
+      "확인 중"
     );
 
   if (
     apartment.housingSupplyType ===
     "privateRental"
   ) {
-    const parts = [
-      `${apartment.name}은(는) ${
-        region
-          ? `${region}에 위치한 `
-          : ""
-      }민간임대 단지입니다.`,
-      priceText &&
-      !priceText.includes(
-        "확인 중"
-      )
-        ? `${representativePrice.label}은(는) ${priceText}입니다.`
-        : "",
-      condition
-        ? `현재 ${condition} 등의 임대조건을 확인할 수 있습니다.`
-        : "임대보증금과 임대조건, 평형 및 입지정보를 확인할 수 있습니다.",
-    ]
-      .filter(Boolean)
-      .join(" ");
-
-    return parts;
+    return [
+      `${apartment.name}${topicParticle} ${locationPrefix}민간임대 단지입니다.`,
+      hasPrice
+        ? `${representativePrice.label}은 ${priceText}이며, 임대보증금과 주요 임대조건을 확인할 수 있습니다.`
+        : "임대보증금과 주요 임대조건, 평형 및 입지정보를 확인할 수 있습니다.",
+    ].join(" ");
   }
 
   if (
@@ -430,11 +461,7 @@ function getHeroSummary(
       apartment
     )
   ) {
-    return `${apartment.name}은(는) ${
-      region
-        ? `${region}에 위치한 `
-        : ""
-    }청약 단지로, 청약일정과 분양가, 평면도 및 입지정보를 확인할 수 있습니다.`;
+    return `${apartment.name}${topicParticle} ${locationPrefix}청약 단지로, 청약일정과 분양가, 평면도 및 입지정보를 확인할 수 있습니다.`;
   }
 
   if (
@@ -442,44 +469,22 @@ function getHeroSummary(
       apartment
     )
   ) {
-    const parts = [
-      `${apartment.name}은(는) ${
-        region
-          ? `${region}에 위치한 `
-          : ""
-      }선착순 분양 단지입니다.`,
-      priceText &&
-      !priceText.includes(
-        "확인 중"
-      )
-        ? `${representativePrice.label}은(는) ${priceText}입니다.`
-        : "",
-      condition
-        ? `현재 ${condition} 등의 계약조건을 확인할 수 있습니다.`
-        : "분양가와 계약조건, 평면도 및 입지정보를 확인할 수 있습니다.",
-    ]
-      .filter(Boolean)
-      .join(" ");
-
-    return parts;
+    return [
+      `${apartment.name}${topicParticle} ${locationPrefix}선착순 분양 단지입니다.`,
+      hasPrice
+        ? `${representativePrice.label}은 ${priceText}이며, 분양가와 주요 계약조건을 확인할 수 있습니다.`
+        : "분양가와 주요 계약조건, 평면도 및 입지정보를 확인할 수 있습니다.",
+    ].join(" ");
   }
 
   if (
     apartment.listingStage ===
     "soldOut"
   ) {
-    return `${apartment.name}은(는) ${
-      region
-        ? `${region}에 위치한 `
-        : ""
-    }분양완료 단지로, 분양 당시 공급정보와 평면도 및 입지정보를 확인할 수 있습니다.`;
+    return `${apartment.name}${topicParticle} ${locationPrefix}분양완료 단지로, 분양 당시 공급정보와 평면도 및 입지정보를 확인할 수 있습니다.`;
   }
 
-  return `${apartment.name}은(는) ${
-    region
-      ? `${region}에 위치한 `
-      : ""
-  }아파트로, 주요 단지정보와 평면도 및 입지정보를 확인할 수 있습니다.`;
+  return `${apartment.name}${topicParticle} ${locationPrefix}아파트로, 주요 단지정보와 평면도 및 입지정보를 확인할 수 있습니다.`;
 }
 
 function getVisibleSearchAliases(
