@@ -585,7 +585,7 @@ function SummaryInfoCard({
         {label}
       </p>
 
-      <p className="mt-1.5 break-keep text-sm font-extrabold leading-6 text-[#132238] sm:mt-2 sm:text-sm sm:leading-6">
+      <p className="mt-1.5 break-keep text-sm font-semibold leading-6 text-[#132238] sm:mt-2 sm:text-sm sm:leading-6">
         {value ||
           "정보 확인 중"}
       </p>
@@ -1022,7 +1022,7 @@ export default function ApartmentHero({
             )}
 
             <div className="mt-4 rounded-xl bg-[#F8FAF7] p-4 sm:mt-5 sm:rounded-2xl sm:p-5">
-              <div className="grid gap-3 min-[420px]:grid-cols-[0.72fr_1.28fr] min-[420px]:items-start">
+              <div className="grid min-w-0 gap-4">
                 <div>
                   <p className="text-[10px] font-bold text-zinc-500 sm:text-xs">
                     {
@@ -1030,19 +1030,22 @@ export default function ApartmentHero({
                     }
                   </p>
 
-                  <p className="mt-1.5 break-keep text-lg font-black text-[#132238] sm:mt-2 sm:text-xl">
-                    {
-                      representativePrice.text
-                    }
+                  <p className="mt-2 flex min-w-0 flex-wrap items-baseline gap-x-1.5 gap-y-1 text-[#132238]">
+                    <span className="whitespace-nowrap text-[clamp(1rem,5vw,1.5rem)] font-bold leading-tight tracking-tight sm:text-2xl">
+                      {representativePrice.text.replace(/\s*부터$/, "").trim()}
+                    </span>
+                    {/부터$/.test(representativePrice.text) && (
+                      <span className="text-xs font-medium text-zinc-500 sm:text-sm">부터</span>
+                    )}
                   </p>
                 </div>
 
-                <div className="border-t border-zinc-200 pt-3 min-[420px]:border-l min-[420px]:border-t-0 min-[420px]:pl-4 min-[420px]:pt-0">
+                <div className="min-w-0 border-t border-zinc-200/80 pt-3">
                   <p className="text-[10px] font-bold text-zinc-500 sm:text-xs">
                     핵심 계약조건
                   </p>
 
-                  <p className="mt-1.5 break-keep text-sm font-bold leading-6 text-zinc-700 sm:mt-2 sm:text-sm sm:leading-6">
+                  <p className="mt-1.5 break-keep text-sm font-semibold leading-6 text-zinc-700 sm:mt-2 sm:text-sm sm:leading-6">
                     {apartment.condition ||
                       "계약조건 확인 중"}
                   </p>
