@@ -1,5 +1,7 @@
 "use client";
 
+import { trackInquiryEvent } from "./InquiryActions";
+
 import {
   useRef,
   useState,
@@ -25,7 +27,6 @@ type ReservationForm = {
   customerName: string;
   phone: string;
   interestedType: string;
-  visitDate: string;
   message: string;
   privacyAgreed: boolean;
   thirdPartyAgreed: boolean;
@@ -35,28 +36,10 @@ const initialForm: ReservationForm = {
   customerName: "",
   phone: "",
   interestedType: "",
-  visitDate: "",
   message: "",
   privacyAgreed: false,
   thirdPartyAgreed: false,
 };
-
-function getTodayDate() {
-  const today = new Date();
-
-  const year =
-    today.getFullYear();
-
-  const month = String(
-    today.getMonth() + 1
-  ).padStart(2, "0");
-
-  const day = String(
-    today.getDate()
-  ).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-}
 
 function formatPhoneInput(
   value: string
@@ -83,25 +66,6 @@ function formatPhoneInput(
     3,
     numbers.length - 4
   )}-${numbers.slice(-4)}`;
-}
-
-function formatDisplayDate(
-  value: string
-) {
-  if (!value) {
-    return "날짜 선택";
-  }
-
-  const [year, month, day] =
-    value.split("-");
-
-  if (!year || !month || !day) {
-    return value;
-  }
-
-  return `${Number(month)}월 ${Number(
-    day
-  )}일`;
 }
 
 function FormInput({
@@ -140,6 +104,9 @@ function FormInput({
       <input
         required={required}
         value={value}
+        type={inputMode === "tel" ? "tel" : "text"}
+        autoComplete={inputMode === "tel" ? "tel" : "name"}
+        name={inputMode === "tel" ? "phone" : "customerName"}
         inputMode={inputMode}
         placeholder={placeholder}
         onChange={(event) =>
@@ -173,10 +140,8 @@ export default function ReservationCard({
   kakaoUrl,
   floorPlanNames = [],
 }: ReservationCardProps) {
-  const dateInputRef =
-    useRef<HTMLInputElement | null>(
-      null
-    );
+  const startedRef = useRef(false);
+  const submittingRef = useRef(false);
 
   const [form, setForm] =
     useState<ReservationForm>(
@@ -216,29 +181,18 @@ export default function ReservationCard({
     }));
   };
 
-  const openDatePicker = () => {
-    const input =
-      dateInputRef.current;
-
-    if (!input) {
-      return;
-    }
-
-    input.focus();
-
-    try {
-      input.showPicker?.();
-    } catch {
-      // 기본 날짜 입력 동작 유지
-    }
-  };
-
   const handleSubmit = async (
     event: React.FormEvent<HTMLFormElement>
   ) => {
     event.preventDefault();
 
-    if (isSubmitting) {
+    if (submittingRef.current) {
+      return;
+    }
+
+    if (form.customerName.trim().length < 2 || !/^01[016789]\d{7,8}$/.test(form.phone.replace(/\D/g, ""))) {
+      setIsSuccess(false);
+      setResultMessage("이름을 2자 이상, 휴대전화번호를 정확히 입력해주세요.");
       return;
     }
 
@@ -265,7 +219,9 @@ export default function ReservationCard({
       return;
     }
 
+    submittingRef.current = true;
     setIsSubmitting(true);
+    trackInquiryEvent("inquiry_submit", apartmentSlug, "form");
     setResultMessage("");
     setIsSuccess(false);
 
@@ -286,17 +242,14 @@ export default function ReservationCard({
             inquiryType,
 
             customerName:
-              form.customerName,
+              form.customerName.trim(),
 
             phone: form.phone,
 
             interestedType:
               form.interestedType,
 
-            visitDate:
-              isSubscription
-                ? ""
-                : form.visitDate,
+            visitDate: "",
 
             message: form.message,
 
@@ -314,7 +267,7 @@ export default function ReservationCard({
       const result =
         await response.json();
 
-      if (!response.ok) {
+      if (!response.ok || result.success !== true) {
         throw new Error(
           result.message ||
             "신청 처리 중 오류가 발생했습니다."
@@ -322,16 +275,15 @@ export default function ReservationCard({
       }
 
       setIsSuccess(true);
+      trackInquiryEvent("inquiry_success", apartmentSlug, "form");
 
-      setResultMessage(
-        result.message ||
-          (isSubscription
-            ? "청약일정 알림 신청이 접수되었습니다."
-            : "방문예약이 접수되었습니다. 담당자가 확인 후 연락드리겠습니다.")
-      );
+      setResultMessage(isSubscription
+        ? "청약일정 알림 신청이 접수되었습니다."
+        : "상담신청이 접수되었습니다. 담당자가 연락드려 최신 조건과 방문 일정을 안내합니다.");
 
       setForm(initialForm);
     } catch (error) {
+      trackInquiryEvent("inquiry_error", apartmentSlug, "form");
       setIsSuccess(false);
 
       setResultMessage(
@@ -340,6 +292,7 @@ export default function ReservationCard({
           : "신청 처리 중 오류가 발생했습니다."
       );
     } finally {
+      submittingRef.current = false;
       setIsSubmitting(false);
     }
   };
@@ -370,29 +323,35 @@ export default function ReservationCard({
         >
           {isSubscription
             ? "SUBSCRIPTION ALERT"
-            : "VISIT RESERVATION"}
+            : "CONSULTATION"}
         </p>
 
         <h2 className="mt-1 text-xl font-extrabold sm:text-2xl">
           {isSubscription
             ? "청약일정 알림 신청"
-            : "방문예약 신청"}
+            : "상담신청"}
         </h2>
 
         <p className="mt-2 max-w-3xl break-keep text-xs leading-5 text-white/75 sm:text-sm sm:leading-6">
           {isSubscription
             ? `${apartmentName}의 청약 일정과 주요 정보를 안내받아보세요.`
-            : `${apartmentName}의 잔여 호실과 최신 계약조건을 방문 상담으로 확인해보세요.`}
+            : `${apartmentName}의 잔여세대와 최신 계약조건을 안내받으세요. 방문 일정은 상담 후 결정할 수 있습니다.`}
         </p>
       </div>
 
       <div className="p-4 sm:p-7">
         <form
           onSubmit={handleSubmit}
+          onFocusCapture={() => {
+            if (!startedRef.current) {
+              startedRef.current = true;
+              trackInquiryEvent("inquiry_start", apartmentSlug, "form");
+            }
+          }}
           className="space-y-4 sm:space-y-5"
         >
           {/* 이름 + 휴대전화 */}
-          <div className="grid grid-cols-2 gap-2 sm:gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <FormInput
               label="이름"
               required
@@ -425,15 +384,11 @@ export default function ReservationCard({
             />
           </div>
 
-          {/* 관심 타입 + 희망 방문일 */}
-          <div
-            className={[
-              "grid gap-2 sm:gap-4",
-              isSubscription
-                ? "grid-cols-1"
-                : "grid-cols-2",
-            ].join(" ")}
-          >
+          <details className="rounded-xl border border-zinc-200 p-4">
+            <summary className="cursor-pointer text-sm font-bold text-zinc-600">관심타입·문의내용 추가하기 (선택)</summary>
+            <div className="mt-4 space-y-4">
+          {/* 선택 입력 */}
+          <div>
             <label className="block min-w-0">
               <p className="mb-2 text-xs font-medium text-zinc-700 sm:text-sm">
                 관심 평형·타입
@@ -508,115 +463,7 @@ export default function ReservationCard({
               )}
             </label>
 
-            {!isSubscription && (
-              <div className="min-w-0">
-                <p className="mb-2 text-xs font-medium text-zinc-700 sm:text-sm">
-                  희망 방문일
 
-                  <span className="ml-1 text-rose-500">
-                    *
-                  </span>
-                </p>
-
-                <div
-                  role="button"
-                  tabIndex={0}
-                  onClick={
-                    openDatePicker
-                  }
-                  onKeyDown={(
-                    event
-                  ) => {
-                    if (
-                      event.key ===
-                        "Enter" ||
-                      event.key ===
-                        " "
-                    ) {
-                      event.preventDefault();
-                      openDatePicker();
-                    }
-                  }}
-                  className="
-                    group relative flex
-                    h-11 min-w-0 cursor-pointer
-                    items-center rounded-xl
-                    border border-zinc-200
-                    bg-white px-3 transition-all
-                    hover:border-emerald-400
-                    hover:bg-emerald-50/30
-                    focus-visible:outline-none
-                    focus-visible:ring-2
-                    focus-visible:ring-emerald-500
-                    focus-visible:ring-offset-2
-                    sm:h-12 sm:px-4
-                  "
-                >
-                  <p
-                    className={[
-                      "min-w-0 flex-1 truncate text-xs font-semibold sm:text-sm",
-                      form.visitDate
-                        ? "text-zinc-900"
-                        : "text-zinc-400",
-                    ].join(" ")}
-                  >
-                    {formatDisplayDate(
-                      form.visitDate
-                    )}
-                  </p>
-
-                  <span
-                    aria-hidden="true"
-                    className="
-                      ml-1 flex h-7 w-7
-                      shrink-0 items-center
-                      justify-center rounded-lg
-                      bg-zinc-100 text-sm
-                      transition
-                      group-hover:bg-emerald-100
-                      sm:ml-3 sm:h-9 sm:w-9
-                      sm:rounded-xl sm:text-lg
-                    "
-                  >
-                    📅
-                  </span>
-
-                  <input
-                    ref={dateInputRef}
-                    type="date"
-                    required
-                    min={getTodayDate()}
-                    value={
-                      form.visitDate
-                    }
-                    onChange={(event) =>
-                      updateForm(
-                        "visitDate",
-                        event.target.value
-                      )
-                    }
-                    onClick={(
-                      event
-                    ) => {
-                      event.stopPropagation();
-
-                      try {
-                        event.currentTarget
-                          .showPicker?.();
-                      } catch {
-                        // 기본 날짜 입력 동작 유지
-                      }
-                    }}
-                    aria-label="희망 방문일 선택"
-                    className="
-                      absolute inset-0
-                      h-full w-full text-base
-                      cursor-pointer opacity-0
-                    "
-                  />
-                </div>
-              </div>
-            )}
           </div>
 
           <label className="block">
@@ -631,7 +478,7 @@ export default function ReservationCard({
               placeholder={
                 isSubscription
                   ? "궁금한 청약 일정이나 주택형을 입력해주세요."
-                  : "희망 방문시간이나 문의사항을 입력해주세요."
+                  : "궁금한 계약조건이나 관심타입을 입력해주세요."
               }
               onChange={(event) =>
                 updateForm(
@@ -655,6 +502,9 @@ export default function ReservationCard({
               "
             />
           </label>
+
+            </div>
+          </details>
 
           <div className="space-y-2">
             <label className="flex cursor-pointer items-start gap-2 rounded-xl border border-transparent bg-zinc-50 p-3 transition hover:border-emerald-200 hover:bg-emerald-50/40 sm:gap-3 sm:rounded-2xl sm:p-4">
@@ -754,8 +604,7 @@ export default function ReservationCard({
                         </strong>
                         <br />
                         이름, 휴대전화번호,
-                        관심 평형, 희망
-                        방문일 및 문의내용
+                        관심 평형 및 문의내용
                       </p>
 
                       <p>
@@ -810,14 +659,14 @@ export default function ReservationCard({
               "disabled:cursor-wait disabled:opacity-60",
               isSubscription
                 ? "bg-blue-600 hover:bg-blue-500 focus-visible:ring-blue-500"
-                : "bg-zinc-900 hover:bg-emerald-600 focus-visible:ring-emerald-500",
+                : "bg-emerald-700 hover:bg-emerald-800 focus-visible:ring-emerald-500",
             ].join(" ")}
           >
             {isSubmitting
               ? "신청 접수 중..."
               : isSubscription
                 ? "청약일정 알림 신청하기"
-                : "방문예약 신청하기"}
+                : "상담신청하기"}
           </button>
         </form>
 

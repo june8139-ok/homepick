@@ -1,10 +1,13 @@
 "use client";
 
+import { trackInquiryEvent } from "./InquiryActions";
+
 import type {
   FormEvent,
 } from "react";
 
 import {
+  useRef,
   useMemo,
   useState,
 } from "react";
@@ -314,7 +317,7 @@ function InputField({
           error
         )}
         className={[
-          "mt-2 h-11 w-full min-w-0 rounded-xl border px-3 text-xs",
+          "mt-2 h-11 w-full min-w-0 rounded-xl border px-3 text-base",
           "outline-none transition placeholder:text-zinc-400",
           "focus:ring-2 focus:ring-emerald-100",
           "sm:h-12 sm:px-4 sm:text-sm",
@@ -336,6 +339,9 @@ export default function SubscriptionAlertForm({
   apartmentName,
   leadType = "schedule",
 }: SubscriptionAlertFormProps) {
+  const startedRef = useRef(false);
+  const submittingRef = useRef(false);
+
   const [
     form,
     setForm,
@@ -351,9 +357,7 @@ export default function SubscriptionAlertForm({
   const [
     isExtraOpen,
     setIsExtraOpen,
-  ] = useState(
-    leadType === "consult"
-  );
+  ] = useState(false);
 
   const [
     isSubmitting,
@@ -476,32 +480,11 @@ export default function SubscriptionAlertForm({
         "올바른 휴대폰번호를 입력해주세요.";
     }
 
-    if (!form.birthDate) {
-      nextErrors.birthDate =
-        "생년월일을 입력해주세요.";
-    } else if (
-      form.birthDate.length !== 6
-    ) {
-      nextErrors.birthDate =
-        "숫자 6자리로 입력해주세요.";
-    } else if (
-      !convertBirthDateToISO(
-        form.birthDate
-      )
-    ) {
-      nextErrors.birthDate =
-        "생년월일을 정확히 확인해주세요.";
+    if (form.birthDate && !convertBirthDateToISO(form.birthDate)) {
+      nextErrors.birthDate = "생년월일을 정확히 확인해주세요.";
     }
-
-    if (!form.residence.trim()) {
-      nextErrors.residence =
-        "현재 거주지역을 입력해주세요.";
-    } else if (
-      form.residence.trim()
-        .length < 2
-    ) {
-      nextErrors.residence =
-        "거주지역을 정확히 입력해주세요.";
+    if (form.residence.trim() && form.residence.trim().length < 2) {
+      nextErrors.residence = "거주지역을 정확히 입력해주세요.";
     }
 
     if (!form.agree) {
@@ -531,7 +514,7 @@ export default function SubscriptionAlertForm({
 
     if (
       isClosed ||
-      isSubmitting
+      submittingRef.current
     ) {
       return;
     }
@@ -543,7 +526,9 @@ export default function SubscriptionAlertForm({
       return;
     }
 
+    submittingRef.current = true;
     setIsSubmitting(true);
+    trackInquiryEvent("inquiry_submit", apartmentSlug, "subscription_form");
 
     try {
       const phone =
@@ -556,7 +541,7 @@ export default function SubscriptionAlertForm({
           form.birthDate
         );
 
-      if (!birthDate) {
+      if (form.birthDate && !birthDate) {
         setErrors(
           (previous) => ({
             ...previous,
@@ -646,7 +631,7 @@ export default function SubscriptionAlertForm({
         }
       }
 
-      if (!response.ok) {
+      if (!response.ok || result.success !== true) {
         throw new Error(
           result.message ||
             "신청 정보를 저장하지 못했습니다."
@@ -659,9 +644,11 @@ export default function SubscriptionAlertForm({
         )
       );
       setIsCompleted(true);
+      trackInquiryEvent(result.duplicate ? "inquiry_duplicate" : "inquiry_success", apartmentSlug, "subscription_form");
       setForm(INITIAL_FORM);
       setErrors({});
     } catch (error) {
+      trackInquiryEvent("inquiry_error", apartmentSlug, "subscription_form");
       console.error(
         "청약 신청 저장 오류:",
         error
@@ -671,6 +658,7 @@ export default function SubscriptionAlertForm({
         "신청 정보를 저장하지 못했습니다. 잠시 후 다시 시도해주세요."
       );
     } finally {
+      submittingRef.current = false;
       setIsSubmitting(false);
     }
   }
@@ -775,10 +763,16 @@ export default function SubscriptionAlertForm({
       ) : (
         <form
           onSubmit={handleSubmit}
+          onFocusCapture={() => {
+            if (!startedRef.current) {
+              startedRef.current = true;
+              trackInquiryEvent("inquiry_start", apartmentSlug, "subscription_form");
+            }
+          }}
           noValidate
           className="space-y-4 p-4 sm:space-y-6 sm:p-7"
         >
-          <div className="grid grid-cols-2 gap-2 sm:gap-5">
+          <div className="grid gap-4 sm:grid-cols-2">
             <InputField
               label="이름"
               required
@@ -812,10 +806,12 @@ export default function SubscriptionAlertForm({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-2 sm:gap-5">
+          <details className="rounded-xl border border-zinc-200 p-4">
+            <summary className="cursor-pointer text-sm font-bold text-zinc-600">청약 조건 추가하기 (선택)</summary>
+            <div className="mt-4 space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <InputField
-              label="생년월일"
-              required
+              label="생년월일 (선택)"
               value={
                 form.birthDate
               }
@@ -837,8 +833,7 @@ export default function SubscriptionAlertForm({
             />
 
             <InputField
-              label="현재 거주지역"
-              required
+              label="현재 거주지역 (선택)"
               value={
                 form.residence
               }
@@ -1047,6 +1042,9 @@ export default function SubscriptionAlertForm({
             </div>
           </div>
 
+            </div>
+          </details>
+
           <div className="space-y-2">
             <div>
               <label
@@ -1080,7 +1078,7 @@ export default function SubscriptionAlertForm({
 
                   <span className="hidden sm:inline">
                     <br />
-                    청약 일정 또는 상담 안내를 위해 이름, 휴대폰번호, 생년월일과 거주지역 정보를 수집합니다.
+                    청약 일정 또는 상담 안내를 위해 이름, 휴대폰번호, 입력한 선택 정보를 수집합니다. 생년월일·거주지역은 선택사항입니다.
                   </span>
                 </span>
               </label>
@@ -1149,7 +1147,7 @@ export default function SubscriptionAlertForm({
                           제공 항목
                         </strong>
                         <br />
-                        이름, 휴대폰번호, 생년월일, 거주지역, 무주택 여부, 청약통장 여부, 특별공급 유형
+                        이름, 휴대폰번호 및 이용자가 입력한 선택 정보(생년월일, 거주지역, 무주택 여부, 청약통장 여부, 특별공급 유형)
                       </p>
 
                       <p>

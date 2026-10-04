@@ -1,4 +1,5 @@
 import Image from "next/image";
+import InquiryActions from "./InquiryActions";
 
 import type {
   Apartment,
@@ -451,7 +452,7 @@ function getHeroSummary(
     return [
       `${apartment.name}${topicParticle} ${locationPrefix}민간임대 단지입니다.`,
       hasPrice
-        ? `${representativePrice.label}은 ${priceText}이며, 임대보증금과 주요 임대조건을 확인할 수 있습니다.`
+        ? `${representativePrice.label}: ${priceText}이며, 임대보증금과 주요 임대조건을 확인할 수 있습니다.`
         : "임대보증금과 주요 임대조건, 평형 및 입지정보를 확인할 수 있습니다.",
     ].join(" ");
   }
@@ -472,7 +473,7 @@ function getHeroSummary(
     return [
       `${apartment.name}${topicParticle} ${locationPrefix}선착순 분양 단지입니다.`,
       hasPrice
-        ? `${representativePrice.label}은 ${priceText}이며, 분양가와 주요 계약조건을 확인할 수 있습니다.`
+        ? `${representativePrice.label}: ${priceText}이며, 분양가와 주요 계약조건을 확인할 수 있습니다.`
         : "분양가와 주요 계약조건, 평면도 및 입지정보를 확인할 수 있습니다.",
     ].join(" ");
   }
@@ -584,7 +585,7 @@ function SummaryInfoCard({
         {label}
       </p>
 
-      <p className="mt-1.5 break-keep text-xs font-extrabold leading-5 text-[#132238] sm:mt-2 sm:text-sm sm:leading-6">
+      <p className="mt-1.5 break-keep text-sm font-extrabold leading-6 text-[#132238] sm:mt-2 sm:text-sm sm:leading-6">
         {value ||
           "정보 확인 중"}
       </p>
@@ -803,7 +804,7 @@ export default function ApartmentHero({
                 },
               ]
             : []),
-          ...(!isSoldOut
+          ...(!isSoldOut && (isFirstCome || !apartment.listingStage)
             ? [
                 {
                   label: "상담신청",
@@ -946,11 +947,7 @@ export default function ApartmentHero({
           </p>
         )}
 
-        <ApartmentDataTrust
-          apartment={
-            displayApartment
-          }
-        />
+
 
         {isSoldOut && (
           <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-xs font-semibold leading-5 text-amber-900 sm:mt-5 sm:rounded-2xl sm:px-4 sm:py-3.5 sm:text-sm sm:leading-6">
@@ -1045,7 +1042,7 @@ export default function ApartmentHero({
                     핵심 계약조건
                   </p>
 
-                  <p className="mt-1.5 break-keep text-xs font-bold leading-5 text-zinc-700 sm:mt-2 sm:text-sm sm:leading-6">
+                  <p className="mt-1.5 break-keep text-sm font-bold leading-6 text-zinc-700 sm:mt-2 sm:text-sm sm:leading-6">
                     {apartment.condition ||
                       "계약조건 확인 중"}
                   </p>
@@ -1073,30 +1070,18 @@ export default function ApartmentHero({
                 }
               />
 
-              <SummaryInfoCard
-                label="주차대수"
-                value={
-                  apartment
-                    .projectInfo
-                    ?.parking ||
-                  "정보 확인 중"
-                }
-              />
-
-              <SummaryInfoCard
-                label="평형·타입"
-                value={
-                  floorPlanNames.length >
-                  0
-                    ? floorPlanNames.join(
-                        ", "
-                      )
-                    : "정보 확인 중"
-                }
-              />
             </div>
           </>
         )}
+        {(isFirstCome || (isSubscription && displayApartment.leadType !== "closed")) && (
+          <InquiryActions apartmentSlug={apartment.slug}
+            inquiryLabel={isSubscription ? (displayApartment.leadType === "consult" ? "청약 상담신청" : "청약알림 신청") : "상담신청"} />
+        )}
+        <ApartmentDataTrust
+          apartment={
+            displayApartment
+          }
+        />
       </div>
       </section>
 

@@ -546,7 +546,7 @@ function ProjectInfoCard({
             {label}
           </p>
 
-          <p className="mt-1 break-words text-xs font-black leading-5 text-[#132238] sm:text-[15px] sm:leading-6">
+          <p className="mt-1 break-words text-sm font-bold leading-6 text-[#132238] sm:text-[15px] sm:leading-6">
             {value}
           </p>
         </div>
@@ -597,7 +597,7 @@ function InformationCard({
               (line, index) => (
                 <div
                   key={`${line}-${index}`}
-                  className="flex min-w-0 items-start gap-2 border-l-2 border-rose-100 pl-3 text-xs leading-5 text-zinc-600 sm:text-sm sm:leading-6"
+                  className="flex min-w-0 items-start gap-2 border-l-2 border-rose-100 pl-3 text-sm leading-6 text-zinc-600 sm:text-sm sm:leading-6"
                 >
                   <span className="mt-0.5 shrink-0 font-black text-rose-500">
                     ✓
@@ -662,7 +662,7 @@ function InformationCard({
             (line, index) => (
               <div
                 key={`${line}-${index}`}
-                className="flex min-w-0 items-start gap-2 text-xs leading-5 text-zinc-600 sm:text-sm sm:leading-6"
+                className="flex min-w-0 items-start gap-2 text-sm leading-6 text-zinc-600 sm:text-sm sm:leading-6"
               >
                 <span
                   className={[
@@ -770,11 +770,11 @@ export default function SaleDetail({
       >
         <SectionHeader
           eyebrow="PRICE & CONTRACT"
-          title="가격 및 계약조건"
+          title={apartment.housingSupplyType === "privateRental" ? "임대보증금 및 임대조건" : "가격 및 계약조건"}
           description={
             isSoldOut
               ? "분양 당시 분양가와 계약조건을 참고용으로 확인하세요."
-              : "분양가와 계약금, 중도금, 잔금 및 제공 혜택을 확인하세요."
+              : "가격과 초기 납부조건, 제공 혜택을 확인하세요."
           }
           accent="emerald"
         />
@@ -843,6 +843,9 @@ export default function SaleDetail({
 
       {conditionHistory &&
         conditionHistory.length > 0 && (
+        <details className="rounded-2xl border border-zinc-200 bg-white p-4 sm:rounded-3xl sm:p-6">
+          <summary className="cursor-pointer text-sm font-extrabold text-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">이전 계약조건 변경 이력 보기</summary>
+          <div className="mt-4">
         <section>
           <SectionHeader
             eyebrow="CONDITION HISTORY"
@@ -858,7 +861,8 @@ export default function SaleDetail({
               }
             />
           </div>
-        </section>
+        </section>          </div>
+        </details>
       )}
 
       <section
@@ -1028,7 +1032,7 @@ export default function SaleDetail({
         <div className="flex flex-col gap-3 sm:gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0 max-w-3xl">
             <p className="text-xs font-extrabold text-emerald-600 sm:text-sm">
-              집눈 한눈 정리
+              단지 특징
             </p>
 
             <h2 className="mt-1 text-xl font-extrabold text-[#132238] sm:text-2xl">
@@ -1036,7 +1040,7 @@ export default function SaleDetail({
             </h2>
 
             <p className="mt-2 break-keep text-sm font-semibold leading-6 text-zinc-700 sm:mt-4 sm:text-base sm:leading-8">
-              {summary}
+              {summary.split(/\s*[/|]\s*/).filter((item) => !/계약금/.test(item)).join(" · ") || "가격과 최신 계약조건은 상단의 등록 정보를 확인해주세요."}
             </p>
           </div>
 
@@ -1063,9 +1067,11 @@ export default function SaleDetail({
         </div>
       </section>
 
-      {!isSoldOut && (
+      {!isSoldOut && apartment.listingStage !== "existing" && (
         <section
           id="inquiry"
+          tabIndex={-1}
+          aria-label="상담신청폼"
           className="scroll-mt-24"
         >
           <ReservationCard
@@ -1125,7 +1131,7 @@ function SectionHeader({
         {title}
       </h2>
 
-      <p className="mt-1 break-keep text-xs leading-5 text-zinc-500 sm:mt-2 sm:text-sm sm:leading-6">
+      <p className="mt-1 break-keep text-sm leading-6 text-zinc-500 sm:mt-2 sm:text-sm sm:leading-6">
         {description}
       </p>
     </header>

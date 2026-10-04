@@ -352,10 +352,10 @@ function getSectionHeading(
       eyebrow:
         "CURRENT BENEFITS",
       title:
-        "현재 적용 중인 계약혜택",
+        "등록된 계약조건·혜택",
       icon: "🔥",
       description:
-        "선착순 공급에 현재 적용되는 핵심 조건만 정리했습니다.",
+        "등록된 핵심 조건입니다. 적용 세대와 최신 조건은 상담 시 확인해주세요.",
     };
   }
 
@@ -477,7 +477,7 @@ export default function PriceConditionCard({
                   계약조건 모집공고 확인
                 </p>
 
-                <p className="mt-1 break-keep text-xs leading-6 text-blue-950/75 sm:text-sm sm:leading-7">
+                <p className="mt-1 break-keep text-sm leading-7 text-blue-950/75 sm:text-sm sm:leading-7">
                   청약홈 자동수집 단지로 계약금, 중도금, 발코니 및 옵션 조건은 관리자 검수 전까지 확정 정보로 표시하지 않습니다.
                 </p>
               </div>
@@ -664,11 +664,6 @@ function BenefitCard({
         tone.card,
       ].join(" ")}
     >
-      {benefit.featured && (
-        <span className="absolute right-2.5 top-2.5 rounded-full bg-white/85 px-2 py-1 text-[9px] font-black text-rose-500 shadow-sm backdrop-blur sm:text-[10px]">
-          HOT
-        </span>
-      )}
 
       <div
         className={[

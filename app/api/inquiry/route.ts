@@ -234,6 +234,7 @@ export async function POST(
     if (
       inquiryType ===
         "visit" &&
+      visitDate &&
       !isValidIsoDate(
         visitDate
       )
@@ -285,7 +286,7 @@ export async function POST(
           visit_date:
             inquiryType ===
             "visit"
-              ? visitDate
+              ? visitDate || null
               : null,
 
           message:
@@ -328,7 +329,7 @@ export async function POST(
         {
           success: false,
           message:
-            insertError.message,
+            "신청을 저장하지 못했습니다. 잠시 후 다시 시도해주세요.",
         },
         {
           status: 500,
@@ -341,7 +342,7 @@ export async function POST(
         `신청 구분: ${
           inquiryType ===
           "visit"
-            ? "방문예약"
+            ? (visitDate ? "방문예약" : "상담신청")
             : "청약 일정 알림"
         }`,
         `관심 평형·타입: ${
@@ -351,7 +352,7 @@ export async function POST(
         `희망 방문일: ${
           inquiryType ===
           "visit"
-            ? visitDate
+            ? visitDate || "상담 후 결정"
             : "해당 없음"
         }`,
         `제3자 제공 동의: ${
@@ -399,7 +400,7 @@ export async function POST(
       message:
         inquiryType ===
         "visit"
-          ? "방문예약이 접수되었습니다. 담당자가 확인 후 연락드리겠습니다."
+          ? "상담신청이 접수되었습니다. 담당자가 연락드려 최신 조건과 방문 일정을 안내합니다."
           : "청약일정 알림 신청이 접수되었습니다.",
 
       inquiryId:

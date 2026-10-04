@@ -19,6 +19,7 @@ import {
   isSubscriptionListing,
 } from "../../../lib/listingStage";
 
+import InquiryActions from "../../../components/Apartment/InquiryActions";
 import ApartmentHero from "../../../components/Apartment/ApartmentHero";
 import SubscriptionDetail from "../../../components/Apartment/SubscriptionDetail";
 import SaleDetail from "../../../components/Apartment/SaleDetail";
@@ -1100,6 +1101,10 @@ export default async function ApartmentDetailPage({
       cityPathValue
     )}`;
 
+  const canInquire = !isSoldOut && (isSubscription
+    ? apartment.leadType !== "closed"
+    : listingStage === "firstCome");
+
   const jsonLdItems =
     createJsonLd(apartment);
 
@@ -1114,7 +1119,7 @@ export default async function ApartmentDetailPage({
         )
       )}
 
-      <main className="min-h-screen bg-zinc-50 px-3 py-5 text-zinc-900 sm:px-6 sm:py-10">
+      <main className={`min-h-screen bg-zinc-50 px-3 py-5 text-zinc-900 sm:px-6 sm:pt-10 ${canInquire ? "pb-[calc(100px+env(safe-area-inset-bottom,0px))] md:pb-10" : "sm:pb-10"}`}>
         <section className="mx-auto max-w-6xl">
           <nav
             aria-label="현재 위치"
@@ -1256,6 +1261,8 @@ export default async function ApartmentDetailPage({
           </Suspense>
         </section>
       </main>
+      {canInquire && <InquiryActions apartmentSlug={apartment.slug} placement="mobile"
+        inquiryLabel={isSubscription ? (apartment.leadType === "consult" ? "청약 상담신청" : "청약알림 신청") : "상담신청"} />}
     </>
   );
 }

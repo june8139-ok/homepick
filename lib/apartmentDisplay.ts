@@ -323,7 +323,7 @@ export function formatKoreanPrice(
   )}만원`;
 }
 
-export function getRepresentativePrice(
+function getRepresentativePriceValue(
   apartment: Apartment
 ) {
   const rows = priceRowsOf(apartment);
@@ -445,6 +445,12 @@ export function getRepresentativePrice(
     is84: false,
     isActualMinimum: false,
   };
+}
+
+export function getRepresentativePrice(apartment: Apartment) {
+  const result = getRepresentativePriceValue(apartment);
+  if (apartment.housingSupplyType !== "privateRental") return result;
+  return { ...result, label: result.label.replace(/분양가/g, "임대보증금").replace(/공급금액/g, "임대보증금") };
 }
 
 export function formatMoveInDate(value?: unknown) {

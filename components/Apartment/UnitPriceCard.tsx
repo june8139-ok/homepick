@@ -72,14 +72,14 @@ function highestPublishedTopPrice(
     : null;
 }
 
-function unitDisplayPrice(unit: UnitPrice) {
+function unitDisplayPrice(unit: UnitPrice, privateRental = false) {
   const explicitMinimum =
     explicitMinimumOfUnit(unit);
 
   if (validPrice(explicitMinimum)) {
     return {
       value: explicitMinimum,
-      label: "평형 최저 분양가",
+      label: privateRental ? "평형 최저 임대보증금" : "평형 최저 분양가",
       text: `${formatPrice(explicitMinimum)}부터`,
       isActualMinimum: true,
     };
@@ -91,7 +91,7 @@ function unitDisplayPrice(unit: UnitPrice) {
   if (validPrice(highestTopPrice)) {
     return {
       value: highestTopPrice,
-      label: "평형 최고 공급가",
+      label: privateRental ? "평형 최고 임대보증금" : "평형 최고 공급가",
       text: formatPrice(highestTopPrice),
       isActualMinimum: false,
     };
@@ -99,7 +99,7 @@ function unitDisplayPrice(unit: UnitPrice) {
 
   return {
     value: null,
-    label: "분양가",
+    label: privateRental ? "임대보증금" : "분양가",
     text: "가격 확인 중",
     isActualMinimum: false,
   };
@@ -138,8 +138,10 @@ function typePriceText(
 
 function UnitTypeDetails({
   unit,
+  privateRental = false,
 }: {
   unit: UnitPrice;
+  privateRental?: boolean;
 }) {
   const types = unit.types ?? [];
 
@@ -231,8 +233,8 @@ function UnitTypeDetails({
             <div className="sm:text-right">
               <p className="text-[9px] font-semibold text-zinc-400 sm:text-[10px]">
                 {validPrice(type.minPrice)
-                  ? "타입별 분양가"
-                  : "청약홈 최고 공급가"}
+                  ? (privateRental ? "타입별 임대보증금" : "타입별 분양가")
+                  : (privateRental ? "최고 임대보증금" : "청약홈 최고 공급가")}
               </p>
 
               <p className="mt-0.5 break-keep text-xs font-black leading-5 text-zinc-900 sm:text-base">
@@ -251,10 +253,12 @@ function UnitTypeDetails({
 
 function UnitCard({
   unit,
+  privateRental = false,
 }: {
   unit: UnitPrice;
+  privateRental?: boolean;
 }) {
-  const display = unitDisplayPrice(unit);
+  const display = unitDisplayPrice(unit, privateRental);
 
   return (
     <article
@@ -319,15 +323,17 @@ function UnitCard({
         </div>
       </div>
 
-      <UnitTypeDetails unit={unit} />
+      <UnitTypeDetails unit={unit} privateRental={privateRental} />
     </article>
   );
 }
 
 export default function UnitPriceCard({
   apartment,
-  title = "평형별 분양가",
+  title,
 }: Props) {
+  const privateRental = apartment.housingSupplyType === "privateRental";
+  const displayTitle = title ?? (privateRental ? "평형별 임대보증금" : "평형별 분양가");
   const info = apartment.priceInfo;
   const units = info?.units ?? [];
   const average = info?.averagePricePerPyeong;
@@ -344,12 +350,12 @@ export default function UnitPriceCard({
         </p>
 
         <h2 className="mt-1 text-xl font-extrabold sm:text-2xl">
-          {title}
+          {displayTitle}
         </h2>
 
         <div className="mt-4 rounded-xl border border-zinc-100 bg-zinc-50 p-4 sm:mt-5 sm:rounded-2xl sm:p-5">
           <p className="text-[10px] font-semibold text-zinc-500 sm:text-xs">
-            분양가
+            {privateRental ? "임대보증금" : "분양가"}
           </p>
 
           <p className="mt-1 break-keep text-lg font-black text-zinc-900 sm:mt-2 sm:text-xl">
@@ -360,8 +366,7 @@ export default function UnitPriceCard({
         </div>
 
         <p className="mt-3 text-[10px] leading-5 text-zinc-400 sm:mt-4 sm:text-xs">
-          평형별 분양가는 청약홈 연동 또는
-          관리자 입력 후 표시됩니다.
+          {privateRental ? "임대보증금과 월 임대료는 계약조건을 함께 확인해주세요." : "평형별 가격과 적용 계약조건을 확인해주세요."}
         </p>
       </section>
     );
@@ -375,21 +380,19 @@ export default function UnitPriceCard({
         </p>
 
         <h2 className="mt-1 text-xl font-extrabold sm:text-2xl">
-          {title}
+          {displayTitle}
         </h2>
 
         <p className="mt-1 break-keep text-xs leading-5 text-zinc-500 sm:mt-2 sm:text-sm sm:leading-6">
-          관리자가 최저가를 입력한 평형은 최저 분양가를,
-          청약홈 최고가만 있는 평형은 최고 공급가를 보여줍니다.
-          펼치면 타입별 가격 범위를 확인할 수 있습니다.
+          {privateRental ? "등록된 임대보증금 기준입니다. 월 임대료와 전세형 조건은 계약조건을 함께 확인해주세요." : "등록된 최저가 또는 최고 공급가 기준입니다. 각 평형을 펼치면 타입별 가격을 확인할 수 있습니다."}
         </p>
       </div>
 
       {units.length > 0 && (
         <div
           className="
-            mt-5 grid grid-cols-2 gap-2
-            sm:gap-4 lg:mt-7
+            mt-5 grid grid-cols-1 gap-3
+            sm:grid-cols-2             sm:gap-4 lg:mt-7
             lg:grid-cols-2 lg:gap-5
           "
         >
@@ -397,12 +400,14 @@ export default function UnitPriceCard({
             <UnitCard
               key={`${unit.area}-${index}`}
               unit={unit}
+              privateRental={privateRental}
             />
           ))}
         </div>
       )}
 
-      <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-6 sm:gap-3">
+      <div className="mt-4 grid gap-3 sm:mt-6">
+        {!privateRental && (validPrice(average) || apartment.priceDetail?.pricePerPyeong) && (
         <div className="min-w-0 rounded-xl bg-zinc-50 p-3 sm:rounded-2xl sm:p-4">
           <p className="text-[10px] font-semibold text-zinc-500 sm:text-xs">
             평균 평당가
@@ -417,6 +422,8 @@ export default function UnitPriceCard({
                 "확인 중"}
           </p>
         </div>
+        )}
+
 
         <div className="min-w-0 rounded-xl bg-blue-50 p-3 sm:rounded-2xl sm:p-4">
           <p className="text-[10px] font-semibold text-blue-700 sm:text-xs">
@@ -424,8 +431,8 @@ export default function UnitPriceCard({
           </p>
 
           <p className="mt-1 line-clamp-3 break-keep text-[10px] font-bold leading-4 text-blue-900/80 sm:mt-2 sm:text-sm sm:leading-6">
-            {info?.note ||
-              "청약홈 연동 가격으로, 실제 계약 전 모집공고 공급금액표를 다시 확인해주세요."}
+            {(privateRental && info?.note?.includes("청약홈") ? "" : info?.note) ||
+              (privateRental ? "등록된 임대보증금 기준이며 월 임대료는 별도입니다. 최신 임대조건을 확인해주세요." : "등록된 공급금액 기준입니다. 계약 전 모집공고와 최신 안내를 확인해주세요.")}
           </p>
         </div>
       </div>

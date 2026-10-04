@@ -439,7 +439,7 @@ export default function SubscriptionDetail({
           청약 일정
         </h2>
 
-        <p className="mt-1 text-xs leading-5 text-zinc-500 sm:mt-2 sm:text-sm sm:leading-6">
+        <p className="mt-1 text-sm leading-6 text-zinc-500 sm:mt-2 sm:text-sm sm:leading-6">
           모집공고부터 계약기간까지 주요 일정을 확인하세요.
         </p>
 
@@ -539,7 +539,7 @@ export default function SubscriptionDetail({
               단지 사진·평면정보
             </h2>
 
-            <p className="mt-1 text-xs leading-5 text-zinc-500 sm:mt-2 sm:text-sm sm:leading-6">
+            <p className="mt-1 text-sm leading-6 text-zinc-500 sm:mt-2 sm:text-sm sm:leading-6">
               입지환경과 평면도, 커뮤니티 이미지를 확인하세요.
             </p>
           </header>
@@ -556,6 +556,8 @@ export default function SubscriptionDetail({
       {/* 청약 상담·알림 */}
       <section
         id="inquiry"
+        tabIndex={-1}
+        aria-label="청약 상담 및 알림 신청폼"
         className="scroll-mt-24"
       >
         <SubscriptionAlertForm
