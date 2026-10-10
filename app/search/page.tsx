@@ -17,68 +17,98 @@ const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
   "https://jibnun.com";
 
-/*
- * 검색페이지 메타데이터는 정적으로 유지합니다.
- *
- * /search는 검색엔진 색인을 허용하고,
- * 검색어·필터가 붙은 주소도 canonical을 /search로 통일합니다.
- */
-export const metadata: Metadata = {
-  title: "전국 분양 아파트 지도검색",
-
-  description:
-    "집눈에서 전국 분양 아파트와 청약 단지, 선착순 분양 정보를 지도와 목록으로 검색하고 비교하세요.",
-
-  alternates: {
-    canonical: `${SITE_URL}/search`,
-  },
-
-  robots: {
-    index: true,
-    follow: true,
-
-    googleBot: {
-      index: true,
-      follow: true,
-
-      "max-image-preview": "large",
-      "max-snippet": -1,
-      "max-video-preview": -1,
-    },
-  },
-
-  openGraph: {
-    type: "website",
-    locale: "ko_KR",
-    url: `${SITE_URL}/search`,
-    siteName: "집눈",
-
-    title: "전국 분양 아파트 지도검색 | 집눈",
-
-    description:
-      "전국 청약·선착순 분양 단지를 지도에서 찾고 분양가와 계약조건을 비교하세요.",
-
-    images: [
-      {
-        url: `${SITE_URL}/opengraph-image`,
-        width: 1200,
-        height: 630,
-        alt: "집눈 | 전국 부동산을 한눈에",
-      },
-    ],
-  },
-
-  twitter: {
-    card: "summary_large_image",
-
-    title: "전국 분양 아파트 지도검색 | 집눈",
-
-    description:
-      "전국 청약·선착순 분양 단지를 지도에서 검색하고 비교하세요.",
-
-    images: [`${SITE_URL}/opengraph-image`],
-  },
+type SearchPageProps = {
+  searchParams?: Promise<
+    Record<string, string | string[] | undefined>
+  >;
 };
+
+/*
+ * /search 자체는 대표 검색 페이지이므로 색인을 허용합니다.
+ *
+ * 반면 /search?q=..., /search?recent=... 같은 검색결과 URL은
+ * 조합이 무한히 늘어날 수 있고 내용·제목 중복 진단의 원인이 되므로
+ * noindex, follow 처리합니다.
+ *
+ * canonical은 항상 /search로 통일합니다.
+ */
+export async function generateMetadata({
+  searchParams,
+}: SearchPageProps): Promise<Metadata> {
+  const params = searchParams
+    ? await searchParams
+    : {};
+
+  const hasSearchParams =
+    Object.keys(params).length > 0;
+
+  return {
+    title: "전국 분양 아파트 지도검색",
+
+    description:
+      "집눈에서 전국 분양 아파트와 청약 단지, 선착순 분양 정보를 지도와 목록으로 검색하고 비교하세요.",
+
+    alternates: {
+      canonical: `${SITE_URL}/search`,
+    },
+
+    robots: hasSearchParams
+      ? {
+          index: false,
+          follow: true,
+
+          googleBot: {
+            index: false,
+            follow: true,
+          },
+        }
+      : {
+          index: true,
+          follow: true,
+
+          googleBot: {
+            index: true,
+            follow: true,
+
+            "max-image-preview": "large",
+            "max-snippet": -1,
+            "max-video-preview": -1,
+          },
+        },
+
+    openGraph: {
+      type: "website",
+      locale: "ko_KR",
+      url: `${SITE_URL}/search`,
+      siteName: "집눈",
+
+      title: "전국 분양 아파트 지도검색 | 집눈",
+
+      description:
+        "전국 청약·선착순 분양 단지를 지도에서 찾고 분양가와 계약조건을 비교하세요.",
+
+      images: [
+        {
+          url: `${SITE_URL}/opengraph-image`,
+          width: 1200,
+          height: 630,
+          alt: "집눈 | 전국 부동산을 한눈에",
+        },
+      ],
+    },
+
+    twitter: {
+      card: "summary_large_image",
+
+      title: "전국 분양 아파트 지도검색 | 집눈",
+
+      description:
+        "전국 청약·선착순 분양 단지를 지도에서 검색하고 비교하세요.",
+
+      images: [`${SITE_URL}/opengraph-image`],
+    },
+  };
+}
 
 function SearchLoading() {
   return (
