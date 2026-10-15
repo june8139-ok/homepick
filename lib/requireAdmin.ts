@@ -1,24 +1,35 @@
-import { redirect } from "next/navigation";
+import "server-only";
 
 import {
-  createClient,
-} from "./supabase/server";
+  redirect,
+} from "next/navigation";
+
+import {
+  getAdminAuth,
+} from "./adminAuth";
 
 export async function requireAdmin() {
-  const supabase =
-    await createClient();
+  const auth =
+    await getAdminAuth();
 
-  const {
-    data: { user },
-  } =
-    await supabase.auth.getUser();
+  if (!auth.ok) {
+    if (auth.status === 503) {
+      throw new Error(
+        "ADMIN_EMAIL 또는 ADMIN_EMAILS 환경변수가 설정되지 않았습니다."
+      );
+    }
 
-  if (!user) {
-    redirect("/login");
+    redirect(
+      auth.status === 403
+        ? "/login?error=forbidden"
+        : "/login"
+    );
   }
 
   return {
-    supabase,
-    user,
+    supabase:
+      auth.supabase,
+    user:
+      auth.user,
   };
 }

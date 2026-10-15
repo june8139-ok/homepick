@@ -1,4 +1,8 @@
 import {
+  getAdminAuth,
+} from "../../../../../lib/adminAuth";
+
+import {
   revalidateTag,
 } from "next/cache";
 
@@ -6,10 +10,6 @@ import {
   NextRequest,
   NextResponse,
 } from "next/server";
-
-import {
-  createClient,
-} from "../../../../../lib/supabase/server";
 
 import {
   supabaseAdmin,
@@ -39,29 +39,18 @@ export async function POST(
   request: NextRequest
 ) {
   try {
-    const supabase =
-      await createClient();
+    const auth =
+      await getAdminAuth();
 
-    const {
-      data: {
-        user,
-      },
-      error:
-        userError,
-    } =
-      await supabase.auth.getUser();
-
-    if (
-      userError ||
-      !user
-    ) {
+    if (!auth.ok) {
       return NextResponse.json(
         {
           message:
-            "관리자 로그인이 필요합니다.",
+            auth.message,
         },
         {
-          status: 401,
+          status:
+            auth.status,
         }
       );
     }

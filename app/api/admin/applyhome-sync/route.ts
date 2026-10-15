@@ -1,12 +1,13 @@
 import {
+  getAdminAuth,
+} from "../../../../lib/adminAuth";
+
+import {
     NextResponse,
   } from "next/server";
   
-  import {
-    createClient,
-  } from "../../../../lib/supabase/server";
   
-  import {
+import {
     syncApplyHomeApartments,
   } from "../../../../lib/applyHomeSync";
   
@@ -17,38 +18,23 @@ import {
   
   export async function POST() {
     try {
-      /*
-       * 브라우저에 동기화 비밀키를 노출하지 않고
-       * 현재 관리자 로그인 세션으로 권한을 확인합니다.
-       */
-      const supabase =
-        await createClient();
-  
-      const {
-        data: {
-          user,
-        },
-        error:
-          userError,
-      } =
-        await supabase.auth.getUser();
-  
-      if (
-        userError ||
-        !user
-      ) {
+      const auth =
+        await getAdminAuth();
+
+      if (!auth.ok) {
         return NextResponse.json(
           {
             success: false,
             message:
-              "관리자 로그인이 필요합니다.",
+              auth.message,
           },
           {
-            status: 401,
+            status:
+              auth.status,
           }
         );
       }
-  
+
       const result =
         await syncApplyHomeApartments();
   

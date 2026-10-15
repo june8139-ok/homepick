@@ -1,12 +1,13 @@
 import {
+  getAdminAuth,
+} from "../../../../../lib/adminAuth";
+
+import {
     NextResponse,
   } from "next/server";
   
-  import {
-    createClient,
-  } from "../../../../../lib/supabase/server";
   
-  import {
+import {
     supabaseAdmin,
   } from "../../../../../lib/supabaseAdmin";
   
@@ -15,37 +16,24 @@ import {
   
   export async function GET() {
     try {
-      /*
-       * 관리자 로그인 여부를 확인합니다.
-       */
-      const supabase =
-        await createClient();
-  
-      const {
-        data: {
-          user,
-        },
-        error:
-          userError,
-      } =
-        await supabase.auth.getUser();
-  
-      if (
-        userError ||
-        !user
-      ) {
+      const auth =
+        await getAdminAuth();
+
+      if (!auth.ok) {
         return NextResponse.json(
           {
             message:
-              "관리자 로그인이 필요합니다.",
+              auth.message,
           },
           {
-            status: 401,
+            status:
+              auth.status,
           }
         );
       }
-  
+
       /*
+       * 관리자 목록은 서비스 역할 키로 조회합니다.      /*
        * 관리자 목록은 서비스 역할 키로 조회합니다.
        * 따라서 is_published가 false인 초안도
        * 관리자 화면에서는 확인할 수 있습니다.

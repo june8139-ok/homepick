@@ -1,13 +1,14 @@
 import {
+  getAdminAuth,
+} from "../../../../../lib/adminAuth";
+
+import {
     NextRequest,
     NextResponse,
   } from "next/server";
   
-  import {
-    createClient,
-  } from "../../../../../lib/supabase/server";
   
-  import {
+import {
     supabaseAdmin,
   } from "../../../../../lib/supabaseAdmin";
   
@@ -48,30 +49,22 @@ import {
     request: NextRequest
   ) {
     try {
-      const authClient =
-        await createClient();
-  
-      const {
-        data: { user },
-        error: authError,
-      } =
-        await authClient.auth.getUser();
-  
-      if (
-        authError ||
-        !user
-      ) {
+      const auth =
+        await getAdminAuth();
+
+      if (!auth.ok) {
         return NextResponse.json(
           {
             message:
-              "관리자 로그인이 필요합니다.",
+              auth.message,
           },
           {
-            status: 401,
+            status:
+              auth.status,
           }
         );
       }
-  
+
       const body =
         (await request.json()) as {
           apartmentId?: string;

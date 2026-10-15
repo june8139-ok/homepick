@@ -1,13 +1,24 @@
-import type { ReactNode } from "react";
+import type {
+  ReactNode,
+} from "react";
 
 import AdminShell from "../../components/Admin/AdminShell";
+import {
+  requireAdmin,
+} from "../../lib/requireAdmin";
 
 interface AdminLayoutProps {
   children: ReactNode;
 }
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: AdminLayoutProps) {
-  return <AdminShell>{children}</AdminShell>;
+  await requireAdmin();
+
+  return (
+    <AdminShell>
+      {children}
+    </AdminShell>
+  );
 }

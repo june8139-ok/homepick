@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 
 import TodayTasks from "../../components/Admin/TodayTasks";
 import ApplyHomeSyncCard from "../../components/Admin/ApplyHomeSyncCard";
-import { supabase } from "../../lib/supabase";
 import { createClient } from "../../lib/supabase/browser";
 import { parseSubscriptionDate } from "../../lib/subscriptionVisibility";
 
@@ -146,40 +145,62 @@ export default function AdminDashboardPage() {
     async function fetchApartments() {
       setLoading(true);
 
-      const { data, error } =
-        await supabase
-          .from("apartments")
-          .select(
-            "id, slug, name, status, city, region, is_published, hero_image, latitude, longitude, created_at, updated_at, data"
-          )
-          .order("updated_at", {
-            ascending: false,
-          });
+      try {
+        const response =
+          await fetch(
+            "/api/admin/apartments/list",
+            {
+              method: "GET",
+              cache: "no-store",
+              credentials:
+                "same-origin",
+            }
+          );
 
-      if (!mounted) {
-        return;
-      }
+        const result =
+          (await response.json()) as {
+            apartments?: ApartmentRow[];
+            message?: string;
+          };
 
-      if (error) {
+        if (!mounted) {
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(
+            result.message ||
+              "단지 현황을 불러오지 못했습니다."
+          );
+        }
+
+        setApartments(
+          result.apartments ?? []
+        );
+      } catch (error) {
+        if (!mounted) {
+          return;
+        }
+
         console.error(
           "관리자 대시보드 조회 오류:",
           error
         );
 
         alert(
-          `단지 현황을 불러오지 못했습니다.\n\n${error.message}`
+          `단지 현황을 불러오지 못했습니다.\n\n${
+            error instanceof Error
+              ? error.message
+              : "알 수 없는 오류"
+          }`
         );
 
         setApartments([]);
-        setLoading(false);
-        return;
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
       }
-
-      setApartments(
-        (data ?? []) as ApartmentRow[]
-      );
-
-      setLoading(false);
     }
 
     fetchApartments();
