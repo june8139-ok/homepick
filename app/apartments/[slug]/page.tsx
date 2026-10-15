@@ -81,20 +81,6 @@ function cleanText(
     .trim();
 }
 
-function truncateText(
-  value: string,
-  maximum = 155
-) {
-  if (value.length <= maximum) {
-    return value;
-  }
-
-  return `${value.slice(
-    0,
-    maximum - 1
-  ).trim()}…`;
-}
-
 function parseHouseholdCount(
   value?: string | number | null
 ) {
@@ -245,6 +231,10 @@ function getListingHubLink(
 function getSeoTitle(
   apartment: Apartment
 ) {
+  if (isSoldOutListing(apartment) && isPrivateRentalApartment(apartment)) {
+    return `${apartment.name} 민간임대 모집완료·임대보증금`;
+  }
+
   /*
    * SEO 핵심 원칙:
    * 단지명을 항상 제목 맨 앞에 둡니다.
@@ -282,91 +272,75 @@ function getSeoTitle(
   return `${apartment.name} 분양정보`;
 }
 
-function getSeoDescription(
-  apartment: Apartment
-) {
-  if (
-    isPrivateRentalApartment(
-      apartment
-    )
-  ) {
-    const {
-      hasJeonse,
-      hasMonthlyRent,
-    } = getRentalKeywordFlags(
-      apartment
-    );
+/** 계약조건의 완결된 항목만 사용합니다. 전체 타입의 최고가는 설명에 넣지 않습니다. */
+function getSeoConditionClauses(apartment: Apartment) {
+  const candidates = [
+    apartment.priceDetail?.contractPrice,
+    apartment.priceDetail?.middlePayment,
+    ...(apartment.condition || "").split(/[·|\n]+/),
+  ];
+  const selected: string[] = [];
+  for (const candidate of candidates) {
+    const text = cleanText(candidate).replace(/[。.]$/, "");
+    // 긴 문장을 중간에서 잘라 조건·단서를 잃지 않도록 통째로 생략합니다.
+    if (!text || text.length > 50 || /최고|분양가|공급가/.test(text)) continue;
+    const key = text.replace(/\s+/g, "");
+    if (selected.some(item => {
+      const previous = item.replace(/\s+/g, "");
+      return previous === key || previous.includes(key) || key.includes(previous);
+    })) continue;
+    selected.push(text);
+  }
+  return selected;
+}
 
-    const searchAliases =
-      getSearchAliases(apartment);
+/** 글자 중간을 자르지 않고 들어갈 수 있는 정보 항목만 선택합니다. */
+function composeSeoDescription(introduction: string, details: string[], maximum = 155) {
+  const selected: string[] = [];
+  for (const detail of details.map(cleanText).filter(Boolean)) {
+    const candidate = `${introduction} ${[...selected, detail].join(" · ")}.`;
+    if (candidate.length <= maximum) selected.push(detail);
+  }
+  return selected.length ? `${introduction} ${selected.join(" · ")}.` : introduction;
+}
 
-    const rentalTerms = [
-      `${apartment.name} 민간임대`,
-      searchAliases[0] || "",
-      apartment.region,
-      apartment.priceDetail
-        ?.contractPrice,
-      apartment.condition,
-      hasJeonse
-        ? "전세조건"
-        : "",
-      hasMonthlyRent
-        ? "월 임대료"
-        : "",
-      apartment.projectInfo
-        ?.totalHouseholds,
-      apartment.projectInfo
-        ?.moveInDate
-        ? `입주 예정 ${apartment.projectInfo.moveInDate}`
-        : "",
-    ]
-      .map(cleanText)
-      .filter(Boolean);
+function getSeoDescription(apartment: Apartment) {
+  const name = cleanText(apartment.name);
+  const rental = isPrivateRentalApartment(apartment);
+  const stage = getListingStage(apartment);
 
-    return truncateText(
-      `${rentalTerms.join(
-        " · "
-      )}. 임대보증금, 임대조건, 임대기간과 단지 규모·입지환경을 집눈에서 확인하세요.`
-    );
+  // 완료된 단지의 과거 계약혜택을 현재 적용 조건처럼 소개하지 않습니다.
+  if (stage === "soldOut") {
+    return rental
+      ? `${name} 민간임대 모집이 완료되었습니다. 모집 당시 임대보증금·임대조건과 평면도·입지 등 단지 정보를 확인하세요.`
+      : `${name} 분양이 완료되었습니다. 당시 분양가와 계약조건, 평면도·입지 등 단지 정보를 확인하세요.`;
+  }
+  if (stage === "completed") {
+    return `${name}의 상세정보 제공이 종료되었습니다. 집눈에서 다른 단지의 분양·청약 정보를 확인하세요.`;
   }
 
-  const status =
-    getStatusKeyword(apartment);
+  const introduction = rental
+    ? `${name} 민간임대의 임대보증금·평면도·임대조건을 확인하세요.`
+    : stage === "subscription"
+      ? `${name}의 청약일정·타입별 분양가·평면도를 확인하세요.`
+      : stage === "firstCome"
+        ? `${name} 선착순 분양의 타입별 가격·평면도·계약조건을 확인하세요.`
+        : `${name}의 가격·평면도·입지 등 단지 정보를 확인하세요.`;
 
-  const searchAliases =
-    getSearchAliases(apartment);
+  const moveInDate = cleanText(apartment.projectInfo?.moveInDate);
+  const households = cleanText(apartment.projectInfo?.totalHouseholds);
+  // 전체 주소와 검색 별칭은 본문에 유지하고 설명문에서는 핵심 정보 공간을 확보합니다.
+  const location = [apartment.cityName || apartment.city, apartment.districtName || apartment.district]
+    .map(cleanText).filter(Boolean)
+    .filter((item, index, items) => items.indexOf(item) === index).join(" ");
 
-  const summaryParts = [
-    `${apartment.name} ${status}`,
-    searchAliases[0] || "",
-    apartment.region,
-    apartment.priceDetail?.salePrice ||
-      apartment.price,
-    apartment.priceDetail
-      ?.contractPrice,
-    apartment.condition,
-    apartment.projectInfo
-      ?.totalHouseholds,
-    apartment.projectInfo
-      ?.moveInDate
-      ? `입주 예정 ${apartment.projectInfo.moveInDate}`
-      : "",
-  ]
-    .map(cleanText)
-    .filter(Boolean);
-
-  const listingStage =
-    getListingStage(apartment);
-
-  return truncateText(
-    listingStage === "soldOut"
-      ? `${summaryParts.join(
-          " · "
-        )}. 분양 당시 공급가, 평면도, 입지환경과 단지 정보를 집눈에서 확인하세요.`
-      : `${summaryParts.join(
-          " · "
-        )}. 단지 규모, 평면도, 입지환경과 최신 분양 정보를 집눈에서 확인하세요.`
-  );
+  const details = [
+    ...getSeoConditionClauses(apartment).slice(0, 3),
+    moveInDate ? (/입주/.test(moveInDate) ? moveInDate : `입주 예정 ${moveInDate}`) : "",
+    households ? (/세대|실/.test(households) ? households : `총 ${households}세대`) : "",
+    location,
+  ];
+  return composeSeoDescription(introduction, details);
 }
 
 function getSeoKeywords(
