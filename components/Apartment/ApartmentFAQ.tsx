@@ -426,11 +426,88 @@ function createSaleFaqs(
   return faqs.slice(0, 4);
 }
 
+function createRentalFaqs(apartment: Apartment): ApartmentFaqItem[] {
+  const name = cleanText(apartment.name);
+  const price = getPriceText(apartment);
+  const stage = getListingStage(apartment);
+  const faqs: ApartmentFaqItem[] = [{
+    question: `${name}, 현재 임차인을 모집하고 있나요?`,
+    answer: stage === "firstCome"
+      ? "집눈 등록 정보 기준으로 선착순 임차인 모집 단계입니다. 신청 가능한 타입과 잔여 호실은 상담을 통해 최신 현황을 확인해주세요."
+      : "민간임대 단지로 등록되어 있습니다. 모집 일정과 신청 방법은 해당 단지의 임차인 모집 안내를 기준으로 확인해주세요.",
+  }, {
+    question: `${name}, 임대보증금과 임대조건은 어떻게 되나요?`,
+    answer: (price ? `등록된 대표 임대보증금은 ${price}입니다. ` : "타입별 임대보증금은 이 페이지의 임대조건 안내에서 확인할 수 있습니다. ") +
+      "타입과 계약 방식에 따라 조건이 달라질 수 있습니다. 선택 가능한 임대 방식과 세부 납부조건은 아래 계약조건·혜택 상세 및 해당 단지의 계약 안내를 확인해주세요.",
+  }, {
+    question: `${name}, 임대기간과 계약 시 확인할 내용은 무엇인가요?`,
+    answer: "임대기간은 해당 단지의 모집 안내와 임대차계약서를 기준으로 확인해야 합니다. 보증금 납부 일정, 계약 갱신과 보증금 반환 조건을 함께 확인해주세요. 장기 민간임대라는 이유만으로 모든 단지의 임대기간이나 분양전환 조건이 같지는 않습니다.",
+  }];
+  const moveIn = getMoveInText(apartment);
+  const plans = getFloorPlanText(apartment);
+  if (moveIn) faqs.push({
+    question: `${name}, 입주 시기는 언제인가요?`,
+    answer: `등록된 입주 정보는 ${moveIn}입니다. 실제 입주 가능 시점은 사업주체의 최신 안내를 확인해주세요.`,
+  });
+  else if (plans) faqs.push({
+    question: `${name}, 어떤 평형·타입을 확인할 수 있나요?`,
+    answer: `등록된 평형·타입은 ${plans}입니다. 타입별 평면도는 이 페이지에서 확인할 수 있으며, 현재 신청 가능한 호실과는 다를 수 있습니다.`,
+  });
+  return faqs;
+}
+
+function createArchiveFaqs(apartment: Apartment): ApartmentFaqItem[] {
+  const name = apartment.name;
+  const soldOut = getListingStage(apartment) === "soldOut";
+  const faqs: ApartmentFaqItem[] = [{
+    question: `${name}, 현재 어떤 정보가 제공되나요?`,
+    answer: soldOut
+      ? "집눈에 분양완료로 등록된 단지입니다. 신규 계약 및 방문예약은 진행하지 않으며, 분양 당시 공급정보와 단지 자료를 보관하고 있습니다."
+      : "기존 아파트의 단지 정보를 제공합니다. 보관된 분양가와 계약조건은 현재 매매가·전세가 또는 신규 공급 조건을 의미하지 않습니다.",
+  }];
+  const price = getPriceText(apartment);
+  if (price) faqs.push({
+    question: `${name}, 보관된 분양가 정보는 무엇인가요?`,
+    answer: `등록 자료의 대표 가격은 ${price}입니다. 분양 당시 참고자료이며 현재 시세가 아닙니다. 주택형·층·동호수별 금액은 당시 가격표를 확인해주세요.`,
+  });
+  const conditions = [getContractText(apartment), getMiddlePaymentText(apartment), getBalanceText(apartment)].filter(Boolean);
+  if (conditions.length) faqs.push({
+    question: `${name}, 분양 당시 납부 조건은 어떻게 안내됐나요?`,
+    answer: `보관된 납부 조건은 ${conditions.join(" · ")}입니다. 당시 등록 자료이며 현재 적용되는 계약조건이나 혜택을 의미하지 않습니다.`,
+  });
+  const supply = getSupplyText(apartment);
+  const plans = getFloorPlanText(apartment);
+  if (supply || plans) faqs.push({
+    question: `${name}, 세대수와 평형 자료를 볼 수 있나요?`,
+    answer: [supply, plans ? `등록된 평형·타입은 ${plans}입니다` : ""].filter(Boolean).join(". ") + ". 평면도와 단지 자료는 이 페이지에서 확인할 수 있으며 현재 잔여세대를 뜻하지 않습니다.",
+  });
+  const moveIn = getMoveInText(apartment);
+  if (faqs.length < 4 && moveIn) faqs.push({
+    question: `${name}, 등록된 입주 정보는 무엇인가요?`,
+    answer: `등록 자료의 입주 정보는 ${moveIn}입니다. 예정 일정은 변경될 수 있으므로 실제 입주 여부와 일정은 사업주체 또는 관리사무소 안내를 확인해주세요.`,
+  });
+  return faqs.slice(0, 4);
+}
+
 export function getApartmentFaqItems(
   apartment: Apartment
 ): ApartmentFaqItem[] {
   const listingStage =
     getListingStage(apartment);
+
+  if (listingStage === "completed") return [];
+  if (listingStage === "soldOut" || listingStage === "existing") {
+    const faqs = createArchiveFaqs(apartment);
+    if (apartment.housingSupplyType !== "privateRental") return faqs;
+    return faqs.map(({ question, answer }) => ({
+      question: question.replace(/분양가/g, "임대보증금").replace(/분양 당시/g, "모집 당시"),
+      answer: answer.replace(/분양완료/g, "모집완료").replace(/신규 계약 및 방문예약/g, "신규 임대차계약 및 방문예약").replace(/분양 당시/g, "모집 당시").replace(/분양가/g, "임대보증금"),
+    }));
+  }
+
+  if (apartment.housingSupplyType === "privateRental") {
+    return createRentalFaqs(apartment);
+  }
 
   if (
     listingStage === "subscription"
@@ -450,6 +527,8 @@ export default function ApartmentFAQ({
 }: {
   apartment: Apartment;
 }) {
+  const isRental = apartment.housingSupplyType === "privateRental";
+  const isArchive = ["soldOut", "existing"].includes(getListingStage(apartment));
   const faqs =
     getApartmentFaqItems(
       apartment
@@ -476,7 +555,7 @@ export default function ApartmentFAQ({
       </h2>
 
       <p className="mt-2 break-keep text-xs leading-5 text-zinc-500 sm:text-sm sm:leading-6">
-        현재 등록된 분양·청약 정보를 기준으로 자주 묻는 내용을 정리했습니다.
+        {isArchive ? "보관된 공급자료와 단지 정보를 기준으로 정리했습니다." : isRental ? "등록된 임차인 모집 정보와 임대조건을 기준으로 정리했습니다." : "현재 등록된 분양·청약 정보를 기준으로 자주 묻는 내용을 정리했습니다."}
       </p>
 
       <div className="mt-4 divide-y divide-zinc-200 overflow-hidden rounded-xl border border-zinc-200 sm:mt-5 sm:rounded-2xl">
@@ -533,7 +612,7 @@ export default function ApartmentFAQ({
       </div>
 
       <p className="mt-3 break-keep text-[10px] leading-5 text-zinc-400 sm:text-xs">
-        분양가, 계약조건, 잔여세대와 일정은 변경될 수 있으므로 계약 또는 청약 전 최신 공고와 공급계약서를 확인해주세요.
+        {isArchive ? "보관된 가격·계약조건은 현재 시세나 적용 혜택을 의미하지 않습니다. 자료의 기준 시점을 확인해주세요." : isRental ? "임대보증금, 임대조건과 모집 일정은 변경될 수 있습니다. 계약 전 최신 모집 안내와 임대차계약서를 확인해주세요." : "분양가, 계약조건, 잔여세대와 일정은 변경될 수 있으므로 계약 또는 청약 전 최신 공고와 공급계약서를 확인해주세요."}
       </p>
     </section>
   );
