@@ -1,6 +1,9 @@
 "use client";
 
+import { getFirstComeReviewState, readFirstComeReview, type FirstComeReview } from "../../../lib/firstComeReview";
+
 import Link from "next/link";
+import FirstComeReviewControls from "../../../components/Admin/FirstComeReviewControls";
 import {
   Suspense,
   useEffect,
@@ -23,6 +26,8 @@ type ListingStage =
   | "existing";
 
 type AdminTask =
+  | "review"
+  | "reviewExcluded"
   | "transition"
   | "pending"
   | "image"
@@ -65,6 +70,7 @@ type AdminApartmentRow = {
     longitude?: number | null;
 
     listingStage?: ListingStage;
+    firstComeReview?: FirstComeReview;
 
     images?: {
       hero?: string | string[] | null;
@@ -112,6 +118,8 @@ function getAdminTask(
   value: string | null
 ): AdminTask {
   if (
+    value === "review" ||
+    value === "reviewExcluded" ||
     value === "transition" ||
     value === "pending" ||
     value === "image" ||
@@ -355,6 +363,7 @@ function isTransitionCandidate(
   referenceDate = new Date()
 ) {
   if (
+    readFirstComeReview(apartment.data).excluded === true ||
     getListingStage(apartment) !==
     "subscription"
   ) {
@@ -420,6 +429,10 @@ function getTaskInformation(
   task: AdminTask
 ) {
   switch (task) {
+    case "review":
+      return { eyebrow: "REVIEW TASK", title: "선착순 재확인 필요", description: "90일 이상 미확인, 확인 이력 없음, 확인 예정일 경과 순으로 표시합니다.", className: "border-rose-200 bg-rose-50 text-rose-900" };
+    case "reviewExcluded":
+      return { eyebrow: "EXCLUDED TASK", title: "추적 제외 단지", description: "전환·재확인 추적에서 제외한 단지입니다. 공개 상태는 별도로 유지됩니다.", className: "border-zinc-200 bg-zinc-50 text-zinc-900" };
     case "transition":
       return {
         eyebrow: "TRANSITION TASK",
@@ -773,6 +786,7 @@ ${
       const result =
         (await response.json()) as {
           message?: string;
+          apartment?: { data: AdminApartmentRow["data"]; status: string | null };
         };
 
       if (!response.ok) {
@@ -799,7 +813,8 @@ ${
           item.id === apartment.id
             ? {
                 ...item,
-                data: nextData,
+                data: result.apartment?.data ?? nextData,
+                status: result.apartment?.status ?? "선착순 분양",
               }
             : item
         )
@@ -1252,6 +1267,8 @@ ${
               stage === stageFilter;
 
             let matchesTask = true;
+            if (task === "review") matchesTask = getFirstComeReviewState(apartment.data, stage).due;
+            if (task === "reviewExcluded") matchesTask = readFirstComeReview(apartment.data).excluded === true && ["subscription", "firstCome"].includes(stage);
 
             if (
               task === "transition"
@@ -1292,6 +1309,13 @@ ${
           }
         );
 
+      if (task === "review") {
+        return [...result].sort((a, b) => {
+          const left = getFirstComeReviewState(a.data, getListingStage(a));
+          const right = getFirstComeReviewState(b.data, getListingStage(b));
+          return right.priority - left.priority || (right.elapsedDays ?? -1) - (left.elapsedDays ?? -1) || a.name.localeCompare(b.name, "ko");
+        });
+      }
       if (sort === "name") {
         return [...result].sort(
           (a, b) =>
@@ -1351,7 +1375,11 @@ ${
     getTaskInformation(task);
 
   const currentTaskCount =
-    task === "transition"
+    task === "review"
+      ? apartments.filter(a => getFirstComeReviewState(a.data, getListingStage(a)).due).length
+      : task === "reviewExcluded"
+        ? apartments.filter(a => readFirstComeReview(a.data).excluded === true && ["subscription", "firstCome"].includes(getListingStage(a))).length
+        : task === "transition"
       ? taskCounts.transition
       : task === "pending"
         ? taskCounts.pending
@@ -1545,6 +1573,10 @@ ${
             </div>
           </div>
 
+          <div className="mt-4 flex flex-wrap gap-2 text-sm font-bold">
+            <Link className="rounded-xl border border-rose-200 px-4 py-2 text-rose-700" href="/admin/apartments?task=review">선착순 재확인</Link>
+            <Link className="rounded-xl border border-zinc-200 px-4 py-2 text-zinc-600" href="/admin/apartments?task=reviewExcluded">추적 제외 관리</Link>
+          </div>
           <div className="mt-4 flex flex-wrap gap-2 border-t border-zinc-100 pt-4">
             <FilterButton
               active={
@@ -1877,6 +1909,13 @@ ${
                         </button>
                       </div>
                     </div>
+                    <FirstComeReviewControls
+                      apartment={apartment}
+                      stage={stage}
+                      onSaved={saved => setApartments(previous => previous.map(item => item.id === saved.id ? {
+                        ...item, data: saved.data as AdminApartmentRow["data"], status: saved.status, updated_at: saved.updated_at,
+                      } : item))}
+                    />
                   </article>
                 );
               }

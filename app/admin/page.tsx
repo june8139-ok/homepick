@@ -1,5 +1,7 @@
 "use client";
 
+import { getFirstComeReviewState, readFirstComeReview, type FirstComeReview } from "../../lib/firstComeReview";
+
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -34,6 +36,7 @@ type ApartmentRow = {
 
   data?: {
     listingStage?: ListingStage;
+    firstComeReview?: FirstComeReview;
     cityName?: string;
     condition?: string;
 
@@ -291,7 +294,7 @@ export default function AdminDashboardPage() {
                 (24 * 60 * 60 * 1000)
             );
 
-          return elapsedDays >= 15;
+          return elapsedDays >= 15 && readFirstComeReview(apartment.data).excluded !== true;
         }
       ).length;
 
@@ -340,7 +343,10 @@ export default function AdminDashboardPage() {
         }
       ).length;
 
+    const reviewStates = apartments.map(a => getFirstComeReviewState(a.data, getListingStage(a), now));
     return {
+      reviewCount: reviewStates.filter(r => r.due).length,
+      urgentReviewCount: reviewStates.filter(r => r.urgent).length,
       transitionCount,
       pendingPublishCount,
       missingImageCount,
@@ -465,6 +471,8 @@ export default function AdminDashboardPage() {
         </div>
 
         <TodayTasks
+          reviewCount={todayTaskCounts.reviewCount}
+          urgentReviewCount={todayTaskCounts.urgentReviewCount}
           transitionCount={
             todayTaskCounts.transitionCount
           }
@@ -795,3 +803,4 @@ function StageBadge({
     </span>
   );
 }
+

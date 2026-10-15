@@ -1,3 +1,4 @@
+import { asRecord, updateFirstComeReview } from "../../../../../lib/firstComeReview";
 import {
   getAdminAuth,
 } from "../../../../../lib/adminAuth";
@@ -495,6 +496,18 @@ function mergeApartmentData(
       existingHistory;
   }
 
+  // 일반 편집 화면의 오래된 값이 전용 확인 기록을 덮어쓰지 않게 보호합니다.
+  if (existingData.firstComeReview !== undefined) {
+    mergedData.firstComeReview = existingData.firstComeReview;
+  } else {
+    delete mergedData.firstComeReview;
+  }
+  if (incomingData.listingStage === "firstCome" && typeof existingData.listingStage === "string" && existingData.listingStage !== "firstCome") {
+    const confirmed = updateFirstComeReview(mergedData, "confirmed", 30, "관리자 수정으로 선착순 전환 확인");
+    const review = asRecord(confirmed.firstComeReview);
+    review.firstComeStartedAt = review.lastConfirmedAt;
+    mergedData.firstComeReview = review;
+  }
   return mergedData;
 }
 
@@ -644,6 +657,7 @@ export async function POST(
               slug,
               name,
               is_published,
+              updated_at,
               source,
               applyhome_id,
               is_auto_created,
@@ -758,35 +772,16 @@ export async function POST(
           true;
       }
 
-      const {
-        data:
-          updatedApartment,
-        error:
-          updateError,
-      } =
-        await supabaseAdmin
-          .from(
-            "apartments"
-          )
-          .update(
-            updatePayload
-          )
-          .eq(
-            "id",
-            existingApartment.id
-          )
-          .select(
-            `
-              id,
-              slug,
-              name,
-              status,
-              is_published,
-              data
-            `
-          )
-          .single();
+      let updateQuery = supabaseAdmin.from("apartments").update(updatePayload).eq("id", existingApartment.id);
+      updateQuery = existingApartment.updated_at
+        ? updateQuery.eq("updated_at", existingApartment.updated_at)
+        : updateQuery.is("updated_at", null);
+      const { data: updatedApartment, error: updateError } = await updateQuery
+        .select("id, slug, name, status, is_published, data").single();
 
+      if (updateError?.code === "PGRST116") {
+        return NextResponse.json({ message: "다른 변경이 먼저 저장되었습니다. 입력 내용을 보관하고 새로고침한 뒤 다시 저장해 주세요." }, { status: 409 });
+      }
       if (
         updateError
       ) {
@@ -846,6 +841,12 @@ export async function POST(
     const createdAt =
       new Date().toISOString();
 
+    delete createdData.firstComeReview;
+    if (createdData.listingStage === "firstCome") {
+      const confirmed = updateFirstComeReview(createdData, "confirmed", 30, "선착순 신규 등록 확인");
+      // 신규 등록일은 실제 선착순 전환일과 다를 수 있습니다.
+      createdData.firstComeReview = confirmed.firstComeReview;
+    }
     createdData.lastMeaningfulUpdateAt =
       createdAt;
 
@@ -976,3 +977,4 @@ export async function POST(
     );
   }
 }
+

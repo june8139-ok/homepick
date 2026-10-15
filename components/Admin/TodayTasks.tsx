@@ -10,6 +10,8 @@ type TaskItem = {
 };
 
 type TodayTasksProps = {
+  reviewCount?: number;
+  urgentReviewCount?: number;
   transitionCount: number;
   pendingPublishCount: number;
   missingImageCount: number;
@@ -45,6 +47,8 @@ const toneStyles = {
 } as const;
 
 export default function TodayTasks({
+  reviewCount = 0,
+  urgentReviewCount = 0,
   transitionCount,
   pendingPublishCount,
   missingImageCount,
@@ -52,6 +56,14 @@ export default function TodayTasks({
   loading = false,
 }: TodayTasksProps) {
   const tasks: TaskItem[] = [
+    {
+      title: "선착순 재확인 필요",
+      count: reviewCount,
+      description: `확인 예정일이 되었거나 확인 이력이 없는 단지입니다. 90일 이상 미확인 ${urgentReviewCount}건.`,
+      href: "/admin/apartments?task=review",
+      buttonLabel: "재확인 대상 보기",
+      tone: "rose",
+    },
     {
       title: "선착순 전환 확인",
       count: transitionCount,
@@ -106,7 +118,7 @@ export default function TodayTasks({
         </p>
       </div>
 
-      <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         {tasks.map((task) => {
           const styles =
             toneStyles[task.tone];
@@ -165,3 +177,4 @@ export default function TodayTasks({
     </section>
   );
 }
+
