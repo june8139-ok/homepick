@@ -507,6 +507,13 @@ const getRegionData =
     const apartments =
       await getPublishedApartments();
 
+    const allRegionApartments = normalizedCity
+      ? apartments.filter((apartment) =>
+          Boolean(apartment.slug) &&
+          isApartmentInRegion(apartment, normalizedCity)
+        )
+      : [];
+
     const regionApartments =
       normalizedCity
         ? apartments
@@ -536,6 +543,7 @@ const getRegionData =
       cityName:
         normalizedCity,
       regionApartments,
+      allRegionApartments,
     };
   });
 
@@ -549,6 +557,7 @@ export async function generateMetadata({
     cityKey,
     cityName,
     regionApartments,
+    allRegionApartments,
   } = await getRegionData(
     city
   );
@@ -596,7 +605,7 @@ export async function generateMetadata({
 
   if (
     !cityKey ||
-    regionApartments.length ===
+    allRegionApartments.length ===
       0
   ) {
     return {
@@ -617,7 +626,7 @@ export async function generateMetadata({
 
   const representativeImage =
     getHeroImage(
-      regionApartments[0]
+      regionApartments[0] ?? allRegionApartments[0]
     );
 
   return {
@@ -1066,6 +1075,7 @@ export default async function RegionPage({
     cityKey,
     cityName,
     regionApartments,
+    allRegionApartments,
   } = await getRegionData(
     city
   );
@@ -1111,10 +1121,10 @@ export default async function RegionPage({
     );
 
   // Archived public listings remain reachable after active sales end.
-  const soldOutApartments = regionApartments.filter(
+  const soldOutApartments = allRegionApartments.filter(
     (apartment) => getListingStage(apartment) === "soldOut"
   );
-  const existingApartments = regionApartments.filter(
+  const existingApartments = allRegionApartments.filter(
     (apartment) => getListingStage(apartment) === "existing"
   );
 
@@ -1261,7 +1271,7 @@ export default async function RegionPage({
 
   if (
     !cityKey ||
-    regionApartments.length ===
+    allRegionApartments.length ===
       0
   ) {
     return (
