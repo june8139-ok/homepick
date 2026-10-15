@@ -144,8 +144,6 @@ export default function ReservationCard({
   floorPlanNames = [],
 }: ReservationCardProps) {
   const successRef = useRef<HTMLDivElement>(null);
-  const [inquiryId, setInquiryId] = useState("");
-  const [copyMessage, setCopyMessage] = useState("");
   const startedRef = useRef(false);
   const submittingRef = useRef(false);
 
@@ -175,16 +173,6 @@ export default function ReservationCard({
   useEffect(() => {
     if (isSuccess) successRef.current?.focus();
   }, [isSuccess]);
-
-  const copyInquiry = async () => {
-    const text = `관심 단지: ${apartmentName}\n접수번호: ${inquiryId}`;
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopyMessage("복사했습니다. 채팅창에 붙여넣어 보내주세요.");
-    } catch {
-      setCopyMessage("복사하지 못했습니다. 아래 단지명과 접수번호를 선택해 복사해주세요.");
-    }
-  };
 
   const inquiryType =
     isSubscription
@@ -296,9 +284,6 @@ export default function ReservationCard({
         );
       }
 
-      setInquiryId(typeof result.inquiryId === "string" || typeof result.inquiryId === "number"
-        ? String(result.inquiryId) : "");
-      setCopyMessage("");
       setIsSuccess(true);
       trackInquiryEvent("inquiry_success", apartmentSlug, "form");
 
@@ -363,15 +348,11 @@ export default function ReservationCard({
             : `${apartmentName}의 잔여세대와 최신 계약조건을 안내받으세요. 방문 일정은 상담 후 결정할 수 있습니다.`}
         </p>
         {showVisitBenefit && (
-          <div className="mt-5 rounded-2xl border border-amber-300/30 bg-amber-300/10 p-4 sm:p-5">
-            <p className="inline-flex rounded-full bg-amber-300 px-3 py-1 text-xs font-extrabold text-zinc-900">집눈 방문예약 특별 혜택</p>
-            <h3 className="mt-3 break-keep text-lg font-extrabold leading-7 text-white sm:text-xl">
-              집눈에서 사전 예약하고 방문하면<br />
-              <span className="text-amber-200">집눈이 상품권을 드립니다</span>
-            </h3>
-            <p className="mt-2 break-keep text-xs leading-5 text-white/80 sm:text-sm sm:leading-6">집눈을 통해 방문예약 후 모델하우스 실제 방문을 완료한 고객에게 집눈에서 직접 지급합니다.</p>
-            <p className="mt-3 text-xs font-bold leading-5 text-amber-100">방문 확인 후 1팀당 상품권 1개 · 계약 여부와 관계없이 지급</p>
-            <p className="mt-2 text-xs leading-5 text-white/65">상담 신청만으로는 지급되지 않습니다. 방문 일정은 상담 후 확정하며, 채팅 예약 시에도 집눈 방문예약임을 알려주세요.</p>
+          <div className="mt-4 rounded-xl border border-emerald-300/25 bg-emerald-300/10 p-4">
+            <p className="text-sm font-extrabold text-emerald-200">집눈 방문예약 고객 혜택</p>
+            <p className="mt-1.5 break-keep text-sm leading-6 text-white">집눈에서 사전 예약 후 모델하우스를 방문하시면 <strong className="font-extrabold text-emerald-200">집눈이 상품권을 드립니다.</strong></p>
+            <p className="mt-2 text-xs leading-5 text-white/75">실제 방문 확인 후 1팀당 1개 지급 · 계약 여부 무관</p>
+            <p className="mt-1 text-xs leading-5 text-white/60">상담 신청만으로는 지급되지 않습니다. 방문 일정은 상담 후 확정합니다.</p>
           </div>
         )}
       </div>
@@ -381,18 +362,9 @@ export default function ReservationCard({
           <div ref={successRef} tabIndex={-1} className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 outline-none focus-visible:ring-2 focus-visible:ring-emerald-600">
             <h3 className="text-lg font-extrabold text-emerald-800">{isSubscription ? "청약일정 알림 신청이 완료되었습니다" : "상담신청이 완료되었습니다"}</h3>
             <p role="status" className="mt-2 text-sm leading-6 text-emerald-900">{resultMessage}</p>
-            {inquiryId && <>
-              <div className="mt-4 select-text rounded-xl bg-white p-3 text-sm leading-6 text-zinc-700">
-                <p>{apartmentName}</p>
-                <p className="break-all">접수번호: {inquiryId}</p>
-              </div>
-              <button type="button" onClick={copyInquiry} className="mt-3 min-h-11 rounded-xl border border-emerald-300 bg-white px-4 py-2 text-sm font-bold text-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600">단지명·접수번호 복사</button>
-              <p className="mt-2 text-xs leading-5 text-zinc-600">채팅 상담을 이어가려면 복사한 내용을 채팅창에 보내주세요. 신청 내역을 확인하는 데 도움이 됩니다.</p>
-              {copyMessage && <p role="status" className="mt-2 text-xs leading-5 text-emerald-800">{copyMessage}</p>}
-            </>}
-            {showVisitBenefit && <p className="mt-4 text-xs leading-5 text-zinc-600">방문 일정은 담당자와 확정해주세요. 상품권은 실제 방문 확인 후 집눈에서 1팀당 1개 지급합니다.</p>}
+            <p className="mt-3 break-keep text-sm font-semibold text-zinc-700">{apartmentName}</p>
             <button type="button" onClick={() => {
-              setIsSuccess(false); setResultMessage(""); setInquiryId(""); setCopyMessage(""); startedRef.current = false;
+              setIsSuccess(false); setResultMessage(""); startedRef.current = false;
             }} className="mt-4 block min-h-11 text-sm font-semibold text-zinc-600 underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600">새 상담 신청하기</button>
           </div>
         ) : <form

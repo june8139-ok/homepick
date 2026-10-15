@@ -1082,6 +1082,7 @@ export default function SaleDetail({
               apartment.name
             }
             mode="sale"
+            listingStage={apartment.listingStage}
             kakaoUrl="https://pf.kakao.com/_RxfsxnX/chat"
             floorPlanNames={
               floorPlanNames
