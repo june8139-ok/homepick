@@ -355,6 +355,7 @@ export default function HomeClient({
           "
         >
           <SummaryCard
+            href="/subscription"
             label="진행 중 청약"
             mobileLabel="청약"
             value={
@@ -375,6 +376,7 @@ export default function HomeClient({
           />
 
           <SummaryCard
+            href="/first-come"
             label="선착순 분양"
             mobileLabel="선착순"
             value={
@@ -395,6 +397,7 @@ export default function HomeClient({
           />
 
           <SummaryCard
+            href="/search?recent=1"
             label="최근 업데이트"
             mobileLabel="업데이트"
             value={
@@ -775,6 +778,7 @@ function SummaryIcon({
 }
 
 function SummaryCard({
+  href,
   label,
   mobileLabel,
   value,
@@ -783,6 +787,7 @@ function SummaryCard({
   onClick,
   pending = false,
 }: {
+  href: string;
   label: string;
   mobileLabel: string;
   value: number;
@@ -827,10 +832,15 @@ function SummaryCard({
   }[accent];
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={pending}
+    <Link
+      href={href}
+      onClick={(event) => {
+        // Preserve native open-in-new-tab and modified-click navigation.
+        if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+        event.preventDefault();
+        if (!pending) onClick();
+      }}
+      aria-disabled={pending || undefined}
       aria-busy={pending}
       className={[
         "group relative flex min-w-0 cursor-pointer flex-col items-center justify-center",
@@ -922,7 +932,7 @@ function SummaryCard({
       >
         {pending ? "◌" : "→"}
       </span>
-    </button>
+    </Link>
   );
 }
 
@@ -1532,4 +1542,3 @@ function EmptyMessage({
     </div>
   );
 }
-

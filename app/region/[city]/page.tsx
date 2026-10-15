@@ -21,6 +21,7 @@ import {
 } from "../../../lib/subscriptionVisibility";
 
 import {
+  getListingStage,
   isCompletedListing,
 } from "../../../lib/listingStage";
 
@@ -1109,6 +1110,14 @@ export default async function RegionPage({
         )
     );
 
+  // Archived public listings remain reachable after active sales end.
+  const soldOutApartments = regionApartments.filter(
+    (apartment) => getListingStage(apartment) === "soldOut"
+  );
+  const existingApartments = regionApartments.filter(
+    (apartment) => getListingStage(apartment) === "existing"
+  );
+
   const privateRentalApartments =
     regionApartments.filter(
       isPrivateRental
@@ -1583,6 +1592,19 @@ export default async function RegionPage({
           initialLimit={12}
         />
 
+        <ArchivedApartmentLinks
+          title={`${cityName} 분양완료 단지 기록`}
+          description="분양 당시 가격과 계약조건, 평면도·입지 정보를 확인할 수 있습니다. 현재 모집 중인 단지가 아닙니다."
+          apartments={soldOutApartments}
+          label="분양완료"
+        />
+        <ArchivedApartmentLinks
+          title={`${cityName} 기존 아파트 정보`}
+          description="기존 아파트의 단지 정보를 확인할 수 있습니다."
+          apartments={existingApartments}
+          label="기존 아파트"
+        />
+
         <section
           id="region-guide"
           className="mt-10 scroll-mt-24 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm sm:mt-12 sm:rounded-3xl sm:p-7 lg:p-8"
@@ -1678,3 +1700,33 @@ export default async function RegionPage({
   );
 }
 
+function ArchivedApartmentLinks({ title, description, apartments, label }: {
+  title: string;
+  description: string;
+  apartments: Apartment[];
+  label: string;
+}) {
+  if (apartments.length === 0) return null;
+  return (
+    <section className="mt-9 rounded-2xl border border-zinc-200 bg-white p-4 sm:mt-12 sm:p-6">
+      <h2 className="text-lg font-extrabold text-[#132238] sm:text-xl">{title}</h2>
+      <p className="mt-2 break-keep text-xs leading-6 text-zinc-500 sm:text-sm">{description}</p>
+      <details className="group mt-3">
+        <summary className="w-fit cursor-pointer rounded-lg px-1 py-2 text-sm font-bold text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
+          {apartments.length}개 단지 목록 보기
+        </summary>
+        <ul className="mt-2 grid gap-2 sm:grid-cols-2">
+          {apartments.map((apartment) => (
+            <li key={apartment.slug} className="min-w-0">
+              <Link href={`/apartments/${encodeURIComponent(apartment.slug)}`}
+                className="flex min-h-12 items-center justify-between gap-3 rounded-xl border border-zinc-100 bg-zinc-50 px-3 py-3 transition hover:border-emerald-200 hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
+                <span className="min-w-0 break-keep text-sm font-bold text-zinc-800">{apartment.name}</span>
+                <span className="shrink-0 rounded-full bg-white px-2 py-1 text-[11px] font-semibold text-zinc-500">{label}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </details>
+    </section>
+  );
+}
