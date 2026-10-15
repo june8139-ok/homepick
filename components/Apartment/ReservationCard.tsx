@@ -317,10 +317,10 @@ export default function ReservationCard({
     <section className="mt-6 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm sm:mt-8 sm:rounded-3xl">
       <div
         className={[
-          "px-4 py-5 text-white sm:px-7 sm:py-7",
+          "px-4 py-5 sm:px-7 sm:py-7",
           isSubscription
-            ? "bg-blue-700"
-            : "bg-zinc-900",
+            ? "bg-blue-700 text-white"
+            : "border-b border-zinc-100 bg-white text-zinc-900",
         ].join(" ")}
       >
         <p
@@ -328,7 +328,7 @@ export default function ReservationCard({
             "text-xs font-bold sm:text-sm",
             isSubscription
               ? "text-blue-200"
-              : "text-emerald-300",
+              : "text-emerald-700",
           ].join(" ")}
         >
           {isSubscription
@@ -342,17 +342,17 @@ export default function ReservationCard({
             : "상담신청"}
         </h2>
 
-        <p className="mt-2 max-w-3xl break-keep text-xs leading-5 text-white/75 sm:text-sm sm:leading-6">
+        <p className={`mt-2 max-w-3xl break-keep text-xs leading-5 sm:text-sm sm:leading-6 ${isSubscription ? "text-white/75" : "text-zinc-600"}`}>
           {isSubscription
             ? `${apartmentName}의 청약 일정과 주요 정보를 안내받아보세요.`
             : `${apartmentName}의 잔여세대와 최신 계약조건을 안내받으세요. 방문 일정은 상담 후 결정할 수 있습니다.`}
         </p>
         {showVisitBenefit && (
-          <div className="mt-4 rounded-xl border border-emerald-300/25 bg-emerald-300/10 p-4">
-            <p className="text-sm font-extrabold text-emerald-200">집눈 방문예약 고객 혜택</p>
-            <p className="mt-1.5 break-keep text-sm leading-6 text-white">집눈에서 사전 예약 후 모델하우스를 방문하시면 <strong className="font-extrabold text-emerald-200">집눈이 상품권을 드립니다.</strong></p>
-            <p className="mt-2 text-xs leading-5 text-white/75">실제 방문 확인 후 1팀당 1개 지급 · 계약 여부 무관</p>
-            <p className="mt-1 text-xs leading-5 text-white/60">상담 신청만으로는 지급되지 않습니다. 방문 일정은 상담 후 확정합니다.</p>
+          <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 sm:p-5">
+            <p className="inline-flex rounded-full bg-emerald-700 px-3 py-1 text-xs font-bold text-white">집눈 방문예약 고객 혜택</p>
+            <p className="mt-3 break-keep text-base leading-7 text-zinc-800">집눈에서 사전 예약 후 모델하우스를 방문하시면 <strong className="font-extrabold text-emerald-800">집눈이 상품권을 드립니다.</strong></p>
+            <p className="mt-2 text-xs font-semibold leading-5 text-emerald-900">실제 방문 확인 후 1팀당 1개 지급 · 계약 여부 무관</p>
+            <p className="mt-1 text-xs leading-5 text-zinc-600">상담 신청만으로는 지급되지 않습니다. 방문 일정은 상담 후 확정합니다.</p>
           </div>
         )}
       </div>
