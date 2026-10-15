@@ -362,16 +362,21 @@ export default function ReservationCard({
             ? `${apartmentName}의 청약 일정과 주요 정보를 안내받아보세요.`
             : `${apartmentName}의 잔여세대와 최신 계약조건을 안내받으세요. 방문 일정은 상담 후 결정할 수 있습니다.`}
         </p>
+        {showVisitBenefit && (
+          <div className="mt-5 rounded-2xl border border-amber-300/30 bg-amber-300/10 p-4 sm:p-5">
+            <p className="inline-flex rounded-full bg-amber-300 px-3 py-1 text-xs font-extrabold text-zinc-900">집눈 방문예약 특별 혜택</p>
+            <h3 className="mt-3 break-keep text-lg font-extrabold leading-7 text-white sm:text-xl">
+              집눈에서 사전 예약하고 방문하면<br />
+              <span className="text-amber-200">집눈이 상품권을 드립니다</span>
+            </h3>
+            <p className="mt-2 break-keep text-xs leading-5 text-white/80 sm:text-sm sm:leading-6">집눈을 통해 방문예약 후 모델하우스 실제 방문을 완료한 고객에게 집눈에서 직접 지급합니다.</p>
+            <p className="mt-3 text-xs font-bold leading-5 text-amber-100">방문 확인 후 1팀당 상품권 1개 · 계약 여부와 관계없이 지급</p>
+            <p className="mt-2 text-xs leading-5 text-white/65">상담 신청만으로는 지급되지 않습니다. 방문 일정은 상담 후 확정하며, 채팅 예약 시에도 집눈 방문예약임을 알려주세요.</p>
+          </div>
+        )}
       </div>
 
       <div className="p-4 sm:p-7">
-        {showVisitBenefit && (
-          <div className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
-            <p className="text-sm font-extrabold text-emerald-800">집눈 사전 방문예약 고객 혜택</p>
-            <p className="mt-2 break-keep text-sm leading-6 text-zinc-700">집눈을 통해 사전 방문예약 후 모델하우스 실제 방문을 완료하시면, 방문 확인 후 1팀당 모바일 커피 쿠폰 1개를 드립니다.</p>
-            <p className="mt-2 text-xs leading-5 text-zinc-500">상담 신청만으로 지급되지 않으며 계약 여부와 관계없이 지급합니다. 채팅으로 예약하실 때도 집눈 방문예약임을 알려주세요.</p>
-          </div>
-        )}
         {isSuccess ? (
           <div ref={successRef} tabIndex={-1} className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 outline-none focus-visible:ring-2 focus-visible:ring-emerald-600">
             <h3 className="text-lg font-extrabold text-emerald-800">{isSubscription ? "청약일정 알림 신청이 완료되었습니다" : "상담신청이 완료되었습니다"}</h3>
@@ -385,7 +390,7 @@ export default function ReservationCard({
               <p className="mt-2 text-xs leading-5 text-zinc-600">채팅 상담을 이어가려면 복사한 내용을 채팅창에 보내주세요. 신청 내역을 확인하는 데 도움이 됩니다.</p>
               {copyMessage && <p role="status" className="mt-2 text-xs leading-5 text-emerald-800">{copyMessage}</p>}
             </>}
-            {showVisitBenefit && <p className="mt-4 text-xs leading-5 text-zinc-600">방문 일정은 담당자와 확정해주세요. 쿠폰은 실제 방문 확인 후 1팀당 1개 지급됩니다.</p>}
+            {showVisitBenefit && <p className="mt-4 text-xs leading-5 text-zinc-600">방문 일정은 담당자와 확정해주세요. 상품권은 실제 방문 확인 후 집눈에서 1팀당 1개 지급합니다.</p>}
             <button type="button" onClick={() => {
               setIsSuccess(false); setResultMessage(""); setInquiryId(""); setCopyMessage(""); startedRef.current = false;
             }} className="mt-4 block min-h-11 text-sm font-semibold text-zinc-600 underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600">새 상담 신청하기</button>
