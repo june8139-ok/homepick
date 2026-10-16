@@ -987,9 +987,6 @@ export default function SearchMapPanel({
   const userMarkerRef =
     useRef<any>(null);
 
-  const idleListenerRef =
-    useRef<any>(null);
-
   const previousActiveSlugRef =
     useRef<string | null>(null);
 
@@ -1003,6 +1000,8 @@ export default function SearchMapPanel({
 
   const [mapReady, setMapReady] =
     useState(false);
+
+  const [viewportReady, setViewportReady] = useState(false);
 
   const [currentZoom, setCurrentZoom] =
     useState(7);
@@ -1309,11 +1308,25 @@ export default function SearchMapPanel({
       onViewportChange,
     ]);
 
+  // 카메라 이동이 끝난 뒤 범위/목록을 갱신합니다. 마커 생성과 분리합니다.
+  useEffect(() => {
+    const map = mapRef.current;
+    const maps = window.naver?.maps;
+    if (!mapReady || !map || !maps) return;
+    const listener = maps.Event.addListener(map, "idle", () => {
+      setCurrentZoom(map.getZoom());
+      setViewportReady(true);
+      updateViewport();
+    });
+    return () => maps.Event.removeListener(listener);
+  }, [mapReady, updateViewport]);
+
   useEffect(() => {
     const map = mapRef.current;
 
     if (
       !mapReady ||
+      !viewportReady ||
       !map ||
       !window.naver?.maps
     ) {
@@ -1584,49 +1597,7 @@ export default function SearchMapPanel({
       );
     });
 
-    if (
-      idleListenerRef.current
-    ) {
-      window.naver.maps.Event.removeListener(
-        idleListenerRef.current
-      );
-    }
-
-    idleListenerRef.current =
-      window.naver.maps.Event.addListener(
-        map,
-        "idle",
-        () => {
-          setCurrentZoom(
-            map.getZoom()
-          );
-
-          updateViewport();
-        }
-      );
-
-    updateViewport();
-
-    return () => {
-      if (
-        idleListenerRef.current
-      ) {
-        window.naver.maps.Event.removeListener(
-          idleListenerRef.current
-        );
-
-        idleListenerRef.current =
-          null;
-      }
-    };
-  }, [
-    currentZoom,
-    locatedApartments,
-    mapReady,
-    onHover,
-    onSelect,
-    updateViewport,
-  ]);
+  }, [currentZoom, locatedApartments, mapReady, viewportReady, onHover, onSelect]);
 
   const activeSlug =
     activeApartment?.slug ??

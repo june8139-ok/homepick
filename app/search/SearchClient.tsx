@@ -931,6 +931,18 @@ export default function SearchClient({
     ? filteredResults.filter(item => item.slug === selectedSlug)
     : filteredResults.filter(item => viewportSlugs.has(item.slug) || item.slug === selectedSlug),
     [filteredResults, viewportSlugs, selectedSlug]);
+  // 지도 핀은 모두 유지하고 카드만 12개씩 추가합니다.
+  const cardBatchKey = `${resultSignature}:${visibleSlugs?.join("|") ?? "loading"}`;
+  const [cardBatch, setCardBatch] = useState({ key: "", count: 12 });
+  const cardLimit = cardBatch.key === cardBatchKey ? cardBatch.count : 12;
+  const takeCards = (items: Apartment[]) => {
+    const first = items.slice(0, cardLimit);
+    const selected = items.find(item => item.slug === selectedSlug);
+    return selected && !first.some(item => item.slug === selected.slug) ? [...first, selected] : first;
+  };
+  const displayedDesktopCards = takeCards(listResults);
+  const displayedMobileCards = takeCards(mobileListResults);
+  const showMoreCards = () => setCardBatch({ key: cardBatchKey, count: cardLimit + 12 });
   const handleViewportChange = useCallback((next: string[] | null) => {
     setVisibleSlugs(previous => {
       if (previous === next) return previous;
@@ -1440,13 +1452,18 @@ export default function SearchClient({
 
           <MobileSearchCarousel
             cardRequest={cardRequest}
-            apartments={mobileListResults}
+            apartments={displayedMobileCards}
             selectedSlug={
               selectedSlug
             }
             distanceBySlug={distances}
             onSelect={handleListSelect}
           />
+          {displayedMobileCards.length < mobileListResults.length && (
+            <button type="button" onClick={showMoreCards} className="mt-3 w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-700">
+              단지 더 보기 ({displayedMobileCards.length}/{mobileListResults.length})
+            </button>
+          )}
         </div>}
         {/* PC: 기존 목록 + 지도 구조 유지 */}
         {isDesktop === true && <div className="hidden gap-4 lg:grid lg:grid-cols-[minmax(360px,420px)_minmax(0,1fr)]">
@@ -1459,12 +1476,12 @@ export default function SearchClient({
               <p className="text-sm text-zinc-500">
                 지도 안{" "}
                 {mapVisibleCount}개 / 전체{" "}
-                {listResults.length}개
+                {filteredResults.length}개
               </p>
             </div>
 
             <div className="space-y-4 lg:max-h-[calc(100vh-185px)] lg:overflow-y-auto lg:pr-2">
-              {listResults.map(
+              {displayedDesktopCards.map(
                 (apartment) => (
                   <SearchResultCard
                     ref={(element) => {
@@ -1517,6 +1534,11 @@ export default function SearchClient({
                 )
               )}
 
+              {displayedDesktopCards.length < listResults.length && (
+                <button type="button" onClick={showMoreCards} className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-700">
+                  단지 더 보기 ({displayedDesktopCards.length}/{listResults.length})
+                </button>
+              )}
               {visibleSlugs === null ? (
                 <div className="rounded-3xl border border-zinc-200 bg-white p-10 text-center">
                   <h3 className="text-lg font-bold">
