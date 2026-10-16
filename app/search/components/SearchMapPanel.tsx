@@ -727,7 +727,7 @@ function markerHtml(
       user-select:none;
       -webkit-user-select:none;
     ">
-      <div style="
+      <div data-card-slug="${escapeHtml(apartment.slug)}" role="button" tabindex="0" aria-label="${escapeHtml(apartment.name)} 카드 보기" style="
         position:absolute;
         left:50%;
         bottom:62px;
@@ -741,7 +741,7 @@ function markerHtml(
           opacity .16s ease,
           transform .16s ease,
           visibility .16s ease;
-        pointer-events:none;
+        pointer-events:${highlighted ? "auto" : "none"};
       ">
         <div style="
           position:relative;
@@ -769,7 +769,7 @@ function markerHtml(
           "></span>
           ${escapeHtml(
             apartment.name
-          )}
+          )} <span style="font-size:10px;color:#059669">카드 보기 ↓</span>
         </div>
       </div>
 
@@ -942,6 +942,7 @@ export default function SearchMapPanel({
   onHover,
   onSelect,
   onViewportChange,
+  onCardRequest,
 }: {
   apartments: Apartment[];
   activeApartment: Apartment | null;
@@ -955,6 +956,7 @@ export default function SearchMapPanel({
     slug: string | null
   ) => void;
   onSelect: (slug: string) => void;
+  onCardRequest: (slug: string) => void;
   onViewportChange: (
     slugs: string[] | null
   ) => void;
@@ -964,6 +966,10 @@ export default function SearchMapPanel({
       null
     );
 
+  const selectedApartmentRef = useRef(selectedApartment);
+  useEffect(() => {
+    selectedApartmentRef.current = selectedApartment;
+  }, [selectedApartment]);
   const mapRef = useRef<any>(null);
 
   const markerEntriesRef = useRef<
@@ -1108,6 +1114,8 @@ export default function SearchMapPanel({
 
         return;
       }
+
+      if (rect.width < 10 || rect.height < 10) return;
 
       if (!mapRef.current) {
         mapRef.current =
@@ -1477,7 +1485,7 @@ export default function SearchMapPanel({
         group.apartments[0];
 
       const isSelected =
-        selectedApartment?.slug ===
+        selectedApartmentRef.current?.slug ===
         apartment.slug;
 
       const marker =
@@ -1617,7 +1625,6 @@ export default function SearchMapPanel({
     mapReady,
     onHover,
     onSelect,
-    selectedApartment,
     updateViewport,
   ]);
 
@@ -1695,7 +1702,7 @@ export default function SearchMapPanel({
 
     previousActiveSlugRef.current =
       activeSlug;
-  }, [activeSlug]);
+  }, [activeSlug, currentZoom, locatedApartments, mapReady]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -1877,7 +1884,24 @@ export default function SearchMapPanel({
   ]);
 
   useEffect(() => {
+    const markerEntries = markerEntriesRef.current;
     return () => {
+      const maps = window.naver?.maps;
+      if (maps) {
+        markerEntries.forEach(entry => {
+          entry.listeners.forEach(listener => maps.Event.removeListener(listener));
+          entry.marker.setMap(null);
+        });
+        clusterMarkersRef.current.forEach(entry => {
+          entry.listeners.forEach((listener: unknown) => maps.Event.removeListener(listener));
+          entry.marker.setMap(null);
+        });
+        userMarkerRef.current?.setMap(null);
+        mapRef.current?.destroy?.();
+      }
+      markerEntries.clear();
+      clusterMarkersRef.current = [];
+      mapRef.current = null;
       if (
         animationTimerRef.current
       ) {
@@ -1974,6 +1998,8 @@ export default function SearchMapPanel({
 
     const map = mapRef.current;
 
+    let previousWidth = 0;
+    let previousHeight = 0;
     const resizeMap = () => {
       if (
         !map ||
@@ -1992,12 +2018,12 @@ export default function SearchMapPanel({
         return;
       }
 
-      map.setSize(
-        new window.naver.maps.Size(
-          Math.round(rect.width),
-          Math.round(rect.height)
-        )
-      );
+      const width = Math.round(rect.width);
+      const height = Math.round(rect.height);
+      if (width === previousWidth && height === previousHeight) return;
+      previousWidth = width;
+      previousHeight = height;
+      map.setSize(new window.naver.maps.Size(width, height));
 
       window.naver.maps.Event.trigger(
         map,
@@ -2108,7 +2134,23 @@ export default function SearchMapPanel({
       : false;
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm lg:sticky lg:top-4 lg:rounded-3xl">
+    <section
+      onClickCapture={(event) => {
+        const target = (event.target as HTMLElement).closest<HTMLElement>("[data-card-slug]");
+        if (!target?.dataset.cardSlug) return;
+        event.preventDefault();
+        event.stopPropagation();
+        onCardRequest(target.dataset.cardSlug);
+      }}
+      onKeyDownCapture={(event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        const target = (event.target as HTMLElement).closest<HTMLElement>("[data-card-slug]");
+        if (!target?.dataset.cardSlug) return;
+        event.preventDefault();
+        event.stopPropagation();
+        onCardRequest(target.dataset.cardSlug);
+      }}
+      className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm lg:sticky lg:top-4 lg:rounded-3xl">
       <div className="flex items-center justify-between border-b border-zinc-200 px-5 py-4">
         <div>
           <p className="text-xs font-semibold tracking-[0.14em] text-emerald-600">

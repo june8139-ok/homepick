@@ -574,6 +574,15 @@ export default function SearchClient({
 }: {
   apartments: Apartment[];
 }) {
+  const [isDesktop, setIsDesktop] = useState<boolean | null>(null);
+  const [cardRequest, setCardRequest] = useState<{ slug: string; sequence: number } | null>(null);
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 1024px)");
+    const update = () => setIsDesktop(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
   const router = useRouter();
   const searchParams =
     useSearchParams();
@@ -675,6 +684,16 @@ export default function SearchClient({
     useRef<
       Map<string, HTMLElement>
     >(new Map());
+
+  const handleCardRequest = useCallback((slug: string) => {
+    setSelectedSlug(slug);
+    setHoveredSlug(null);
+    if (window.matchMedia("(min-width: 1024px)").matches) {
+      requestAnimationFrame(() => desktopCardRefs.current.get(slug)?.scrollIntoView({ behavior: "smooth", block: "center" }));
+    } else {
+      setCardRequest(previous => ({ slug, sequence: (previous?.sequence ?? 0) + 1 }));
+    }
+  }, []);
 
   const deferredKeyword =
     useDeferredValue(keyword);
@@ -887,16 +906,7 @@ export default function SearchClient({
         setVisibleSlugs(null);
         setHoveredSlug(null);
 
-        if (
-          selectedSlug &&
-          !filteredResults.some(
-            (item) =>
-              item.slug ===
-              selectedSlug
-          )
-        ) {
-          setSelectedSlug(null);
-        }
+        setSelectedSlug(current => current && !filteredResults.some(item => item.slug === current) ? null : current);
       });
 
     return () => {
@@ -905,7 +915,6 @@ export default function SearchClient({
   }, [
     filteredResults,
     resultSignature,
-    selectedSlug,
   ]);
 
   /*
@@ -916,25 +925,19 @@ export default function SearchClient({
    * 먼저 렌더링하지 않아, 단지 수가 많아져도 초기 DOM이
    * 불필요하게 커지는 것을 막습니다.
    */
-  const listResults =
-    visibleSlugs === null
-      ? []
-      : filteredResults.filter(
-          (apartment) =>
-            visibleSlugs.includes(
-              apartment.slug
-            )
-        );
-
-  const mobileListResults =
-    visibleSlugs === null
-      ? filteredResults
-      : filteredResults.filter(
-          (apartment) =>
-            visibleSlugs.includes(
-              apartment.slug
-            )
-        );
+  const viewportSlugs = useMemo(() => visibleSlugs === null ? null : new Set(visibleSlugs), [visibleSlugs]);
+  const listResults = useMemo(() => viewportSlugs === null ? [] : filteredResults.filter(item => viewportSlugs.has(item.slug)), [filteredResults, viewportSlugs]);
+  const mobileListResults = useMemo(() => viewportSlugs === null
+    ? filteredResults.filter(item => item.slug === selectedSlug)
+    : filteredResults.filter(item => viewportSlugs.has(item.slug) || item.slug === selectedSlug),
+    [filteredResults, viewportSlugs, selectedSlug]);
+  const handleViewportChange = useCallback((next: string[] | null) => {
+    setVisibleSlugs(previous => {
+      if (previous === next) return previous;
+      if (previous && next && previous.length === next.length && previous.every((slug, index) => slug === next[index])) return previous;
+      return next;
+    });
+  }, []);
 
   const mapVisibleCount =
     visibleSlugs === null
@@ -1390,7 +1393,7 @@ export default function SearchClient({
 
       <section className="mx-auto w-full max-w-[1760px] px-2.5 pb-6 pt-2.5 sm:px-5 sm:pb-8 sm:pt-5 lg:px-8">
         {/* 모바일: 지도와 카드 목록 동시 노출 */}
-        <div className="min-w-0 overflow-hidden lg:hidden">
+        {isDesktop === false && <div className="min-w-0 overflow-hidden lg:hidden">
           <SearchMapPanel
             apartments={
               filteredResults
@@ -1413,8 +1416,9 @@ export default function SearchClient({
             onSelect={
               handleMapSelect
             }
+            onCardRequest={handleCardRequest}
             onViewportChange={
-              setVisibleSlugs
+              handleViewportChange
             }
           />
 
@@ -1435,6 +1439,7 @@ export default function SearchClient({
           </div>
 
           <MobileSearchCarousel
+            cardRequest={cardRequest}
             apartments={mobileListResults}
             selectedSlug={
               selectedSlug
@@ -1442,9 +1447,9 @@ export default function SearchClient({
             distanceBySlug={distances}
             onSelect={handleListSelect}
           />
-        </div>
+        </div>}
         {/* PC: 기존 목록 + 지도 구조 유지 */}
-        <div className="hidden gap-4 lg:grid lg:grid-cols-[minmax(360px,420px)_minmax(0,1fr)]">
+        {isDesktop === true && <div className="hidden gap-4 lg:grid lg:grid-cols-[minmax(360px,420px)_minmax(0,1fr)]">
           <div>
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-bold">
@@ -1563,14 +1568,14 @@ export default function SearchClient({
             onSelect={
               handleMapSelect
             }
+            onCardRequest={handleCardRequest}
             onViewportChange={
-              setVisibleSlugs
+              handleViewportChange
             }
           />
-        </div>
+        </div>}
       </section>
     </main>
   );
 }
-
 

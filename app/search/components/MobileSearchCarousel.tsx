@@ -26,6 +26,7 @@ import {
 type Props = {
   apartments: Apartment[];
   selectedSlug: string | null;
+  cardRequest?: { slug: string; sequence: number } | null;
   distanceBySlug: Record<string, number>;
   onSelect: (slug: string) => void;
 };
@@ -99,6 +100,7 @@ function formatDistance(distance?: number) {
 export default function MobileSearchCarousel({
   apartments,
   selectedSlug,
+  cardRequest,
   distanceBySlug,
   onSelect,
 }: Props) {
@@ -130,7 +132,34 @@ export default function MobileSearchCarousel({
       left: Math.max(0, targetLeft),
       behavior: "smooth",
     });
-  }, [selectedSlug]);
+  }, [selectedSlug, apartments]);
+
+  const handledRequest = useRef<number | null>(null);
+  useEffect(() => {
+    if (!cardRequest || handledRequest.current === cardRequest.sequence) return;
+    const card = cardRefs.current.get(cardRequest.slug);
+    const container = scrollRef.current;
+    if (!card || !container) return;
+    const frame = requestAnimationFrame(() => {
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      container.scrollTo({
+        left: Math.max(0, card.offsetLeft - (container.clientWidth - card.offsetWidth) / 2),
+        behavior: "instant" as ScrollBehavior,
+      });
+      const info = card.querySelector<HTMLElement>("[data-card-info]") ?? card;
+      const header = document.querySelector<HTMLElement>("header");
+      const headerRect = header?.getBoundingClientRect();
+      const headerStyle = header ? getComputedStyle(header) : null;
+      const inset = headerRect && (headerStyle?.position === "sticky" || headerStyle?.position === "fixed")
+        ? Math.max(0, headerRect.bottom) + 16 : 24;
+      window.scrollTo({
+        top: Math.max(0, window.scrollY + info.getBoundingClientRect().top - inset),
+        behavior: reducedMotion ? "auto" : "smooth",
+      });
+      handledRequest.current = cardRequest.sequence;
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [cardRequest, apartments]);
 
   const moveCarousel = (direction: "prev" | "next") => {
     const container = scrollRef.current;
@@ -319,7 +348,7 @@ export default function MobileSearchCarousel({
                     )}
                   </div>
 
-                  <div className="p-3.5">
+                  <div data-card-info className="p-3.5">
                     <div className="flex min-w-0 items-center justify-between gap-2">
                       <p className="min-w-0 truncate text-[11px] font-bold text-emerald-700">
                         {apartment.cityName || apartment.city || "지역 확인 중"}
@@ -428,3 +457,5 @@ export default function MobileSearchCarousel({
     </div>
   );
 }
+
+
