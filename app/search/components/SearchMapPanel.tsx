@@ -1001,8 +1001,6 @@ export default function SearchMapPanel({
   const [mapReady, setMapReady] =
     useState(false);
 
-  const [viewportReady, setViewportReady] = useState(false);
-
   const [currentZoom, setCurrentZoom] =
     useState(7);
 
@@ -1313,12 +1311,17 @@ export default function SearchMapPanel({
     const map = mapRef.current;
     const maps = window.naver?.maps;
     if (!mapReady || !map || !maps) return;
-    const listener = maps.Event.addListener(map, "idle", () => {
+    const syncViewport = () => {
       setCurrentZoom(map.getZoom());
-      setViewportReady(true);
       updateViewport();
-    });
-    return () => maps.Event.removeListener(listener);
+    };
+    const listener = maps.Event.addListener(map, "idle", syncViewport);
+    // 첫 idle을 놓쳐도 사용자 조작 없이 현재 범위와 목록을 동기화합니다.
+    const frame = requestAnimationFrame(syncViewport);
+    return () => {
+      cancelAnimationFrame(frame);
+      maps.Event.removeListener(listener);
+    };
   }, [mapReady, updateViewport]);
 
   useEffect(() => {
@@ -1326,7 +1329,6 @@ export default function SearchMapPanel({
 
     if (
       !mapReady ||
-      !viewportReady ||
       !map ||
       !window.naver?.maps
     ) {
@@ -1597,7 +1599,7 @@ export default function SearchMapPanel({
       );
     });
 
-  }, [currentZoom, locatedApartments, mapReady, viewportReady, onHover, onSelect]);
+  }, [currentZoom, locatedApartments, mapReady, onHover, onSelect]);
 
   const activeSlug =
     activeApartment?.slug ??
