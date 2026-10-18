@@ -1200,9 +1200,34 @@ export default function SearchMapPanel({
     }
 
     let cancelled = false;
+    let publishFrame: number | null = null;
 
     async function locate() {
       setIsLocating(true);
+
+      // Saved coordinates must not wait for unrelated address lookups.
+      // Publish them first; retain original ordering when the rest completes.
+      const savedApartments = apartments.flatMap(apartment => {
+        const saved = coordinatesOf(apartment);
+        return saved ? [{ ...apartment, ...saved } satisfies LocatedApartment] : [];
+      });
+      if (!cancelled) {
+        setLocatedApartments(spreadOverlappingMarkers(savedApartments));
+      }
+
+      const resolvedBySlug = new Map(savedApartments.map(apartment => [apartment.slug, apartment]));
+      const publishResolved = () => {
+        if (cancelled || publishFrame !== null) return;
+        publishFrame = requestAnimationFrame(() => {
+          publishFrame = null;
+          if (cancelled) return;
+          const resolved = apartments.flatMap(apartment => {
+            const located = resolvedBySlug.get(apartment.slug);
+            return located ? [located] : [];
+          });
+          setLocatedApartments(spreadOverlappingMarkers(resolved));
+        });
+      };
 
       const result =
         await Promise.all(
@@ -1236,15 +1261,22 @@ export default function SearchMapPanel({
                 return null;
               }
 
-              return {
+              const located = {
                 ...apartment,
                 ...geocoded,
               } satisfies LocatedApartment;
+              resolvedBySlug.set(apartment.slug, located);
+              publishResolved();
+              return located;
             }
           )
         );
 
       if (!cancelled) {
+        if (publishFrame !== null) {
+          cancelAnimationFrame(publishFrame);
+          publishFrame = null;
+        }
         setLocatedApartments(
           spreadOverlappingMarkers(
             result.filter(
@@ -1264,12 +1296,31 @@ export default function SearchMapPanel({
 
     return () => {
       cancelled = true;
+      if (publishFrame !== null) cancelAnimationFrame(publishFrame);
     };
   }, [
     apartmentSignature,
     apartments,
     scriptReady,
   ]);
+
+  const userMovedMapRef = useRef(false);
+  useEffect(() => {
+    userMovedMapRef.current = false;
+  }, [apartmentSignature]);
+  useEffect(() => {
+    const element = mapElementRef.current;
+    if (!element || !mapReady) return;
+    const markInteraction = () => { userMovedMapRef.current = true; };
+    element.addEventListener("pointerdown", markInteraction, { passive: true });
+    element.addEventListener("touchstart", markInteraction, { passive: true });
+    element.addEventListener("wheel", markInteraction, { passive: true });
+    return () => {
+      element.removeEventListener("pointerdown", markInteraction);
+      element.removeEventListener("touchstart", markInteraction);
+      element.removeEventListener("wheel", markInteraction);
+    };
+  }, [mapReady]);
 
   const updateViewport =
     useCallback(() => {
@@ -1678,6 +1729,7 @@ export default function SearchMapPanel({
   }, [activeSlug, currentZoom, locatedApartments, mapReady]);
 
   useEffect(() => {
+    if (userMovedMapRef.current) return;
     const map = mapRef.current;
 
     if (
@@ -2279,11 +2331,13 @@ export default function SearchMapPanel({
           mapReady &&
           isLocating && (
             <div className="absolute left-5 top-5 z-20 rounded-2xl border border-zinc-200 bg-white/95 px-4 py-3 text-sm font-semibold shadow-lg">
-              단지 위치를 불러오는
-              중입니다.
+              {locatedApartments.length > 0
+                ? "추가 단지 위치를 확인하고 있습니다."
+                : "단지 위치를 불러오는 중입니다."}
             </div>
           )}
       </div>
     </section>
   );
 }
+
