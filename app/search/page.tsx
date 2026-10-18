@@ -113,8 +113,30 @@ export async function generateMetadata({
 }
 
 async function SearchResults() {
+  // 서버 처리 시간을 측정하는 임시 진단 코드입니다.
+  // 원인 확인이 끝나면 측정 코드와 검사 예외 주석을 제거합니다.
+
+  // eslint-disable-next-line react-hooks/purity
+  const startedAt = performance.now();
+
   const apartments = await getApartments();
-  return <SearchClient apartments={apartments.map(toSearchApartment)} />;
+
+  // eslint-disable-next-line react-hooks/purity
+  const fetchedAt = performance.now();
+
+  const searchApartments = apartments.map(toSearchApartment);
+
+  // eslint-disable-next-line react-hooks/purity
+  const preparedAt = performance.now();
+
+  console.info("[집눈 검색 처리시간]", {
+    데이터조회_ms: Math.round(fetchedAt - startedAt),
+    검색데이터정리_ms: Math.round(preparedAt - fetchedAt),
+    전체_ms: Math.round(preparedAt - startedAt),
+    단지수: searchApartments.length,
+  });
+
+  return <SearchClient apartments={searchApartments} />;
 }
 
 export default function SearchPage() {
