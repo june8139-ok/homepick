@@ -20,7 +20,7 @@ import {
 import {
   getKeyBenefits,
   getMoveInText,
-  getRepresentativePrice,
+  getListingCardPrice,
 } from "../../../lib/apartmentDisplay";
 
 type Props = {
@@ -277,7 +277,7 @@ export default function MobileSearchCarousel({
               distanceBySlug[apartment.slug]
             );
             const selected = selectedSlug === apartment.slug;
-            const representativePrice = getRepresentativePrice(apartment);
+            const representativePrice = getListingCardPrice(apartment, isFirstComeApartment(apartment));
             const moveInText = getMoveInText(apartment);
             const benefits = getKeyBenefits(apartment, 2);
 

@@ -8,9 +8,11 @@ import {
   useMemo,
   useRef,
   useState,
+  useTransition,
 } from "react";
 
 import { useRouter } from "next/navigation";
+import { getListingCardPrice } from "../../lib/apartmentDisplay";
 
 import type { Apartment } from "../../types/apartment";
 
@@ -118,14 +120,7 @@ function getFeaturedLabel(
 function getFeaturedPrice(
   apartment: Apartment
 ) {
-  return (
-    apartment.priceDetail
-      ?.salePrice ||
-    apartment.price ||
-    apartment.condition ||
-    apartment.region ||
-    "상세정보를 확인해보세요."
-  );
+  return getListingCardPrice(apartment, isFirstComeApartment(apartment)).text;
 }
 
 function getSearchTargets(
@@ -310,6 +305,8 @@ function SearchHero({
   const [keyword, setKeyword] =
     useState("");
 
+  const [isNavigating, startNavigation] = useTransition();
+
   const closeSearchKeyboard = () => {
     inputRef.current?.blur();
   };
@@ -461,12 +458,15 @@ function SearchHero({
         trimmed
       )}`;
 
-    /*
-     * 홈에서 검색결과 페이지로 이동할 때
-     * 이전 /search 쿼리와 클라이언트 상태가 남지 않도록
-     * 새 URL을 브라우저 주소에 확실히 반영합니다.
-     */
-    window.location.assign(href);
+    // A fresh-home intent resets old filters/selection even when Next restores
+    // a previously visited search page. Keep the public URL unchanged.
+    try {
+      window.sessionStorage.setItem("jibnun:home-search", JSON.stringify({ query: trimmed, createdAt: Date.now() }));
+      startNavigation(() => router.push(href));
+    } catch {
+      // If storage is blocked, preserve the original fresh-page guarantee.
+      window.location.assign(href);
+    }
   };
 
   const handleSubmit = () => {
@@ -501,6 +501,7 @@ function SearchHero({
   const handleKeyDown = (
     event: React.KeyboardEvent<HTMLInputElement>
   ) => {
+    if (event.nativeEvent.isComposing || event.keyCode === 229) return;
     if (
       event.key ===
       "ArrowDown"
@@ -680,13 +681,15 @@ function SearchHero({
                 onClick={
                   handleSubmit
                 }
-                aria-label="검색하기"
+                aria-label={isNavigating ? "검색결과로 이동 중" : "검색하기"}
+                aria-busy={isNavigating}
+                disabled={isNavigating}
                 className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-xl bg-[#10B981] text-white shadow-sm transition-all hover:-translate-y-[55%] hover:bg-[#0F766E] hover:shadow-lg active:translate-y-[-50%] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 sm:right-3 sm:h-12 sm:w-14"
               >
                 <svg
                   viewBox="0 0 24 24"
                   fill="none"
-                  className="h-4 w-4 sm:h-5 sm:w-5"
+                  className={`h-4 w-4 sm:h-5 sm:w-5 ${isNavigating ? "animate-pulse" : ""}`}
                   aria-hidden="true"
                 >
                   <circle

@@ -453,6 +453,101 @@ export function getRepresentativePrice(apartment: Apartment) {
   return { ...result, label: result.label.replace(/분양가/g, "임대보증금").replace(/공급금액/g, "임대보증금") };
 }
 
+// Card-only policy. Keep the existing representative-price API unchanged for
+// detail pages and other consumers that are outside this change.
+export function getListingCardPrice(apartment: Apartment, firstCome: boolean) {
+  const legacy = getRepresentativePrice(apartment);
+  if (apartment.housingSupplyType === "privateRental") {
+    return {
+      ...legacy,
+      label: "임대조건",
+      text: apartment.priceDetail?.salePrice || apartment.price || legacy.text,
+    };
+  }
+  if (!firstCome) return legacy;
+
+  const info = apartment.priceInfo;
+  const groups = new Map<number, {
+    area: number;
+    prices: number[];
+    households: number;
+    countKnown: boolean;
+  }>();
+  const areaNumber = (value: unknown): number | null => {
+    // 84A, 084.9800A and 84㎡ belong to the same exclusive-area group.
+    const match = String(value ?? "").match(/(?:^|[^\d])0*(\d{2,3})(?:\.\d+)?(?:[^\d]|$)/);
+    const area = match ? Number(match[1]) : 0;
+    return area > 0 ? area : null;
+  };
+  const countOf = (value: unknown): number | null => {
+    const count = typeof value === "number" ? value :
+      typeof value === "string" && /^\d+$/.test(value.trim()) ? Number(value) : NaN;
+    return Number.isFinite(count) && count >= 0 ? count : null;
+  };
+  const minimumOf = (row: PriceRow): number | null => {
+    // These structured fields use 만원. Never infer a minimum from maxPrice
+    // or parse free-form promotional text (e.g. '최고 5억') as a minimum.
+    const prices = [row.minPrice, row.minimumPrice, row.lowestPrice, row.min_price]
+      .map(value => validPrice(value) ? value :
+        typeof value === "string" && /^(?:\d+|\d{1,3}(?:,\d{3})+)$/.test(value.trim())
+          ? Number(value.replace(/,/g, "")) : null)
+      .filter((value): value is number => validPrice(value));
+    return prices.length > 0 ? Math.min(...prices) : null;
+  };
+  const units: UnknownRecord[] = info && !Array.isArray(info) && Array.isArray(info.units)
+    ? info.units.filter(isRecord) : [];
+
+  for (const unit of units) {
+    const types = Array.isArray(unit.types) ? unit.types.filter(isRecord) : [];
+    const area = areaNumber(unit.area) ?? areaNumber(types[0]?.typeName);
+    if (area === null) continue;
+    const group = groups.get(area) ?? { area, prices: [], households: 0, countKnown: true };
+    const parentMinimum = minimumOf(unit as PriceRow);
+    if (parentMinimum !== null) group.prices.push(parentMinimum);
+    for (const type of types) {
+      const minimum = minimumOf(type as PriceRow);
+      if (minimum !== null) group.prices.push(minimum);
+    }
+    // Use the parent total OR the sum of type totals, never both.
+    const parentCount = countOf(unit.households);
+    const typeCounts = types.map(type => countOf(type.households));
+    const count = parentCount ?? (types.length > 0 && typeCounts.every(value => value !== null)
+      ? typeCounts.reduce<number>((sum, value) => sum + (value ?? 0), 0) : null);
+    group.countKnown = group.countKnown && count !== null;
+    group.households += count ?? 0;
+    groups.set(area, group);
+  }
+
+  const allGroups = [...groups.values()];
+  // With incomplete counts, we cannot claim which non-84 area is most common.
+  const representative = groups.get(84) ?? (
+    allGroups.length === 1 ? allGroups[0] :
+    allGroups.length > 0 && allGroups.every(group => group.countKnown && group.households > 0)
+      ? [...allGroups].sort((a, b) => b.households - a.households || a.area - b.area)[0]
+      : undefined
+  );
+  const minimum = representative && representative.prices.length > 0
+    ? Math.min(...representative.prices) : null;
+  if (representative && minimum !== null) {
+    return {
+      ...legacy,
+      label: `${representative.area}㎡ 등록 최저 분양가`,
+      value: minimum,
+      text: `${representative.area}㎡ ${formatKoreanPrice(minimum)}부터`,
+      is84: representative.area === 84,
+      isActualMinimum: true,
+    };
+  }
+  return {
+    ...legacy,
+    label: representative ? `${representative.area}㎡ 분양가` : "분양가",
+    value: null,
+    text: representative ? `${representative.area}㎡ 최저가 확인 중` : "대표 평형·최저가 확인 중",
+    is84: representative?.area === 84,
+    isActualMinimum: false,
+  };
+}
+
 export function formatMoveInDate(value?: unknown) {
   const raw = String(value ?? "").trim();
 
@@ -716,3 +811,4 @@ export function getKeyBenefits(
     .map(({ label }) => label)
     .slice(0, limit);
 }
+

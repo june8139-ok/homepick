@@ -590,6 +590,9 @@ export default function SearchClient({
     useSearchParams();
 
   const [isSearchPending, startSearchTransition] = useTransition();
+  const [pendingSearchQuery, setPendingSearchQuery] = useState<string | null>(null);
+  const isApplyingSearch = pendingSearchQuery !== null;
+  const [mapSession, setMapSession] = useState(0);
   const [optimisticParams, setOptimisticParams] = useOptimistic(searchParams.toString());
   const activeParams = useMemo(() => new URLSearchParams(optimisticParams), [optimisticParams]);
   const query = activeParams.get("q") ?? "";
@@ -601,12 +604,12 @@ export default function SearchClient({
     const params = new URLSearchParams();
     if (nextQuery) params.set("q", nextQuery);
     const nextParams = params.toString();
-    if (nextParams === searchParams.toString()) return;
+    if (nextParams === optimisticParams) return;
     startSearchTransition(() => {
       setOptimisticParams(nextParams);
       router.push(nextParams ? `/search?${nextParams}` : "/search", { scroll: false });
     });
-  }, [router, searchParams, setOptimisticParams]);
+  }, [router, optimisticParams, setOptimisticParams]);
 
   const sourceApartments =
     useMemo(
@@ -713,12 +716,45 @@ export default function SearchClient({
   const deferredKeyword =
     useDeferredValue(keyword);
 
+  // The button reflects local result application, not the slower background
+  // navigation. Another search is allowed once the screen has committed.
+  useEffect(() => {
+    if (pendingSearchQuery === null || (query !== pendingSearchQuery && isSearchPending)) return;
+    const frame = requestAnimationFrame(() => setPendingSearchQuery(null));
+    return () => cancelAnimationFrame(frame);
+  }, [query, pendingSearchQuery, isSearchPending]);
+
   useEffect(() => {
     const frame =
       requestAnimationFrame(() => {
         setKeyword(query);
         setSuggestionIndex(-1);
 
+        let freshHomeSearch = false;
+        try {
+          const raw = window.sessionStorage.getItem("jibnun:home-search");
+          if (raw) {
+            const intent = JSON.parse(raw) as { query?: string; createdAt?: number };
+            const age = Date.now() - (intent.createdAt ?? 0);
+            if (intent.query === query && age >= 0 && age < 60000) {
+              freshHomeSearch = true;
+              window.sessionStorage.removeItem("jibnun:home-search");
+            } else if (age >= 60000) {
+              window.sessionStorage.removeItem("jibnun:home-search");
+            }
+          }
+        } catch { /* Home uses a full navigation when session storage is blocked. */ }
+        if (freshHomeSearch) {
+          setFilters({ ...DEFAULT_FILTERS, status: getPresetStatus(query) });
+          setSort("default");
+          setSelectedSlug(null);
+          setHoveredSlug(null);
+          setVisibleSlugs(null);
+          setCardRequest(null);
+          setPendingSearchQuery(null);
+          setMapSession(current => current + 1);
+          return;
+        }
         setFilters((current) => ({
           ...current,
           status:
@@ -1091,7 +1127,7 @@ export default function SearchClient({
     value?: string,
     slug?: string
   ) => {
-    if (isSearchPending) return;
+    if (isApplyingSearch) return;
     searchInputRef.current?.blur();
     const next = (
       value ?? keyword
@@ -1103,7 +1139,10 @@ export default function SearchClient({
     setHoveredSlug(null);
     // Do not discard the viewport for an identical search: no new map event
     // would arrive to populate the cards again.
-    if (next !== query || recentOnly) setVisibleSlugs(null);
+    if (next !== query || recentOnly) {
+      setVisibleSlugs(null);
+      setPendingSearchQuery(next);
+    }
     setSuggestionIndex(-1);
     navigateSearch(next);
   };
@@ -1320,11 +1359,11 @@ export default function SearchClient({
                 onClick={() =>
                   submitSearch()
                 }
-                disabled={isSearchPending}
-                aria-busy={isSearchPending}
-                className={`min-w-[76px] rounded-lg px-2.5 text-xs font-bold text-white transition active:bg-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 sm:min-w-24 sm:rounded-xl sm:px-6 sm:text-sm ${isSearchPending ? "cursor-wait bg-emerald-700" : "cursor-pointer bg-zinc-900 hover:bg-emerald-600"}`}
+                disabled={isApplyingSearch}
+                aria-busy={isApplyingSearch}
+                className={`min-w-[76px] rounded-lg px-2.5 text-xs font-bold text-white transition active:bg-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 sm:min-w-24 sm:rounded-xl sm:px-6 sm:text-sm ${isApplyingSearch ? "cursor-wait bg-emerald-700" : "cursor-pointer bg-zinc-900 hover:bg-emerald-600"}`}
               >
-                {isSearchPending ? "검색 중…" : "검색"}
+                {isApplyingSearch ? "검색 중…" : "검색"}
               </button>
             </div>
 
@@ -1409,6 +1448,7 @@ export default function SearchClient({
         {/* 모바일: 지도와 카드 목록 동시 노출 */}
         {isDesktop === false && <div className="min-w-0 overflow-hidden lg:hidden">
           <SearchMapPanel
+            key={mapSession}
             apartments={
               filteredResults
             }
@@ -1571,6 +1611,7 @@ export default function SearchClient({
           </div>
 
           <SearchMapPanel
+            key={mapSession}
             apartments={
               filteredResults
             }

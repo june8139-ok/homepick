@@ -15,7 +15,7 @@ import {
 import {
   getKeyBenefits,
   getMoveInText,
-  getRepresentativePrice,
+  getListingCardPrice,
   isApplyHomeUnverified,
 } from "../../../lib/apartmentDisplay";
 
@@ -119,7 +119,7 @@ const SearchResultCard = forwardRef<HTMLElement, Props>(
     const status = statusInfo(apartment);
     const distance = distanceText(distanceKm);
     const active = selected || hovered;
-    const representativePrice = getRepresentativePrice(apartment);
+    const representativePrice = getListingCardPrice(apartment, isFirstComeApartment(apartment));
     const privateRental =
       isPrivateRental(apartment);
     const moveInText = getMoveInText(apartment);
@@ -290,3 +290,4 @@ const SearchResultCard = forwardRef<HTMLElement, Props>(
 SearchResultCard.displayName = "SearchResultCard";
 
 export default SearchResultCard;
+

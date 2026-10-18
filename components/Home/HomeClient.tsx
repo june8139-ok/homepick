@@ -27,6 +27,7 @@ import {
   isPublicListing,
 } from "../../lib/listingStage";
 
+import { getListingCardPrice } from "../../lib/apartmentDisplay";
 import SearchHero from "./SearchHero";
 import DeferredRegionMapSection from "./DeferredRegionMapSection";
 import HomeBriefingSection from "./HomeBriefingSection";
@@ -92,87 +93,9 @@ function isPrivateRental(
   );
 }
 
-function formatPriceAmount(
-  amountInTenThousands: number
-) {
-  if (
-    !Number.isFinite(
-      amountInTenThousands
-    ) ||
-    amountInTenThousands <= 0
-  ) {
-    return "";
-  }
-
-  const eok = Math.floor(
-    amountInTenThousands / 10000
-  );
-
-  const remainder =
-    amountInTenThousands % 10000;
-
-  if (eok === 0) {
-    return `${amountInTenThousands.toLocaleString(
-      "ko-KR"
-    )}만원`;
-  }
-
-  if (remainder === 0) {
-    return `${eok.toLocaleString(
-      "ko-KR"
-    )}억원`;
-  }
-
-  return `${eok.toLocaleString(
-    "ko-KR"
-  )}억 ${remainder.toLocaleString(
-    "ko-KR"
-  )}만원`;
+function getHomePriceText(apartment: Apartment, fallback: string) {
+  return getListingCardPrice(apartment, isFirstComeApartment(apartment)).text || fallback;
 }
-
-function formatHomePriceText(
-  value?: string | null
-) {
-  if (!value?.trim()) {
-    return "";
-  }
-
-  return value.replace(
-    /(\d{1,3}(?:,\d{3})*|\d+)\s*만원/g,
-    (match, amountText: string) => {
-      const amount = Number(
-        amountText.replace(
-          /,/g,
-          ""
-        )
-      );
-
-      return (
-        formatPriceAmount(
-          amount
-        ) || match
-      );
-    }
-  );
-}
-
-function getHomePriceText(
-  apartment: Apartment,
-  fallback: string
-) {
-  const raw =
-    apartment.priceDetail
-      ?.salePrice ||
-    apartment.price ||
-    apartment.condition ||
-    fallback;
-
-  return (
-    formatHomePriceText(raw) ||
-    fallback
-  );
-}
-
 
 function getCreatedAtTimestamp(
   apartment: Apartment
