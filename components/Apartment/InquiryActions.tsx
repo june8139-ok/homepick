@@ -53,7 +53,7 @@ function ChatPicker({ apartmentSlug, placement }: { apartmentSlug: string; place
     <button type="button" aria-haspopup="dialog" onClick={() => {
       trackInquiryEvent("chat_picker_open", apartmentSlug, placement);
       setOpen(true);
-    }} className="flex min-h-12 items-center justify-center rounded-xl border border-zinc-200 bg-white px-3 py-3 text-center text-sm font-extrabold text-zinc-800 transition hover:border-emerald-300 hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2">
+    }} className="flex min-h-12 items-center justify-center rounded-xl border border-[#FEE500] bg-[#FEE500] px-3 py-3 text-center text-sm font-extrabold text-zinc-800 transition hover:border-[#FADA0A] hover:bg-[#FADA0A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2">
       <svg viewBox="0 0 24 24" className="mr-2 h-5 w-5 shrink-0" fill="currentColor" aria-hidden="true"><path d="M12 3C6.5 3 2 6.5 2 10.8c0 2.8 1.9 5.3 4.7 6.7l-1 3.4 4-2.4 2.3.2c5.5 0 10-3.5 10-7.9S17.5 3 12 3Z" /></svg>
       채팅상담
     </button>
