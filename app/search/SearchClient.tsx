@@ -7,6 +7,8 @@ import {
   useDeferredValue,
   useEffect,
   useMemo,
+  useOptimistic,
+  useTransition,
   useRef,
   useState,
 } from "react";
@@ -587,11 +589,24 @@ export default function SearchClient({
   const searchParams =
     useSearchParams();
 
-  const query =
-    searchParams.get("q") ?? "";
+  const [isSearchPending, startSearchTransition] = useTransition();
+  const [optimisticParams, setOptimisticParams] = useOptimistic(searchParams.toString());
+  const activeParams = useMemo(() => new URLSearchParams(optimisticParams), [optimisticParams]);
+  const query = activeParams.get("q") ?? "";
+  const recentOnly = activeParams.get("recent") === "1";
 
-  const recentOnly =
-    searchParams.get("recent") === "1";
+  // Show matches from the already loaded data while Next updates the URL,
+  // server data and metadata. Keep navigation so back/forward still works.
+  const navigateSearch = useCallback((nextQuery: string) => {
+    const params = new URLSearchParams();
+    if (nextQuery) params.set("q", nextQuery);
+    const nextParams = params.toString();
+    if (nextParams === searchParams.toString()) return;
+    startSearchTransition(() => {
+      setOptimisticParams(nextParams);
+      router.push(nextParams ? `/search?${nextParams}` : "/search", { scroll: false });
+    });
+  }, [router, searchParams, setOptimisticParams]);
 
   const sourceApartments =
     useMemo(
@@ -903,7 +918,6 @@ export default function SearchClient({
   useEffect(() => {
     const frame =
       requestAnimationFrame(() => {
-        setVisibleSlugs(null);
         setHoveredSlug(null);
 
         setSelectedSlug(current => current && !filteredResults.some(item => item.slug === current) ? null : current);
@@ -1065,47 +1079,33 @@ export default function SearchClient({
 
         setKeyword(nextQuery);
         setSuggestionIndex(-1);
-        setVisibleSlugs(null);
         setHoveredSlug(null);
         setSelectedSlug(null);
 
-        router.push(
-          nextQuery
-            ? `/search?q=${encodeURIComponent(
-                nextQuery
-              )}`
-            : "/search"
-        );
+        navigateSearch(nextQuery);
       },
-      [router]
+      [navigateSearch]
     );
 
   const submitSearch = (
     value?: string,
     slug?: string
   ) => {
+    if (isSearchPending) return;
     searchInputRef.current?.blur();
     const next = (
       value ?? keyword
     ).trim();
 
-    if (!next) {
-      router.push("/search");
-      return;
-    }
-
-    if (slug) {
-      setSelectedSlug(slug);
-    }
-
-    setVisibleSlugs(null);
+    setKeyword(next);
+    setFilters(current => ({ ...current, status: getPresetStatus(next) }));
+    setSelectedSlug(slug ?? null);
+    setHoveredSlug(null);
+    // Do not discard the viewport for an identical search: no new map event
+    // would arrive to populate the cards again.
+    if (next !== query || recentOnly) setVisibleSlugs(null);
     setSuggestionIndex(-1);
-
-    router.push(
-      `/search?q=${encodeURIComponent(
-        next
-      )}`
-    );
+    navigateSearch(next);
   };
 
   const requestLocation =
@@ -1202,10 +1202,9 @@ export default function SearchClient({
     setSort("default");
     setHoveredSlug(null);
     setSelectedSlug(null);
-    setVisibleSlugs(null);
     setSuggestionIndex(-1);
 
-    router.push("/search");
+    navigateSearch("");
   };
 
   return (
@@ -1252,6 +1251,7 @@ export default function SearchClient({
                 onKeyDown={(
                   event
                 ) => {
+                  if (event.nativeEvent.isComposing || event.keyCode === 229) return;
                   if (
                     event.key ===
                       "ArrowDown" &&
@@ -1320,9 +1320,11 @@ export default function SearchClient({
                 onClick={() =>
                   submitSearch()
                 }
-                className="min-w-[54px] cursor-pointer rounded-lg bg-zinc-900 px-2.5 text-xs font-bold text-white transition hover:bg-emerald-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 sm:min-w-20 sm:rounded-xl sm:px-6 sm:text-sm"
+                disabled={isSearchPending}
+                aria-busy={isSearchPending}
+                className={`min-w-[76px] rounded-lg px-2.5 text-xs font-bold text-white transition active:bg-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 sm:min-w-24 sm:rounded-xl sm:px-6 sm:text-sm ${isSearchPending ? "cursor-wait bg-emerald-700" : "cursor-pointer bg-zinc-900 hover:bg-emerald-600"}`}
               >
-                검색
+                {isSearchPending ? "검색 중…" : "검색"}
               </button>
             </div>
 
@@ -1600,4 +1602,5 @@ export default function SearchClient({
     </main>
   );
 }
+
 

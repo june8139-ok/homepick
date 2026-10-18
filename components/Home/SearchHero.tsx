@@ -828,9 +828,9 @@ function SearchHero({
                       openSearch(item)
                     }
                     className={[
-                      "shrink-0 cursor-pointer rounded-full px-2.5 py-1.5 text-[10px] font-bold transition-all",
+                      "shrink-0 cursor-pointer rounded-full px-3 py-2 text-xs font-bold transition-all",
                       "hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2",
-                      "sm:px-3 sm:py-2 sm:text-xs",
+                      "sm:px-3.5 sm:py-2 sm:text-sm",
                       item === "선착순"
                         ? "border border-emerald-300 bg-emerald-50 text-emerald-700 shadow-sm hover:border-emerald-400 hover:bg-emerald-100"
                         : "border border-zinc-200 bg-white text-zinc-600 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700",

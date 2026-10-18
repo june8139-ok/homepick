@@ -146,14 +146,17 @@ export default function MobileSearchCarousel({
         left: Math.max(0, card.offsetLeft - (container.clientWidth - card.offsetWidth) / 2),
         behavior: "instant" as ScrollBehavior,
       });
-      const info = card.querySelector<HTMLElement>("[data-card-info]") ?? card;
       const header = document.querySelector<HTMLElement>("header");
       const headerRect = header?.getBoundingClientRect();
       const headerStyle = header ? getComputedStyle(header) : null;
       const inset = headerRect && (headerStyle?.position === "sticky" || headerStyle?.position === "fixed")
         ? Math.max(0, headerRect.bottom) + 16 : 24;
+      // Keep the image and name together, with some map context above.
+      // Use the visible viewport so mobile browser toolbars are accounted for.
+      const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+      const targetTop = inset + Math.min(80, Math.max(24, (viewportHeight - inset) * 0.1));
       window.scrollTo({
-        top: Math.max(0, window.scrollY + info.getBoundingClientRect().top - inset),
+        top: Math.max(0, window.scrollY + card.getBoundingClientRect().top - targetTop),
         behavior: reducedMotion ? "auto" : "smooth",
       });
       handledRequest.current = cardRequest.sequence;
@@ -457,5 +460,6 @@ export default function MobileSearchCarousel({
     </div>
   );
 }
+
 
 

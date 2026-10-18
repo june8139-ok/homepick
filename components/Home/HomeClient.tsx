@@ -874,7 +874,7 @@ function SummaryCard({
       <div className="mt-1 min-w-0 sm:mt-0">
         <p
           className={[
-            "text-[10px] font-bold sm:hidden",
+            "text-xs font-bold sm:hidden",
             pending
               ? "text-white/80"
               : "text-zinc-500",
@@ -887,7 +887,7 @@ function SummaryCard({
 
         <p
           className={[
-            "hidden text-xs font-bold sm:block",
+            "hidden text-sm font-bold sm:block",
             pending
               ? "text-white/80"
               : "text-zinc-500",
@@ -900,7 +900,7 @@ function SummaryCard({
 
         <p
           className={[
-            "mt-0.5 text-xl font-black sm:mt-1 sm:text-2xl",
+            "mt-0.5 text-lg font-black sm:mt-1 sm:text-xl",
             pending
               ? "text-white"
               : style.value,
