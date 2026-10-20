@@ -633,6 +633,10 @@ export function buildApartment(
     name:
       basicInfo.name,
 
+    projectGroup:
+      basicInfo.projectGroup.trim() ||
+      undefined,
+
     images: {
       hero:
         "/images/apartments/default/main.jpg",

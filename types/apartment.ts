@@ -104,6 +104,7 @@ export type HousingSupplyType =
 
 export type Apartment = {
   slug: string;
+  projectGroup?: string;
   city: string;
   cityName: string;
   district: string;
@@ -197,5 +198,3 @@ export type Apartment = {
   pros: string[];
   cons: string[];
 };
-
-

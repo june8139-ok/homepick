@@ -491,6 +491,11 @@ export function normalizeApartment(
       )
     ),
 
+    projectGroup:
+      toStringValue(
+        data.projectGroup
+      ).trim() || undefined,
+
     leadType:
       normalizeLeadType(
         row,
@@ -712,4 +717,3 @@ export function normalizeApartment(
       ),
   };
 }
-

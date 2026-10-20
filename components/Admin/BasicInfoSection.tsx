@@ -458,6 +458,29 @@ export default function BasicInfoSection() {
             </p>
           </div>
 
+          <div className="sm:col-span-2">
+            <Input
+              label="같은 사업지 그룹"
+              value={
+                basicInfo.projectGroup
+              }
+              placeholder="예: 아크메르 동탄"
+              onChange={(value) =>
+                setBasicInfo({
+                  ...basicInfo,
+                  projectGroup: value,
+                })
+              }
+            />
+
+            <p className="mt-2 break-keep text-xs leading-5 text-zinc-400">
+              같은 사업의 여러 블록·단지는 동일한 그룹명을 입력하세요.
+              예: 아크메르 동탄 95와 아크메르 동탄 99는 둘 다
+              &quot;아크메르 동탄&quot;으로 입력합니다.
+              일반 단지는 비워두면 됩니다.
+            </p>
+          </div>
+
           <Input
             label="브랜드"
             value={
@@ -959,5 +982,3 @@ function StageButton({
     </button>
   );
 }
-
-

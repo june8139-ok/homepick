@@ -32,6 +32,7 @@ type Score = {
 export type BasicInfo = {
   name: string;
   searchAliases: string;
+  projectGroup: string;
   brand: string;
   builder: string;
 
@@ -92,6 +93,7 @@ type InitialApartment = {
 
   name?: string;
   searchAliases?: string[];
+  projectGroup?: string;
   brand?: string;
   builder?: string;
 
@@ -250,6 +252,7 @@ const defaultHousingSupplyType: HousingSupplyType =
 const defaultBasicInfo: BasicInfo = {
   name: "",
   searchAliases: "",
+  projectGroup: "",
   brand: "",
   builder: "",
 
@@ -660,6 +663,9 @@ function createInitialBasicInfo(
       (apartment.searchAliases ?? [])
         .slice(0, 3)
         .join(", "),
+
+    projectGroup:
+      apartment.projectGroup ?? "",
 
     brand:
       apartment.brand ?? "",
@@ -1123,5 +1129,3 @@ export function useAdmin() {
 
   return context;
 }
-
-

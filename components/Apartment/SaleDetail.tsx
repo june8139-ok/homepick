@@ -11,6 +11,7 @@ import type {
 import PriceConditionCard from "./PriceConditionCard";
 import ConditionHistory from "./ConditionHistory";
 import ApartmentImageSections from "./ApartmentImageSections";
+import ProjectGroupLinks from "./ProjectGroupLinks";
 import ReservationCard from "./ReservationCard";
 
 import {
@@ -985,6 +986,10 @@ export default function SaleDetail({
           />
         </div>
       </section>
+
+      <ProjectGroupLinks
+        apartment={apartment}
+      />
 
       <section
         id="images"

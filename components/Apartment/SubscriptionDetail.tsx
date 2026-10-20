@@ -1,6 +1,7 @@
 import SubscriptionAlertForm from "./SubscriptionAlertForm";
 import UnitPriceCard from "./UnitPriceCard";
 import ApartmentImageSections from "./ApartmentImageSections";
+import ProjectGroupLinks from "./ProjectGroupLinks";
 import {
   getMoveInText,
 } from "../../lib/apartmentDisplay";
@@ -523,6 +524,10 @@ export default function SubscriptionDetail({
 
         </div>
       </section>
+
+      <ProjectGroupLinks
+        apartment={apartment}
+      />
 
       {/* 단지 사진·평면도 */}
       {hasDetailImages && (
