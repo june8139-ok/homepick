@@ -396,32 +396,6 @@ function hasFreeMiddlePayment(
   );
 }
 
-function hasFixed500Contract(
-  apartment: Apartment
-) {
-  if (
-    apartment.evaluation
-      ?.contractType ===
-    "fixed-500"
-  ) {
-    return true;
-  }
-
-  const text =
-    normalizeConditionText(
-      apartment
-    );
-
-  return (
-    text.includes(
-      "계약금500만원"
-    ) ||
-    text.includes(
-      "계약금500만"
-    )
-  );
-}
-
 function hasLowInitialContract(
   apartment: Apartment
 ) {
@@ -697,30 +671,11 @@ export async function generateMetadata({
   };
 }
 
-function SummaryBox({
-  label,
-  count,
-  className,
-}: {
-  label: string;
-  count: number;
-  className: string;
-}) {
+function SummaryBox({ label, count }: { label: string; count: number }) {
   return (
-    <div
-      className={[
-        "min-w-0 rounded-2xl border px-4 py-4",
-        "sm:px-5 sm:py-5",
-        className,
-      ].join(" ")}
-    >
-      <p className="text-[11px] font-extrabold opacity-70 sm:text-xs">
-        {label}
-      </p>
-
-      <p className="mt-1 text-2xl font-black tracking-tight sm:text-3xl">
-        {count}
-      </p>
+    <div className="inline-flex items-baseline gap-2">
+      <span className="text-xs font-medium text-zinc-500 sm:text-sm">{label}</span>
+      <span className="text-base font-bold tabular-nums text-[#132238] sm:text-lg">{count}</span>
     </div>
   );
 }
@@ -861,91 +816,8 @@ function ApartmentCard({
   );
 }
 
-function CompactBenefitCard({
-  apartment,
-}: {
-  apartment: Apartment;
-}) {
-  const image =
-    getHeroImage(apartment);
-
-  const lowInitial =
-    hasLowInitialContract(
-      apartment
-    );
-
-  const freeMiddle =
-    hasFreeMiddlePayment(
-      apartment
-    );
-
-  const fixed500 =
-    hasFixed500Contract(
-      apartment
-    );
-
-  return (
-    <Link
-      href={`/apartments/${apartment.slug}`}
-      className="group flex w-[280px] shrink-0 items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm transition hover:border-emerald-300 hover:shadow-md sm:w-[320px]"
-    >
-      <div className="relative h-20 w-24 shrink-0 overflow-hidden rounded-xl bg-zinc-100">
-        {image ? (
-          <Image
-            src={image}
-            alt={`${apartment.name} 대표 이미지`}
-            fill
-            loading="lazy"
-            quality={60}
-            sizes="96px"
-            className="object-cover"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center text-[10px] font-bold text-zinc-400">
-            이미지 준비 중
-          </div>
-        )}
-      </div>
-
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap gap-1">
-          {fixed500 && (
-            <span className="rounded-full bg-amber-50 px-2 py-1 text-[9px] font-black text-amber-700">
-              계약금 500만원
-            </span>
-          )}
-
-          {!fixed500 &&
-            lowInitial && (
-              <span className="rounded-full bg-amber-50 px-2 py-1 text-[9px] font-black text-amber-700">
-                초기부담 낮음
-              </span>
-            )}
-
-          {freeMiddle && (
-            <span className="rounded-full bg-violet-50 px-2 py-1 text-[9px] font-black text-violet-700">
-              중도금 무이자
-            </span>
-          )}
-        </div>
-
-        <p className="mt-1.5 line-clamp-2 break-keep text-sm font-black leading-5 text-[#132238] transition group-hover:text-emerald-700">
-          {apartment.name}
-        </p>
-
-        <p className="mt-1 line-clamp-1 text-[11px] text-zinc-500">
-          {getConditionText(
-            apartment
-          )}
-        </p>
-      </div>
-    </Link>
-  );
-}
-
 function MainApartmentSection({
   id,
-  eyebrow,
   title,
   description,
   apartments,
@@ -953,7 +825,6 @@ function MainApartmentSection({
   initialLimit,
 }: {
   id?: string;
-  eyebrow: string;
   title: string;
   description: string;
   apartments: Apartment[];
@@ -982,16 +853,7 @@ function MainApartmentSection({
     >
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p
-            className={[
-              "text-xs font-extrabold sm:text-sm",
-              accentClass,
-            ].join(" ")}
-          >
-            {eyebrow}
-          </p>
-
-          <h2 className="mt-1 text-2xl font-black tracking-tight text-[#132238] sm:text-3xl">
+          <h2 className="text-xl font-bold tracking-tight text-[#132238] sm:text-2xl">
             {title}
           </h2>
 
@@ -1000,7 +862,7 @@ function MainApartmentSection({
           </p>
         </div>
 
-        <span className="w-fit rounded-full bg-white px-3 py-1.5 text-xs font-black text-zinc-600 shadow-sm ring-1 ring-zinc-200">
+        <span className={["w-fit text-xs font-semibold sm:text-sm", accentClass].join(" ")}>
           {apartments.length}개 단지
         </span>
       </div>
@@ -1138,29 +1000,10 @@ export default async function RegionPage({
       hasFreeMiddlePayment
     );
 
-  const fixed500Apartments =
-    regionApartments.filter(
-      hasFixed500Contract
-    );
-
   const lowInitialContractApartments =
     regionApartments.filter(
       hasLowInitialContract
     );
-
-  const featuredConditionApartments =
-    Array.from(
-      new Map(
-        [
-          ...fixed500Apartments,
-          ...freeMiddlePaymentApartments,
-          ...lowInitialContractApartments,
-        ].map((apartment) => [
-          apartment.slug,
-          apartment,
-        ])
-      ).values()
-    ).slice(0, 10);
 
   const regionDescription =
     getRegionDescription(
@@ -1408,31 +1251,12 @@ export default async function RegionPage({
           </span>
         </nav>
 
-        <section className="relative mt-5 overflow-hidden rounded-2xl border border-emerald-100 bg-[linear-gradient(135deg,#ffffff_0%,#f4fbf8_60%,#fff4ef_100%)] p-5 shadow-sm sm:mt-6 sm:rounded-3xl sm:p-8 lg:p-10">
-          <div
-            aria-hidden="true"
-            className="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-emerald-100/70 blur-3xl"
-          />
-
-          <div
-            aria-hidden="true"
-            className="absolute -bottom-24 left-1/3 h-48 w-48 rounded-full bg-orange-100/70 blur-3xl"
-          />
-
-          <div className="relative">
-            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white/90 px-3 py-1.5 shadow-sm backdrop-blur">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" />
-
-              <p className="text-xs font-extrabold tracking-wide text-emerald-700 sm:text-sm">
-                집눈 지역별 분양정보
-              </p>
-            </div>
-
-            <h1 className="mt-4 break-keep text-3xl font-black tracking-tight text-[#132238] sm:text-4xl lg:text-5xl">
+        <section className="mt-5 border-b border-zinc-200 pb-5 sm:mt-6 sm:pb-6">
+            <h1 className="break-keep text-2xl font-bold tracking-tight text-[#132238] sm:text-3xl">
               {cityName} 분양 아파트
             </h1>
 
-            <p className="mt-3 max-w-3xl break-keep text-sm leading-6 text-zinc-600 sm:mt-4 sm:text-base sm:leading-8">
+            <p className="mt-2 max-w-3xl break-keep text-sm leading-6 text-zinc-500">
               {cityName} 지역에서 공개 중인
               청약 아파트와 선착순 분양
               {privateRentalApartments.length > 0
@@ -1444,24 +1268,12 @@ export default async function RegionPage({
                 : ""}, 계약조건과 입지 정보를
               한눈에 확인해보세요.
             </p>
-
-          </div>
-        </section>
-
-        <section
-          className={[
-            "mt-6 grid gap-2 sm:mt-8 sm:gap-4",
-            privateRentalApartments.length > 0
-              ? "grid-cols-2 sm:grid-cols-4"
-              : "grid-cols-3",
-          ].join(" ")}
-        >
+          <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 sm:gap-x-8">
           <SummaryBox
             label="전체 공개"
             count={
               regionApartments.length
             }
-            className="border-zinc-200 bg-white text-[#132238]"
           />
 
           <SummaryBox
@@ -1469,7 +1281,6 @@ export default async function RegionPage({
             count={
               firstComeApartments.length
             }
-            className="border-emerald-100 bg-emerald-50 text-emerald-700"
           />
 
           <SummaryBox
@@ -1477,7 +1288,6 @@ export default async function RegionPage({
             count={
               subscriptionApartments.length
             }
-            className="border-blue-100 bg-blue-50 text-blue-700"
           />
 
           {privateRentalApartments.length >
@@ -1487,14 +1297,14 @@ export default async function RegionPage({
               count={
                 privateRentalApartments.length
               }
-              className="border-[#132238]/10 bg-slate-50 text-[#132238]"
             />
           )}
+          </div>
         </section>
 
         <nav
           aria-label={`${safeCityName} 분양정보 바로가기`}
-          className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-y border-zinc-200/80 py-3 text-xs font-bold text-zinc-600 sm:mt-5 sm:text-sm"
+          className="flex flex-wrap items-center gap-x-5 gap-y-3 border-b border-zinc-200 py-4 text-xs font-semibold text-zinc-600 sm:text-sm"
         >
           <Link
             href="#first-come"
@@ -1528,47 +1338,10 @@ export default async function RegionPage({
           </Link>
         </nav>
 
-        {featuredConditionApartments.length >
-          0 && (
-          <section className="mt-8 sm:mt-10">
-            <div>
-              <p className="text-xs font-extrabold text-amber-600 sm:text-sm">
-                GOOD CONDITIONS
-              </p>
-
-              <h2 className="mt-1 text-xl font-black tracking-tight text-[#132238] sm:text-2xl">
-                조건 좋은 단지 빠르게 보기
-              </h2>
-
-              <p className="mt-1.5 text-xs leading-5 text-zinc-500 sm:text-sm">
-                계약금 부담이 낮거나 중도금 무이자 조건이 확인된 단지입니다.
-              </p>
-            </div>
-
-            <div className="-mx-4 mt-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:-mx-6 sm:px-6">
-              <div className="flex w-max gap-3">
-                {featuredConditionApartments.map(
-                  (apartment) => (
-                    <CompactBenefitCard
-                      key={
-                        apartment.slug
-                      }
-                      apartment={
-                        apartment
-                      }
-                    />
-                  )
-                )}
-              </div>
-            </div>
-          </section>
-        )}
-
         <MainApartmentSection
           id="first-come"
-          eyebrow="FIRST COME"
           title={`${cityName} 선착순 분양`}
-          description="현재 선착순 방식으로 확인할 수 있는 단지를 2열 카드로 모았습니다."
+          description="현재 공개된 선착순 단지의 분양가와 계약조건을 확인하세요."
           apartments={
             firstComeApartments
           }
@@ -1579,7 +1352,6 @@ export default async function RegionPage({
           0 && (
           <MainApartmentSection
             id="private-rental"
-            eyebrow="PRIVATE RENTAL"
             title={`${cityName} 민간임대`}
             description={`${cityName} 지역에서 현재 공개된 민간임대 단지의 임대조건과 계약조건을 확인할 수 있습니다.`}
             apartments={
@@ -1592,7 +1364,6 @@ export default async function RegionPage({
 
         <MainApartmentSection
           id="subscription"
-          eyebrow="SUBSCRIPTION"
           title={`${cityName} 청약 아파트`}
           description="현재 공개된 청약 단지를 한곳에서 확인할 수 있습니다."
           apartments={
