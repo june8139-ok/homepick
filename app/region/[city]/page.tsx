@@ -17,6 +17,7 @@ import {
 
 import {
   isFirstComeApartment,
+  isVisibleHomeSubscription,
   isSubscriptionApartment,
 } from "../../../lib/subscriptionVisibility";
 
@@ -488,6 +489,8 @@ const getRegionData =
         )
       : [];
 
+    const referenceDate = new Date();
+
     const regionApartments =
       normalizedCity
         ? apartments
@@ -499,6 +502,8 @@ const getRegionData =
                 !isCompletedListing(
                   apartment
                 ) &&
+                (!isSubscriptionApartment(apartment) ||
+                  isVisibleHomeSubscription(apartment, referenceDate)) &&
                 isApartmentInRegion(
                   apartment,
                   normalizedCity

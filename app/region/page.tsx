@@ -13,6 +13,7 @@ import {
 
 import {
   isFirstComeApartment,
+  isVisibleHomeSubscription,
   isSubscriptionApartment,
 } from "../../lib/subscriptionVisibility";
 
@@ -415,13 +416,17 @@ export default async function RegionIndexPage() {
       publishedOnly: true,
     })) as Apartment[];
 
+  const referenceDate = new Date();
+
   const publicApartments =
     apartments.filter(
       (apartment) =>
         apartment.slug &&
         !isCompletedListing(
           apartment
-        )
+        ) &&
+        (!isSubscriptionApartment(apartment) ||
+          isVisibleHomeSubscription(apartment, referenceDate))
     );
 
   const cities =
