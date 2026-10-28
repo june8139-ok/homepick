@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import {
   Geist,
   Geist_Mono,
+  Noto_Sans_KR,
 } from "next/font/google";
 
 import SiteHeader from "../components/Layout/SiteHeader";
@@ -12,6 +13,13 @@ import SiteFooter from "../components/Layout/SiteFooter";
 import RouteLoadingIndicator from "../components/Layout/RouteLoadingIndicator";
 
 import "./globals.css";
+import "./redesign.css";
+
+const notoSansKr = Noto_Sans_KR({
+  variable: "--font-noto-sans-kr",
+  subsets: ["latin"],
+  display: "swap",
+});
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -309,7 +317,7 @@ function SiteHeaderFallback() {
   return (
     <div
       aria-hidden="true"
-      className="min-h-[68px] border-b border-zinc-200/80 bg-white sm:min-h-[72px]"
+      className="min-h-[60px] border-b border-zinc-200/80 bg-white sm:min-h-[68px]"
     />
   );
 }
@@ -323,7 +331,7 @@ export default function RootLayout({
   return (
     <html
       lang="ko"
-      className={`${geistSans.variable} ${geistMono.variable} h-full bg-[#F7F8FA] antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${notoSansKr.variable} h-full bg-[#F7F8FA] antialiased`}
     >
       <body className="min-h-full bg-[#F7F8FA] text-[#111827]">
         <JsonLd

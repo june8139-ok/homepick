@@ -1,3 +1,4 @@
+import { getDetailSections } from "../../lib/apartmentPages";
 import type {
   ComponentProps,
 } from "react";
@@ -706,6 +707,8 @@ export default function SaleDetail({
   apartment: Apartment;
   conditionHistory?: ApartmentConditionHistoryItem[];
 }) {
+  const publishedSections = getDetailSections(apartment);
+
   const informationCards =
     getInformationCards(
       apartment
@@ -765,7 +768,7 @@ export default function SaleDetail({
         </section>
       )}
 
-      <section
+      {!publishedSections.includes("pricing") && (<section
         id="price"
         className="scroll-mt-24"
       >
@@ -840,7 +843,7 @@ export default function SaleDetail({
             </div>
           )}
         </div>
-      </section>
+      </section>)}
 
       {conditionHistory &&
         conditionHistory.length > 0 && (
@@ -866,7 +869,7 @@ export default function SaleDetail({
         </details>
       )}
 
-      <section
+      {!publishedSections.includes("overview") && (<section
         id="overview"
         className="scroll-mt-24 overflow-hidden rounded-2xl border border-zinc-200 bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-4 shadow-sm sm:rounded-3xl sm:p-7"
       >
@@ -985,7 +988,7 @@ export default function SaleDetail({
             }
           />
         </div>
-      </section>
+      </section>)}
 
       <ProjectGroupLinks
         apartment={apartment}
@@ -997,7 +1000,7 @@ export default function SaleDetail({
       >
         <ApartmentImageSections
           images={
-            apartment.images
+            publishedSections.includes("plans") ? {...apartment.images, floorPlans: []} : apartment.images
           }
           apartmentName={
             apartment.name
@@ -1006,7 +1009,7 @@ export default function SaleDetail({
       </section>
 
       {informationCards.length >
-        0 && (
+        0 && !publishedSections.includes("location") && (
         <section
           id="location"
           className="scroll-mt-24 rounded-2xl border border-zinc-200 bg-[linear-gradient(180deg,#f9fcfb_0%,#ffffff_100%)] p-4 shadow-sm sm:rounded-3xl sm:p-7"

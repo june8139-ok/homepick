@@ -1,3 +1,4 @@
+import { getDetailSections } from "../../lib/apartmentPages";
 import SubscriptionAlertForm from "./SubscriptionAlertForm";
 import UnitPriceCard from "./UnitPriceCard";
 import ApartmentImageSections from "./ApartmentImageSections";
@@ -459,7 +460,7 @@ export default function SubscriptionDetail({
       </section>
 
       {/* 평형별 분양가 */}
-      <section
+      {!getDetailSections(apartment).includes("pricing") && (<section
         id="price"
         className="scroll-mt-24"
       >
@@ -467,10 +468,10 @@ export default function SubscriptionDetail({
           apartment={apartment}
           title="평형별 분양가"
         />
-      </section>
+      </section>)}
 
       {/* 사업개요 */}
-      <section
+      {!getDetailSections(apartment).includes("overview") && (<section
         id="overview"
         className="scroll-mt-24 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-7"
       >
@@ -523,7 +524,7 @@ export default function SubscriptionDetail({
           />
 
         </div>
-      </section>
+      </section>)}
 
       <ProjectGroupLinks
         apartment={apartment}
@@ -550,7 +551,7 @@ export default function SubscriptionDetail({
           </header>
 
           <ApartmentImageSections
-            images={apartment.images}
+            images={getDetailSections(apartment).includes("plans") ? {...apartment.images, floorPlans: []} : apartment.images}
             apartmentName={
               apartment.name
             }

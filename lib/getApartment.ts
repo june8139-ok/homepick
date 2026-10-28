@@ -18,6 +18,7 @@ const getApartmentCached = cache(
       await supabase
         .from("apartments")
         .select("*")
+        .eq("is_published", true)
         .or(
           [
             `slug.eq.${decodedSlug}`,

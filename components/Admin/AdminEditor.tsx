@@ -1,4 +1,5 @@
 "use client";
+import DetailPagesSection from "./DetailPagesSection";
 
 import BasicInfoSection from "./BasicInfoSection";
 import PriceInfoSection from "./PriceInfoSection";
@@ -28,6 +29,8 @@ export default function AdminEditor({
         <LocationSection />
 
         <ImageSection />
+
+        <DetailPagesSection />
 
         <RegisterButton
           mode={mode}

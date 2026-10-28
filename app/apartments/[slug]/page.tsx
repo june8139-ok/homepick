@@ -1,3 +1,4 @@
+import PropertyHero from "../../../components/Apartment/PropertyHero";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -1203,9 +1204,7 @@ export default async function ApartmentDetailPage({
             </Link>
           </nav>
 
-          <ApartmentHero
-            apartment={apartment}
-          />
+          {isSubscription ? <ApartmentHero apartment={apartment}/> : <PropertyHero apartment={apartment}/>}
 
           {isSubscription ? (
             <SubscriptionDetail

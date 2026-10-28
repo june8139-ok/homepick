@@ -165,7 +165,7 @@ export default function FavoritesClient({
   };
 
   return (
-    <main className="min-h-screen bg-zinc-50 px-4 py-7 text-zinc-900 sm:px-6 sm:py-10">
+    <main className="listing-design min-h-screen bg-zinc-50 px-4 py-7 text-zinc-900 sm:px-6 sm:py-10">
       <section className="mx-auto max-w-7xl">
         <p className="text-xs font-extrabold text-emerald-600 sm:text-sm">
           FAVORITE APARTMENTS

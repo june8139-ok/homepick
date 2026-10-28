@@ -1,3 +1,4 @@
+import { normalizeDetailPages } from "./apartmentPages";
 import type {
   Apartment,
   ListingStage,
@@ -427,6 +428,7 @@ export function normalizeApartment(
     );
 
   return {
+    detailPages: normalizeDetailPages(data.detailPages),
     slug: toStringValue(row.slug),
 
     city: toStringValue(

@@ -1,4 +1,6 @@
 "use client";
+import type { DetailPages } from "../../lib/apartmentPages";
+import { normalizeDetailPages } from "../../lib/apartmentPages";
 
 import {
   createContext,
@@ -89,6 +91,7 @@ export type ApartmentImages = {
 };
 
 type InitialApartment = {
+  detailPages?: DetailPages;
   slug?: string;
 
   name?: string;
@@ -170,6 +173,8 @@ type InitialApartment = {
 };
 
 type AdminContextType = {
+  detailPages: DetailPages;
+  setDetailPages: (value: DetailPages) => void;
   editingSlug?: string;
 
   listingStage: ListingStage;
@@ -860,6 +865,9 @@ export function AdminProvider({
   children: ReactNode;
   initialApartment?: InitialApartment;
 }) {
+  const [detailPages, setDetailPagesState] = useState<DetailPages>(() => normalizeDetailPages(initialApartment?.detailPages));
+  const setDetailPages = (value: DetailPages) => { setDetailPagesState(value); setIsDirty(true); };
+
   const [
     listingStage,
     setListingStageState,
@@ -1066,6 +1074,7 @@ export function AdminProvider({
   return (
     <AdminContext.Provider
       value={{
+        detailPages, setDetailPages,
         editingSlug:
           initialApartment?.slug,
 

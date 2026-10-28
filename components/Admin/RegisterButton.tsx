@@ -286,6 +286,7 @@ export default function RegisterButton({
     editingSlug,
 
     setIsDirty,
+    detailPages,
   } = useAdmin();
 
   const [
@@ -404,6 +405,7 @@ export default function RegisterButton({
           );
 
         const finalApartmentData = {
+          detailPages,
           ...apartmentData,
 
           slug:

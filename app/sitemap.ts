@@ -1,3 +1,4 @@
+import { getDetailSections, detailHref } from "../lib/apartmentPages";
 import type {
   MetadataRoute,
 } from "next";
@@ -406,6 +407,7 @@ export default async function sitemap(): Promise<
     ...staticPages,
     ...regionPages,
     ...apartmentPages,
+    ...publicApartments.flatMap(a => getDetailSections(a).map(section => ({url: SITE_URL + detailHref(a.slug, section), lastModified: getApartmentModifiedDate(a)}))),
     ...briefingPages,
   ];
 }

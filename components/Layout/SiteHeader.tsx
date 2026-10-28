@@ -288,8 +288,8 @@ export default function SiteHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-[100] border-b border-zinc-200/80 bg-white/95 backdrop-blur-xl">
-      <div className="mx-auto flex min-h-[68px] max-w-7xl items-center justify-between gap-4 px-4 sm:min-h-[72px] sm:px-6">
+    <header className={`${pathname.startsWith("/apartments/") ? "relative" : "sticky top-0"} z-[100] border-b border-zinc-200/80 bg-white/95 backdrop-blur-xl`}>
+      <div className="mx-auto flex min-h-[60px] max-w-7xl items-center justify-between gap-4 px-4 sm:min-h-[68px] sm:px-6">
         {/* 로고 */}
         <Link
           href="/"
@@ -652,6 +652,7 @@ export default function SiteHeader() {
           </div>
         </div>
       )}
+      {pathname === "/" && !isMenuOpen && <nav aria-label="모바일 주요 메뉴" className="home-mobile-nav lg:hidden">{menuItems.slice(0,4).map(item=><Link key={item.href} href={item.href}>{item.label}</Link>)}</nav>}
     </header>
   );
 }

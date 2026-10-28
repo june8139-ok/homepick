@@ -1,4 +1,5 @@
 "use client";
+import FeaturedSlider from "./FeaturedSlider";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -260,7 +261,8 @@ export default function HomeClient({
   );
 
   return (
-    <main className="min-h-screen bg-white pb-3 text-[#111827] sm:pb-6">
+    <main className="home-redesign min-h-screen bg-white pb-3 text-[#111827] sm:pb-6">
+      <FeaturedSlider apartments={allFirstComeApartments} />
       <SearchHero
         apartments={searchApartments}
       />

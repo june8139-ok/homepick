@@ -1,3 +1,4 @@
+import { normalizeDetailPages } from "../../../../../lib/apartmentPages";
 import { asRecord, updateFirstComeReview } from "../../../../../lib/firstComeReview";
 import {
   getAdminAuth,
@@ -368,6 +369,10 @@ function getMeaningfulUpdateType(
     return "주요 정보 변경";
   }
 
+  if (changed(normalizeDetailPages(existing.detailPages), normalizeDetailPages(incoming.detailPages ?? existing.detailPages))) {
+    return "상세정보 변경";
+  }
+
   return null;
 }
 
@@ -414,6 +419,7 @@ function mergeApartmentData(
   const mergedData: JsonRecord = {
     ...existingData,
     ...incomingData,
+    detailPages: normalizeDetailPages(incomingData.detailPages ?? existingData.detailPages),
 
     projectInfo:
       mergeNestedRecord(
@@ -841,6 +847,7 @@ export async function POST(
     const createdAt =
       new Date().toISOString();
 
+    createdData.detailPages = normalizeDetailPages(createdData.detailPages);
     delete createdData.firstComeReview;
     if (createdData.listingStage === "firstCome") {
       const confirmed = updateFirstComeReview(createdData, "confirmed", 30, "선착순 신규 등록 확인");

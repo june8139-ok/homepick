@@ -1,3 +1,4 @@
+import type { DetailPages } from "../lib/apartmentPages";
 import type { EvaluationInput } from "../data/scoring";
 
 export type SubscriptionSchedule = {
@@ -103,6 +104,7 @@ export type HousingSupplyType =
   | "privateRental";
 
 export type Apartment = {
+  detailPages?: DetailPages;
   slug: string;
   projectGroup?: string;
   city: string;

@@ -557,7 +557,7 @@ export default async function RegionIndexPage() {
   };
 
   return (
-    <main className="min-h-screen bg-zinc-50 px-4 py-6 text-zinc-900 sm:px-6 sm:py-10">
+    <main className="listing-design min-h-screen bg-zinc-50 px-4 py-6 text-zinc-900 sm:px-6 sm:py-10">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

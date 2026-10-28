@@ -1100,7 +1100,7 @@ export default function CompareClient({
     selectedApartments.length < 2
   ) {
     return (
-      <main className="min-h-screen bg-zinc-50 px-5 py-16 text-zinc-900">
+      <main className="listing-design min-h-screen bg-zinc-50 px-5 py-16 text-zinc-900">
         <section className="mx-auto max-w-3xl rounded-3xl border border-zinc-200 bg-white px-6 py-14 text-center shadow-sm">
           <p className="text-sm font-extrabold tracking-wide text-emerald-600">
             JIBNUN COMPARE
@@ -1487,7 +1487,7 @@ export default function CompareClient({
   ];
 
   return (
-    <main className="min-h-screen bg-zinc-50 px-2.5 py-6 text-zinc-900 sm:px-6 sm:py-10">
+    <main className="listing-design min-h-screen bg-zinc-50 px-2.5 py-6 text-zinc-900 sm:px-6 sm:py-10">
       <section className="mx-auto max-w-[1420px]">
         <Link
           href="/search"

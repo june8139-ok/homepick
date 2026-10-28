@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 
 import {
   memo,
@@ -12,7 +11,6 @@ import {
 } from "react";
 
 import { useRouter } from "next/navigation";
-import { getListingCardPrice } from "../../lib/apartmentDisplay";
 
 import type { Apartment } from "../../types/apartment";
 
@@ -38,41 +36,6 @@ function normalizeText(
     .replace(/\s+/g, "");
 }
 
-function getHeroImage(
-  apartment?: Apartment
-) {
-  const hero =
-    apartment?.images?.hero;
-
-  if (
-    typeof hero === "string" &&
-    hero.trim() &&
-    !hero.includes(
-      "/images/apartments/default/main.jpg"
-    )
-  ) {
-    return hero;
-  }
-
-  return (
-    apartment?.images?.gallery?.find(
-      (image) =>
-        Boolean(image) &&
-        !image.includes(
-          "/images/apartments/default/main.jpg"
-        )
-    ) ?? ""
-  );
-}
-
-function hasUsableImage(
-  apartment: Apartment
-) {
-  return Boolean(
-    getHeroImage(apartment)
-  );
-}
-
 function getStatusStyle(
   apartment: Apartment
 ) {
@@ -93,34 +56,6 @@ function getStatusStyle(
   }
 
   return "bg-amber-50 text-amber-700";
-}
-
-function getFeaturedLabel(
-  apartment: Apartment
-) {
-  if (
-    isFirstComeApartment(
-      apartment
-    )
-  ) {
-    return "추천 선착순 분양";
-  }
-
-  if (
-    isSubscriptionApartment(
-      apartment
-    )
-  ) {
-    return "진행 중 청약";
-  }
-
-  return "최근 등록 단지";
-}
-
-function getFeaturedPrice(
-  apartment: Apartment
-) {
-  return getListingCardPrice(apartment, isFirstComeApartment(apartment)).text;
 }
 
 function getSearchTargets(
@@ -324,65 +259,6 @@ function SearchHero({
   const deferredKeyword =
     useDeferredValue(keyword);
 
-  /*
-   * 홈 대표 단지 선정 기준
-   *
-   * 1. 이미지가 있는 선착순 단지
-   * 2. 이미지가 있는 청약 단지
-   * 3. 이미지가 있는 기타 최신 단지
-   * 4. 이미지 여부와 관계없이 첫 번째 단지
-   *
-   * getApartments()가 최신 등록순이므로
-   * 각 조건에서 처음 발견되는 단지를 사용합니다.
-   */
-  const featuredApartment =
-    useMemo(() => {
-      const firstCome =
-        apartments.find(
-          (apartment) =>
-            isFirstComeApartment(
-              apartment
-            ) &&
-            hasUsableImage(
-              apartment
-            )
-        );
-
-      if (firstCome) {
-        return firstCome;
-      }
-
-      const subscription =
-        apartments.find(
-          (apartment) =>
-            isSubscriptionApartment(
-              apartment
-            ) &&
-            hasUsableImage(
-              apartment
-            )
-        );
-
-      if (subscription) {
-        return subscription;
-      }
-
-      const latestWithImage =
-        apartments.find(
-          hasUsableImage
-        );
-
-      return (
-        latestWithImage ??
-        apartments[0]
-      );
-    }, [apartments]);
-
-  const featuredImage =
-    getHeroImage(
-      featuredApartment
-    );
-
   const suggestions =
     useMemo(() => {
       const normalizedKeyword =
@@ -575,46 +451,11 @@ function SearchHero({
     suggestions.length > 0;
 
   return (
-    <section className="relative z-[200] w-full overflow-visible bg-[linear-gradient(115deg,#FFFFFF_0%,#FBFDFB_42%,#EAF6F1_100%)]">
-      <div className="mx-auto grid w-full max-w-[1920px] lg:min-h-[455px] lg:grid-cols-[0.82fr_1.18fr] xl:min-h-[500px]">
+    <section className="home-search-compact relative z-20 w-full overflow-visible bg-white">
+      <div className="mx-auto w-full max-w-7xl">
         {/* 왼쪽 검색 영역 */}
-        <div className="relative z-[220] flex min-w-0 flex-col justify-center px-5 pb-8 pt-7 sm:px-12 sm:py-14 lg:pl-[max(3.5rem,calc((100vw-1680px)/2+3.5rem))] lg:pr-14 xl:pl-[max(4.5rem,calc((100vw-1680px)/2+4.5rem))] xl:pr-[72px]">
-          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-200/70 bg-white/68 px-3 py-1.5 text-[10px] font-extrabold text-[#0F766E] shadow-sm sm:px-4 sm:py-2 sm:text-xs">
-            <span
-              aria-hidden="true"
-              className="h-2 w-2 rounded-full bg-[#FF5A5F] shadow-[0_0_0_4px_rgba(255,90,95,0.10)]"
-            />
-            전국 부동산 정보 플랫폼
-          </div>
-
-          <h1 className="mt-4 tracking-[-0.055em] sm:mt-6">
-            <span className="flex items-center gap-3 sm:gap-4">
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white/88 shadow-[0_12px_32px_rgba(15,118,110,0.12)] ring-1 ring-emerald-100/80 sm:h-[72px] sm:w-[72px] xl:h-20 xl:w-20">
-                <Image
-                  src="/jibnun-logo-symbol.png"
-                  alt="집눈 로고"
-                  width={64}
-                  height={64}
-                  priority
-                  className="h-10 w-10 object-contain sm:h-[58px] sm:w-[58px] xl:h-16 xl:w-16"
-                />
-              </span>
-
-              <span className="block text-[48px] font-black leading-none text-[#0F766E] drop-shadow-[0_3px_0_rgba(15,118,110,0.08)] sm:text-[76px] xl:text-[88px]">
-                집눈
-              </span>
-            </span>
-
-            <span className="mt-3 block whitespace-nowrap text-[22px] font-black leading-tight tracking-[-0.04em] text-[#132238] sm:mt-4 sm:text-[30px] xl:text-[34px]">
-              전국 부동산을 한눈에
-            </span>
-          </h1>
-
-          <p className="mt-4 max-w-lg break-keep text-xs font-semibold leading-5 text-zinc-500 sm:mt-5 sm:text-base sm:leading-7">
-            분양 아파트부터 청약 일정,
-            선착순 분양과 계약조건까지
-            한 번에 찾고 비교하세요.
-          </p>
+        <div className="relative px-5 py-5 sm:px-8 sm:py-6">
+          <h1 className="sr-only">집눈 전국 부동산을 한눈에</h1>
 
           {/* 검색창 */}
           <div className="relative z-[240] mt-4 w-full min-w-0 max-w-2xl sm:mt-7">
@@ -847,117 +688,6 @@ function SearchHero({
           </div>
         </div>
 
-        {/* 오른쪽 대표 단지 */}
-        <div className="relative z-10 hidden min-h-[280px] overflow-hidden bg-gradient-to-br from-emerald-50 via-white to-stone-50 sm:block lg:min-h-full">
-          {featuredImage &&
-          featuredApartment ? (
-            <Image
-              src={
-                featuredImage
-              }
-              alt={`${featuredApartment.name} 대표 이미지`}
-              fill
-              loading="lazy"
-              quality={72}
-              sizes="
-                (max-width: 639px) 1px,
-                (max-width: 1023px) 100vw,
-                60vw
-              "
-              className="object-cover object-center transition-transform duration-700 hover:scale-[1.03] lg:scale-[1.035] lg:hover:scale-[1.06]"
-            />
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-sky-100">
-              <div className="text-center">
-                <span className="text-5xl sm:text-6xl">
-                  🏢
-                </span>
-
-                <p className="mt-3 text-xs font-bold text-zinc-400">
-                  대표 이미지 준비 중
-                </p>
-              </div>
-            </div>
-          )}
-
-          <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-black/35 via-transparent to-transparent lg:bg-gradient-to-r lg:from-[#FBFDFB] lg:via-white/30 lg:via-24% lg:to-transparent" />
-
-          {featuredApartment && (
-            <button
-              type="button"
-              onClick={() =>
-                openApartment(
-                  featuredApartment
-                )
-              }
-              className="
-                group absolute bottom-3
-                left-3 right-3 z-20
-                cursor-pointer rounded-xl
-                border border-white/60
-                bg-white/90 p-3
-                text-left shadow-[0_16px_42px_rgba(17,24,39,0.16)]
-                backdrop-blur-xl
-                transition-all
-                hover:-translate-y-1
-                hover:bg-white
-                hover:shadow-2xl
-                focus-visible:outline-none
-                focus-visible:ring-2
-                focus-visible:ring-emerald-500
-                focus-visible:ring-offset-2
-                sm:bottom-5 sm:left-5
-                sm:right-5 sm:rounded-2xl
-                sm:p-5
-                lg:bottom-7 lg:left-auto
-                lg:right-7 lg:w-[340px]
-              "
-            >
-              <div className="flex items-center justify-between gap-2">
-                <span
-                  className={[
-                    "rounded-full px-2 py-1 text-[9px] font-extrabold sm:px-3 sm:text-[10px]",
-                    isSubscriptionApartment(
-                      featuredApartment
-                    )
-                      ? "bg-blue-50 text-blue-700"
-                      : isFirstComeApartment(
-                            featuredApartment
-                          )
-                        ? "bg-emerald-50 text-emerald-700"
-                        : "bg-amber-50 text-amber-700",
-                  ].join(" ")}
-                >
-                  {getFeaturedLabel(
-                    featuredApartment
-                  )}
-                </span>
-
-                <span className="max-w-[40%] truncate text-[9px] font-bold text-zinc-400 sm:text-xs">
-                  {featuredApartment.cityName ||
-                    featuredApartment.city ||
-                    featuredApartment.region}
-                </span>
-              </div>
-
-              <p className="mt-2 line-clamp-1 text-sm font-black leading-5 text-[#111827] sm:mt-3 sm:line-clamp-2 sm:text-lg sm:leading-7">
-                {
-                  featuredApartment.name
-                }
-              </p>
-
-              <p className="mt-1 line-clamp-2 break-keep text-[10px] leading-4 text-zinc-500 sm:text-sm sm:leading-6">
-                {getFeaturedPrice(
-                  featuredApartment
-                )}
-              </p>
-
-              <span className="mt-2 inline-flex text-[10px] font-extrabold text-emerald-700 transition-transform group-hover:translate-x-1 sm:mt-4 sm:text-sm">
-                상세정보 확인 →
-              </span>
-            </button>
-          )}
-        </div>
       </div>
     </section>
   );

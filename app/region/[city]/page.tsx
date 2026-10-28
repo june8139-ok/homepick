@@ -1123,7 +1123,7 @@ export default async function RegionPage({
       0
   ) {
     return (
-      <main className="flex min-h-[70vh] items-center justify-center bg-zinc-50 px-4 py-16">
+      <main className="listing-design flex min-h-[70vh] items-center justify-center bg-zinc-50 px-4 py-16">
         <section className="w-full max-w-xl rounded-2xl border border-zinc-200 bg-white p-8 text-center shadow-sm sm:rounded-3xl sm:p-10">
           <p className="text-xs font-bold text-emerald-600">
             집눈 지역별 분양정보
@@ -1191,7 +1191,7 @@ export default async function RegionPage({
   }
 
   return (
-    <main className="min-h-screen bg-zinc-50 px-4 py-6 text-zinc-900 sm:px-6 sm:py-10">
+    <main className="listing-design min-h-screen bg-zinc-50 px-4 py-6 text-zinc-900 sm:px-6 sm:py-10">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
