@@ -819,3 +819,15 @@
       margin-inline: 0;
     }
   }
+
+/* 홈과 목록의 선착순 표시를 같은 녹색 계열로 통일합니다. */
+.home-refined .home-unit-photo > .home-unit-badge {
+  border-color: #c4ddce; background: #e1efe8ed; color: #245d49;
+  box-shadow: 0 2px 8px #102e2010;
+}
+@media (min-width: 1024px) {
+  .home-refined .featured-copy .featured-eyebrow {
+    border-color: #c7e1d080; background: #1e514f80; color: #f1faf5;
+    box-shadow: inset 0 1px 0 #ffffff26;
+  }
+}
