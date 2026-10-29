@@ -305,7 +305,7 @@ function SearchHero({ apartments }: { apartments: Apartment[] }) {
                 aria-hidden="true"
                 viewBox="0 0 24 24"
                 fill="none"
-                className="home-search-icon pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 sm:left-5 sm:h-5 sm:w-5"
+                className="home-search-icon pointer-events-none h-4 w-4 text-zinc-400 sm:left-5 sm:h-5 sm:w-5"
               >
                 <circle
                   cx="11"
@@ -350,7 +350,7 @@ function SearchHero({ apartments }: { apartments: Apartment[] }) {
                 aria-label={isNavigating ? "검색결과로 이동 중" : "검색하기"}
                 aria-busy={isNavigating}
                 disabled={isNavigating}
-                className="home-search-submit absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-xl bg-[#10B981] text-white shadow-sm transition-all hover:-translate-y-[55%] hover:bg-[#0F766E] hover:shadow-lg active:translate-y-[-50%] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 sm:right-3 sm:h-12 sm:w-14"
+                className="home-search-submit flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl bg-[#10B981] text-white shadow-sm transition-all hover:bg-[#0F766E] hover:shadow-lg active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 sm:right-3 sm:h-12 sm:w-14"
               >
                 <svg
                   viewBox="0 0 24 24"
