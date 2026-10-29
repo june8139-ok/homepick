@@ -83,6 +83,7 @@ function UnitCard({ a }: { a: Apartment }) {
   return (
     <article className="home-unit-card">
       <Link href={href} className="home-unit-photo">
+        <span className="home-unit-badge">선착순 분양</span>
         {image ? (
           <Image
             src={image}
@@ -159,9 +160,9 @@ export default function HomeClient({
   );
   return (
     <main className="home-refined">
+      <div className="home-lead">
       <FeaturedSlider apartments={firstCome} />
       <SearchHero apartments={search} />
-      <div className="home-content">
         <section className="home-schedules">
           <div className="home-section-title">
             <h2>
@@ -169,6 +170,7 @@ export default function HomeClient({
                 ? "오늘의 청약"
                 : "다가오는 청약"}
             </h2>
+            <p className="home-schedule-subtitle">접수 중 · 다가오는 일정</p>
             <Link href="/subscription">
               전체 보기 <span>›</span>
             </Link>
@@ -181,7 +183,9 @@ export default function HomeClient({
                   key={a.slug}
                   className="home-schedule-card"
                 >
+                  <svg className="home-schedule-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none"><rect x="3.5" y="5.5" width="17" height="15" rx="2" stroke="currentColor" strokeWidth="1.5"/><path d="M7 3v5m10-5v5M4 11h16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
                   <span
+                    data-event={event.label}
                     className={`home-event-label ${event.label === "특별공급" ? "warm" : ""}`}
                   >
                     {event.label}
@@ -213,6 +217,8 @@ export default function HomeClient({
             </p>
           )}
         </section>
+      </div>
+      <div className="home-content">
         <section className="home-listings">
           <div className="home-section-title">
             <h2>지금 살펴볼 단지</h2>

@@ -72,8 +72,8 @@ export default function FeaturedSlider({
     >
       <div className="featured-brand-title">
         <h1>
-          <span className="featured-brand-name">집눈</span>{" "}
-          전국 부동산을<br />한눈에
+          <span className="featured-brand-name">집눈<span className="featured-desktop-comma">,</span></span>{" "}
+          전국 부동산을{" "}<br className="featured-mobile-break" />한눈에
         </h1>
         <p>관심 있는 집을, 더 선명하게</p>
       </div>
@@ -107,7 +107,7 @@ export default function FeaturedSlider({
               alt={`${a.name} 대표 이미지`}
               fill
               priority={i === 0}
-              sizes="(min-width: 1024px) 760px, 100vw"
+              sizes="(min-width: 1600px) 1600px, 100vw"
               quality={90}
               className="object-cover"
             />
@@ -115,7 +115,7 @@ export default function FeaturedSlider({
             <div className="featured-copy">
               <p className="featured-eyebrow">선착순 분양</p>
               <h2>{a.name}</h2>
-              <p>{a.cityName || a.region}</p>
+              <p className="featured-location"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z" stroke="currentColor" strokeWidth="1.8"/><circle cx="12" cy="10" r="2.3" stroke="currentColor" strokeWidth="1.8"/></svg>{a.cityName || a.region}</p>
               {a.condition && (
                 <p className="featured-condition">{a.condition}</p>
               )}
