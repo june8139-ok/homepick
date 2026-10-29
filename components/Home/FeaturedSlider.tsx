@@ -52,8 +52,8 @@ export default function FeaturedSlider({
   if (!slides.length)
     return (
       <section className="featured-empty">
-        <p>집눈 분양정보</p>
-        <h1>관심 있는 집을, 더 선명하게</h1>
+        <h1>집눈, 전국 부동산을 한눈에</h1>
+        <p>관심 있는 집을, 더 선명하게</p>
         <Link href="/search">지도에서 단지 찾기 →</Link>
       </section>
     );
@@ -71,11 +71,11 @@ export default function FeaturedSlider({
       }}
     >
       <div className="featured-brand-title">
-        <p>집눈이 전하는 분양정보</p>
         <h1>
-          관심 있는 집을,
-          <br />더 선명하게
+          <span className="featured-brand-name">집눈</span>{" "}
+          전국 부동산을<br />한눈에
         </h1>
+        <p>관심 있는 집을, 더 선명하게</p>
       </div>
       <div
         ref={track}
@@ -107,7 +107,7 @@ export default function FeaturedSlider({
               alt={`${a.name} 대표 이미지`}
               fill
               priority={i === 0}
-              sizes="100vw"
+              sizes="(min-width: 1024px) 760px, 100vw"
               quality={90}
               className="object-cover"
             />

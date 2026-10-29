@@ -117,7 +117,7 @@
   }
   .home-refined .home-search-compact input {
     height: 43px;
-    font-size: 13px !important;
+    font-size: 16px !important;
     padding-left: 36px;
   }
   .home-refined
@@ -451,7 +451,7 @@
       padding: 18px 24px;
     }
     .home-refined .home-search-compact input {
-      font-size: 15px !important;
+      font-size: 16px !important;
     }
     .home-search-shortcuts {
       margin-top: 15px;
@@ -537,4 +537,137 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-  
+
+/* 홈 문구: 고정 H1과 보조 슬로건. 모바일 사진 배치는 유지합니다. */
+.home-refined .featured-brand-name {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 12px;
+  line-height: 1.3;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+.home-refined .featured-brand-title > p {
+  margin-top: 10px;
+  margin-bottom: 0;
+  line-height: 1.5;
+}
+/* 입력창·돋보기·버튼이 같은 컨테이너의 중앙선을 사용합니다. */
+.home-refined .home-search-compact .home-search-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+}
+.home-refined .home-search-compact .home-search-field > input {
+  display: block;
+  box-sizing: border-box;
+  height: 48px;
+  font-size: 16px !important;
+  line-height: 1.5;
+  padding: 0 56px 0 36px;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.home-refined .home-search-compact .home-search-field > .home-search-icon {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  margin: 0;
+  translate: none;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+}
+.home-refined .home-search-compact .home-search-field:first-child > button.home-search-submit {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  top: 50%;
+  right: 6px;
+  width: 36px;
+  height: 36px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  translate: none;
+  transform: translateY(-50%);
+}
+.home-refined .home-search-compact .home-search-submit > svg {
+  display: block;
+  margin: 0;
+  width: 18px;
+  height: 18px;
+}
+.home-refined .home-search-compact [role="listbox"] {
+  top: calc(100% + 8px);
+}
+@media (min-width: 640px) {
+  .home-refined .featured-brand-name { font-size: 14px; }
+  .home-refined .home-search-compact .home-search-field > input {
+    height: 52px;
+    padding-left: 44px;
+    padding-right: 64px;
+  }
+  .home-refined .home-search-compact .home-search-field > .home-search-icon {
+    left: 16px;
+    width: 18px;
+    height: 18px;
+  }
+  .home-refined .home-search-compact .home-search-field:first-child > button.home-search-submit {
+    width: 40px;
+    height: 40px;
+  }
+}
+/* PC만: 문구와 사진을 분리해 원본 사진 전체를 보여줍니다. */
+@media (min-width: 1024px) {
+  .home-refined .featured-slider,
+  .home-refined .featured-slide { background: #edf3ef; color: #103e35; }
+  .home-refined .featured-slide { height: 520px; }
+  .home-refined .featured-slide > img {
+    left: auto !important;
+    right: max(24px, calc((100vw - 1200px) / 2)) !important;
+    top: 24px !important;
+    bottom: auto !important;
+    width: min(62vw, 760px) !important;
+    height: 452px !important;
+    object-fit: contain;
+    object-position: center;
+  }
+  .home-refined .featured-shade { display: none; }
+  .home-refined .featured-brand-title {
+    top: 58px;
+    left: max(28px, calc((100vw - 1152px) / 2));
+    max-width: 340px;
+    color: #103e35;
+  }
+  .home-refined .featured-brand-title h1 {
+    font-size: clamp(34px, 3vw, 42px);
+    line-height: 1.3;
+    text-shadow: none;
+  }
+  .home-refined .featured-brand-title > p {
+    color: #52685e;
+    text-shadow: none;
+    font-size: 14px;
+  }
+  .home-refined .featured-copy {
+    left: max(28px, calc((100vw - 1152px) / 2));
+    right: auto;
+    bottom: 86px;
+    width: 32%;
+    max-width: 330px;
+    margin: 0;
+    padding: 0;
+  }
+  .home-refined .featured-copy h2 { color: #103e35; font-size: 20px; }
+  .home-refined .featured-copy a { color: #fff; border-color: #103e35; }
+  .home-refined .featured-controls {
+    bottom: 45px;
+    color: #103e35;
+    background: #ffffffed;
+    border-color: #cbd9d0;
+  }
+}
+
+.home-refined .featured-empty h1 { font-size: clamp(28px, 4vw, 42px); font-weight: 800; line-height: 1.3; }
