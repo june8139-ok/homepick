@@ -107,7 +107,7 @@ export default function FeaturedSlider({
               alt={`${a.name} 대표 이미지`}
               fill
               priority={i === 0}
-              sizes="(min-width: 1600px) 1600px, 100vw"
+              sizes="100vw"
               quality={90}
               className="object-cover"
             />

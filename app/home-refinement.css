@@ -868,3 +868,55 @@
   .home-refined .featured-slider a:focus-visible,
   .home-refined .featured-slider button:focus-visible { outline-color: #d9c6a1; }
 }
+
+/* PC: 밝은 바탕에 집눈의 녹색을 동작과 제목 포인트로 사용합니다. */
+@media (min-width: 1024px) {
+  .home-refined .featured-copy a {
+    background: #103e35eb; border-color: #95bdb0;
+    box-shadow: 0 3px 12px #07291f14;
+  }
+  .home-refined .featured-copy a:hover { background: #0f766e; border-color: #b5ded0; }
+  .home-refined .home-search-compact { box-shadow: 0 8px 24px #173d3010; }
+  .home-refined .home-search-compact .home-search-field:focus-within {
+    border-color: #0f766e; box-shadow: 0 0 0 3px #0f766e12;
+  }
+  .home-refined .home-search-compact .home-search-submit { background: #103e35; cursor: pointer; }
+  .home-refined .home-search-compact .home-search-submit:hover { background: #0f766e; }
+  .home-refined .home-section-title h2 { display: inline-flex; align-items: center; gap: 10px; }
+  .home-refined .home-section-title h2::before {
+    content: ""; display: block; width: 3px; height: 18px; flex: 0 0 3px;
+    border-radius: 99px; background: #0f766e;
+  }
+  .home-refined .home-lead .home-schedule-card h3 { font-size: 16px; line-height: 1.5; }
+  .home-refined .home-lead .home-schedule-card:hover {
+    border-color: #0f766e; box-shadow: 0 6px 20px #103e3510;
+  }
+  /* 제목 링크를 카드 전체로 확장하되 관심 버튼을 위에 둡니다. */
+  .home-refined .home-unit-card { position: relative; isolation: isolate; border-radius: 8px; }
+  .home-refined .home-unit-heading a::after {
+    content: ""; position: absolute; inset: 0; z-index: 1;
+    border-radius: 8px; cursor: pointer;
+  }
+  .home-refined .home-unit-heading button { position: relative; z-index: 2; cursor: pointer; }
+  .home-refined .home-unit-card:focus-within { outline: 2px solid #0f766e; outline-offset: 5px; }
+  .home-refined .home-recent-grid > a,
+  .home-refined .home-section-title > a,
+  .home-refined .home-region-links a { cursor: pointer; transition: color 160ms, background-color 160ms; }
+  .home-refined .home-section-title > a:hover { color: #0f766e; text-decoration: underline; text-underline-offset: 4px; }
+  .home-refined .home-recent-grid > a:hover { background: #f0f7f3; color: #0f766e; }
+}
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  .home-refined .home-unit-card { transition: transform 180ms, box-shadow 180ms; }
+  .home-refined .home-unit-photo img { transition: transform 250ms; }
+  .home-refined .home-unit-card:hover {
+    transform: translateY(-3px); box-shadow: 0 0 0 1px #a8c9bb, 0 8px 22px #103e350d;
+  }
+  .home-refined .home-unit-card:hover .home-unit-photo img { transform: scale(1.025); }
+  .home-refined .home-unit-card:hover h3 { color: #0f766e; text-decoration: underline; text-underline-offset: 4px; }
+}
+@media (min-width: 1024px) and (prefers-reduced-motion: reduce) {
+  .home-refined .home-unit-card,
+  .home-refined .home-unit-photo img { transition: none; }
+  .home-refined .home-unit-card:hover,
+  .home-refined .home-unit-card:hover .home-unit-photo img { transform: none; }
+}
