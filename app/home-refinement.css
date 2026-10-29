@@ -812,3 +812,10 @@
   }
   .home-lead a:focus-visible, .home-lead button:focus-visible { outline-color: #d9c6a1; }
 }
+@media (min-width: 1024px) {
+    .home-refined .featured-slider {
+      width: 100%;
+      max-width: none;
+      margin-inline: 0;
+    }
+  }
