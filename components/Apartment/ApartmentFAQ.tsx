@@ -496,6 +496,11 @@ export function getApartmentFaqItems(
     getListingStage(apartment);
 
   if (listingStage === "completed") return [];
+
+  const custom = apartment.detailPages?.overview?.faqs?.filter(item => item.question.trim() && item.answer.trim());
+  if (custom?.length) return custom;
+
+
   if (listingStage === "soldOut" || listingStage === "existing") {
     const faqs = createArchiveFaqs(apartment);
     if (apartment.housingSupplyType !== "privateRental") return faqs;

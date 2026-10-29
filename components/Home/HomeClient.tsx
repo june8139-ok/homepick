@@ -1,44 +1,24 @@
 "use client";
-import FeaturedSlider from "./FeaturedSlider";
-
 import Image from "next/image";
 import Link from "next/link";
-import {
-  useMemo,
-  useRef,
-  useState,
-  type PointerEvent,
-  type ReactNode,
-} from "react";
-
-import { useRouter } from "next/navigation";
-
-import type { Apartment } from "../../types/apartment";
+import { useMemo } from "react";
+import type { Apartment, SubscriptionSchedule } from "../../types/apartment";
 import type { Briefing } from "../../types/briefing";
-
 import {
   getHomeVisibleApartments,
-  getSubscriptionSortDate,
   getVisibleSubscriptions,
   isFirstComeApartment,
-  isSubscriptionApartment,
+  parseSubscriptionDate,
 } from "../../lib/subscriptionVisibility";
-
-import {
-  isPublicListing,
-} from "../../lib/listingStage";
-
+import { isPublicListing } from "../../lib/listingStage";
 import { getListingCardPrice } from "../../lib/apartmentDisplay";
+import { getRecentUpdatedApartments } from "../../lib/recentApartments";
+import FavoriteButton from "../Apartment/FavoriteButton";
+import FeaturedSlider from "./FeaturedSlider";
 import SearchHero from "./SearchHero";
 import DeferredRegionMapSection from "./DeferredRegionMapSection";
 import HomeBriefingSection from "./HomeBriefingSection";
-
-import {
-  HOME_RECENT_LIMIT,
-  getRecentUpdatedApartments,
-} from "../../lib/recentApartments";
-
-const regionNames = [
+const regions = [
   "서울",
   "경기",
   "인천",
@@ -57,71 +37,79 @@ const regionNames = [
   "강원",
   "제주",
 ];
-
-function getHeroImage(
-  apartment: Apartment
-) {
-  const hero = apartment.images?.hero;
-
-  if (
-    typeof hero === "string" &&
-    hero.trim() &&
-    !hero.includes(
-      "/images/apartments/default/main.jpg"
-    )
-  ) {
-    return hero;
-  }
-
+const day = (date: Date) =>
+  Math.floor((date.getTime() + 9 * 60 * 60 * 1000) / 86400000);
+const events: Array<
+  [keyof SubscriptionSchedule, keyof SubscriptionSchedule, string]
+> = [
+  ["specialSupplyStartDate", "specialSupplyEndDate", "특별공급"],
+  ["firstPriorityStartDate", "firstPriorityEndDate", "1순위"],
+  ["secondPriorityStartDate", "secondPriorityEndDate", "2순위"],
+  ["winnerDate", "winnerDate", "당첨자 발표"],
+  ["contractStartDate", "contractEndDate", "계약 일정"],
+];
+function nextEvent(a: Apartment, now: number) {
+  const today = day(new Date(now));
+  const matches = events
+    .flatMap(([start, end, label]) => {
+      const date = parseSubscriptionDate(a.subscription?.[start]);
+      if (!date) return [];
+      const last = parseSubscriptionDate(a.subscription?.[end]) || date;
+      return day(last) < today
+        ? []
+        : [
+            {
+              date,
+              label,
+              today: day(date) <= today && day(last) >= today,
+              sort: Math.max(day(date), today),
+            },
+          ];
+    })
+    .sort((a, b) => a.sort - b.sort);
+  return matches[0] || null;
+}
+function photo(a: Apartment) {
   return (
-    apartment.images?.gallery?.find(
-      (image) =>
-        Boolean(image) &&
-        !image.includes(
-          "/images/apartments/default/main.jpg"
-        )
-    ) ?? ""
+    [a.images.hero, ...a.images.gallery].find(
+      (x) => x && !x.includes("/default/"),
+    ) || ""
   );
 }
-
-
-function isPrivateRental(
-  apartment: Apartment
-) {
+function UnitCard({ a }: { a: Apartment }) {
+  const image = photo(a);
+  const href = `/apartments/${encodeURIComponent(a.slug)}`;
+  const price = getListingCardPrice(a, true).text;
   return (
-    apartment.housingSupplyType ===
-    "privateRental"
+    <article className="home-unit-card">
+      <Link href={href} className="home-unit-photo">
+        {image ? (
+          <Image
+            src={image}
+            alt={`${a.name} 대표 이미지`}
+            fill
+            quality={88}
+            sizes="(max-width:639px) 46vw,(max-width:1023px) 30vw,290px"
+            className="object-cover"
+          />
+        ) : (
+          <span>단지 이미지 준비 중</span>
+        )}
+      </Link>
+      <div className="home-unit-copy">
+        <div className="home-unit-heading">
+          <Link href={href}>
+            <h3>{a.name}</h3>
+          </Link>
+          <FavoriteButton slug={a.slug} apartmentName={a.name} />
+        </div>
+        <p>{a.cityName || a.region}</p>
+        {price && <strong>{price}</strong>}
+        {a.condition && <p className="home-unit-condition">{a.condition}</p>}
+      </div>
+    </article>
   );
 }
-
-function getHomePriceText(apartment: Apartment, fallback: string) {
-  return getListingCardPrice(apartment, isFirstComeApartment(apartment)).text || fallback;
-}
-
-function getCreatedAtTimestamp(
-  apartment: Apartment
-) {
-  const timestamp = apartment.createdAt
-    ? new Date(
-        apartment.createdAt
-      ).getTime()
-    : 0;
-
-  return Number.isFinite(timestamp)
-    ? timestamp
-    : 0;
-}
-
-function sortByNewestCreated(
-  apartments: Apartment[]
-) {
-  return [...apartments].sort(
-    (first, second) =>
-      getCreatedAtTimestamp(second) -
-      getCreatedAtTimestamp(first)
-  );
-}
-
 export default function HomeClient({
   apartments,
   briefings,
@@ -131,1339 +119,154 @@ export default function HomeClient({
   briefings: Briefing[];
   referenceNow: number;
 }) {
-  const router = useRouter();
-
-  const [
-    pendingTarget,
-    setPendingTarget,
-  ] = useState("");
-
-  const navigate = (
-    href: string,
-    target: string
-  ) => {
-    if (pendingTarget) {
-      return;
-    }
-
-    setPendingTarget(target);
-
-    window.dispatchEvent(
-      new CustomEvent(
-        "jibnun:navigation-start",
-        {
-          detail: {
-            href,
-          },
-        }
-      )
-    );
-
-    router.push(href);
-  };
-
-  const visibleApartments = useMemo(
-    () =>
-      getHomeVisibleApartments(
-        apartments
-      ),
-    [apartments]
+  const visible = useMemo(
+    () => getHomeVisibleApartments(apartments, new Date(referenceNow)),
+    [apartments, referenceNow],
   );
-
-  /*
-   * 홈 검색 자동완성은 홈 카드 노출 기준과 분리합니다.
-   *
-   * - 청약 일정이 지난 단지도 검색 가능
-   * - 100% 분양완료(soldOut)도 검색 가능
-   * - 노출 종료(completed)만 검색에서 제외
-   *
-   * 실제 홈 청약/선착순/최근 업데이트 영역은
-   * 기존 visibleApartments 기준을 그대로 사용합니다.
-   */
-  const searchApartments = useMemo(
-    () =>
-      apartments.filter(
-        (apartment) =>
-          isPublicListing(apartment)
-      ),
-    [apartments]
+  const search = useMemo(
+    () => apartments.filter(isPublicListing),
+    [apartments],
   );
-
-  const allSubscriptions = useMemo(
+  const firstCome = useMemo(
     () =>
-      getVisibleSubscriptions(
-        apartments
-      ).sort(
-        (first, second) =>
-          getSubscriptionSortDate(first) -
-          getSubscriptionSortDate(second)
-      ),
-    [apartments]
-  );
-
-  const subscriptions = useMemo(
-    () =>
-      sortByNewestCreated(
-        allSubscriptions
-      ).slice(0, 6),
-    [allSubscriptions]
-  );
-
-  const nonSubscriptionApartments =
-    useMemo(
-      () =>
-        visibleApartments.filter(
-          (apartment) =>
-            !isSubscriptionApartment(
-              apartment
-            )
+      visible
+        .filter(isFirstComeApartment)
+        .sort(
+          (a, b) =>
+            (Date.parse(b.createdAt || "") || 0) -
+            (Date.parse(a.createdAt || "") || 0),
         ),
-      [visibleApartments]
-    );
-
-  const allFirstComeApartments =
-    useMemo(
-      () =>
-        nonSubscriptionApartments.filter(
-          isFirstComeApartment
-        ),
-      [nonSubscriptionApartments]
-    );
-
-  const firstComeApartments = useMemo(
-    () =>
-      sortByNewestCreated(
-        allFirstComeApartments
-      ).slice(0, 6),
-    [allFirstComeApartments]
+    [visible],
   );
-
-  const allRecentApartments = useMemo(
+  const schedules = useMemo(
     () =>
-      getRecentUpdatedApartments(
-        visibleApartments,
-        undefined,
-        referenceNow
-      ),
-    [
-      visibleApartments,
-      referenceNow,
-    ]
+      getVisibleSubscriptions(apartments, new Date(referenceNow))
+        .flatMap((a) => {
+          const event = nextEvent(a, referenceNow);
+          return event ? [{ a, event }] : [];
+        })
+        .sort(
+          (a, b) =>
+            a.event.sort - b.event.sort || a.a.slug.localeCompare(b.a.slug),
+        )
+        .slice(0, 4),
+    [apartments, referenceNow],
   );
-
-  const recentApartments = useMemo(
+  const recent = useMemo(
     () =>
-      allRecentApartments.slice(
-        0,
-        HOME_RECENT_LIMIT
-      ),
-    [allRecentApartments]
+      getRecentUpdatedApartments(visible, undefined, referenceNow).slice(0, 4),
+    [visible, referenceNow],
   );
-
   return (
-    <main className="home-redesign min-h-screen bg-white pb-3 text-[#111827] sm:pb-6">
-      <FeaturedSlider apartments={allFirstComeApartments} />
-      <SearchHero
-        apartments={searchApartments}
-      />
-
-      <section className="mx-auto w-full max-w-[1680px] px-3 sm:px-7 lg:px-10">
-        {/* 핵심 현황 */}
-        <section
-          className="
-            mt-4 grid grid-cols-3 overflow-hidden
-            rounded-2xl
-            border border-emerald-200/80
-            bg-white
-            shadow-[0_12px_30px_rgba(15,118,110,0.065)]
-            sm:mt-7 sm:rounded-3xl
-          "
-        >
-          <SummaryCard
-            href="/subscription"
-            label="진행 중 청약"
-            mobileLabel="청약"
-            value={
-              allSubscriptions.length
-            }
-            icon="calendar"
-            accent="blue"
-            pending={
-              pendingTarget ===
-              "summary:subscription"
-            }
-            onClick={() =>
-              navigate(
-                "/subscription",
-                "summary:subscription"
-              )
-            }
-          />
-
-          <SummaryCard
-            href="/first-come"
-            label="선착순 분양"
-            mobileLabel="선착순"
-            value={
-              allFirstComeApartments.length
-            }
-            icon="home"
-            accent="emerald"
-            pending={
-              pendingTarget ===
-              "summary:firstCome"
-            }
-            onClick={() =>
-              navigate(
-                "/first-come",
-                "summary:firstCome"
-              )
-            }
-          />
-
-          <SummaryCard
-            href="/search?recent=1"
-            label="최근 업데이트"
-            mobileLabel="업데이트"
-            value={
-              allRecentApartments.length
-            }
-            icon="refresh"
-            accent="amber"
-            pending={
-              pendingTarget ===
-              "summary:recent"
-            }
-            onClick={() =>
-              navigate(
-                "/search?recent=1",
-                "summary:recent"
-              )
-            }
-          />
-        </section>
-
-        {/* 모바일 청약 */}
-        <div className="mt-3 sm:hidden">
-          <MobileDashboardPanel
-            title="진행 중 청약"
-            href="/subscription"
-          >
-            {subscriptions.length >
-            0 ? (
-              <MobileApartmentCarousel
-                apartments={
-                  subscriptions
-                }
-                type="subscription"
-              />
-            ) : (
-              <EmptyMessage
-                text="현재 진행 중인 청약이 없습니다."
-                compact
-              />
-            )}
-          </MobileDashboardPanel>
-        </div>
-
-        {/* 모바일 선착순 */}
-        <div className="mt-3 sm:hidden">
-          <MobileDashboardPanel
-            title="선착순 분양"
-            href="/first-come"
-          >
-            {firstComeApartments.length >
-            0 ? (
-              <MobileApartmentCarousel
-                apartments={
-                  firstComeApartments
-                }
-                type="sale"
-              />
-            ) : (
-              <EmptyMessage
-                text="현재 확인된 선착순 단지가 없습니다."
-                compact
-              />
-            )}
-          </MobileDashboardPanel>
-        </div>
-
-        {/* 모바일 최근 등록 */}
-        <div className="mt-3 sm:hidden">
-          <MobileDashboardPanel
-            title="최근 업데이트 단지"
-            href="/search?recent=1"
-          >
-            {recentApartments.length >
-            0 ? (
-              <div className="grid gap-1">
-                {recentApartments.map(
-                  (apartment) => (
-                    <RecentApartmentRow
-                      key={
-                        apartment.slug
-                      }
-                      apartment={
-                        apartment
-                      }
-                      compact
-                    />
-                  )
-                )}
-              </div>
-            ) : (
-              <EmptyMessage
-                text="최근 업데이트된 단지가 없습니다."
-                compact
-              />
-            )}
-          </MobileDashboardPanel>
-        </div>
-
-        {/* PC·태블릿 대시보드 */}
-        <section className="mt-5 hidden gap-5 rounded-[32px] bg-white p-5 shadow-[0_18px_48px_rgba(15,118,110,0.055)] sm:grid xl:grid-cols-[1fr_1fr_0.78fr] xl:p-6">
-          <DashboardPanel
-            title="진행 중 청약"
-            href="/subscription"
-          >
-            {subscriptions.length >
-            0 ? (
-              <div className="grid gap-3 sm:grid-cols-3">
-                {subscriptions
-                  .slice(0, 3)
-                  .map(
-                    (apartment) => (
-                      <CompactApartmentCard
-                        key={
-                          apartment.slug
-                        }
-                        apartment={
-                          apartment
-                        }
-                        type="subscription"
-                      />
-                    )
-                  )}
-              </div>
-            ) : (
-              <EmptyMessage text="현재 진행 중인 청약이 없습니다." />
-            )}
-          </DashboardPanel>
-
-          <DashboardPanel
-            title="선착순 분양"
-            href="/first-come"
-          >
-            {firstComeApartments.length >
-            0 ? (
-              <div className="grid gap-3 sm:grid-cols-3">
-                {firstComeApartments
-                  .slice(0, 3)
-                  .map(
-                    (apartment) => (
-                      <CompactApartmentCard
-                        key={
-                          apartment.slug
-                        }
-                        apartment={
-                          apartment
-                        }
-                        type="sale"
-                      />
-                    )
-                  )}
-              </div>
-            ) : (
-              <EmptyMessage text="현재 확인된 선착순 단지가 없습니다." />
-            )}
-          </DashboardPanel>
-
-          <DashboardPanel
-            title="최근 업데이트 단지"
-            href="/search?recent=1"
-          >
-            {recentApartments.length >
-            0 ? (
-              <div className="grid gap-1">
-                {recentApartments.map(
-                  (apartment) => (
-                    <RecentApartmentRow
-                      key={
-                        apartment.slug
-                      }
-                      apartment={
-                        apartment
-                      }
-                    />
-                  )
-                )}
-              </div>
-            ) : (
-              <EmptyMessage text="최근 업데이트된 단지가 없습니다." />
-            )}
-          </DashboardPanel>
-        </section>
-
-        <DeferredRegionMapSection
-          apartments={visibleApartments}
-        />
-        
-        {/* 지역 바로가기 */}
-        <section className="mt-4 rounded-2xl border border-zinc-200/70 bg-white px-4 py-5 shadow-[0_16px_42px_rgba(15,118,110,0.05)] sm:mt-6 sm:rounded-[30px] sm:px-8 sm:py-7">
-          <div className="flex items-center justify-between gap-3 sm:block lg:flex lg:items-center">
-            <h2 className="text-base font-black text-[#111827] sm:text-lg">
-              지역 바로가기
+    <main className="home-refined">
+      <FeaturedSlider apartments={firstCome} />
+      <SearchHero apartments={search} />
+      <div className="home-content">
+        <section className="home-schedules">
+          <div className="home-section-title">
+            <h2>
+              {schedules.some((x) => x.event.today)
+                ? "오늘의 청약"
+                : "다가오는 청약"}
             </h2>
-
-            <Link
-              href="/region"
-              className="shrink-0 text-xs font-bold text-emerald-700 transition hover:translate-x-0.5 sm:text-sm"
-            >
-              전체보기 →
+            <Link href="/subscription">
+              전체 보기 <span>›</span>
             </Link>
           </div>
-
-          {/* 모바일 3열 */}
-          <div className="mt-3 grid grid-cols-3 gap-2 sm:hidden">
-            {regionNames.map(
-              (region) => (
+          {schedules.length ? (
+            <div className="home-schedule-grid">
+              {schedules.slice(0, 4).map(({ a, event }) => (
                 <Link
-                  key={region}
-                  href={`/region/${encodeURIComponent(
-                    region
-                  )}`}
-                  className="
-                    inline-flex min-h-10
-                    cursor-pointer items-center
-                    justify-center rounded-xl
-                    border border-zinc-200/70
-                    bg-zinc-50/80 px-2 py-2
-                    text-xs font-bold
-                    text-zinc-600
-                    transition-all
-                    active:scale-[0.97]
-                    active:bg-emerald-50
-                    active:text-emerald-700
-                    focus-visible:outline-none
-                    focus-visible:ring-2
-                    focus-visible:ring-emerald-500
-                  "
+                  href={`/apartments/${encodeURIComponent(a.slug)}`}
+                  key={a.slug}
+                  className="home-schedule-card"
                 >
-                  {region}
+                  <span
+                    className={`home-event-label ${event.label === "특별공급" ? "warm" : ""}`}
+                  >
+                    {event.label}
+                  </span>
+                  <p className="home-event-date">
+                    {`${String(event.date.getUTCMonth() + 1).padStart(2, "0")}.${String(event.date.getUTCDate()).padStart(2, "0")}`}{" "}
+                    <small>
+                      (
+                      {
+                        ["일", "월", "화", "수", "목", "금", "토"][
+                          event.date.getUTCDay()
+                        ]
+                      }
+                      ){event.today ? " · 진행 중" : ""}
+                    </small>
+                  </p>
+                  <h3>{a.name}</h3>
+                  <p className="home-event-region">{a.cityName || a.region}</p>
+                  <span className="home-card-arrow" aria-hidden="true">
+                    ›
+                  </span>
                 </Link>
-              )
-            )}
-          </div>
-
-          {/* PC·태블릿 */}
-          <div className="mt-3 hidden flex-wrap gap-2 sm:flex lg:justify-center">
-            {regionNames.map(
-              (region) => (
-                <Link
-                  key={region}
-                  href={`/region/${encodeURIComponent(
-                    region
-                  )}`}
-                  className="
-                    inline-flex min-h-9
-                    min-w-[60px]
-                    cursor-pointer items-center
-                    justify-center rounded-full
-                    bg-zinc-50/80 px-3 py-2
-                    text-xs font-bold
-                    text-zinc-600
-                    transition-all duration-200
-                    hover:-translate-y-0.5
-                    hover:bg-emerald-50
-                    hover:text-emerald-700
-                    focus-visible:outline-none
-                    focus-visible:ring-2
-                    focus-visible:ring-emerald-500
-                    focus-visible:ring-offset-2
-                  "
-                >
-                  {region}
-                </Link>
-              )
-            )}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <p className="home-small-empty">
+              확인 가능한 예정 일정이 없습니다.{" "}
+              <Link href="/subscription">전체 청약 보기 →</Link>
+            </p>
+          )}
         </section>
-
-        <HomeBriefingSection
-          briefings={briefings}
-        />
-      </section>
-    </main>
-  );
-}
-
-function SummaryIcon({
-  name,
-}: {
-  name:
-    | "calendar"
-    | "home"
-    | "refresh";
-}) {
-  if (name === "calendar") {
-    return (
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        aria-hidden="true"
-        className="h-5 w-5 sm:h-6 sm:w-6"
-      >
-        <rect
-          x="4"
-          y="5.5"
-          width="16"
-          height="14"
-          rx="2.5"
-          stroke="currentColor"
-          strokeWidth="1.8"
-        />
-        <path
-          d="M8 3.5V7M16 3.5V7M4 9.5H20"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-        />
-        <path
-          d="M8 13H11M8 16H14"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-        />
-      </svg>
-    );
-  }
-
-  if (name === "home") {
-    return (
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        aria-hidden="true"
-        className="h-5 w-5 sm:h-6 sm:w-6"
-      >
-        <path
-          d="M3.5 11.2L12 4L20.5 11.2"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M5.5 10.5V19.5H18.5V10.5"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M9.5 19.5V14H14.5V19.5"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinejoin="round"
-        />
-      </svg>
-    );
-  }
-
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      aria-hidden="true"
-      className="h-5 w-5 sm:h-6 sm:w-6"
-    >
-      <path
-        d="M19 8A7 7 0 1 0 20 14"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-      <path
-        d="M19 4V8H15"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M12 8V12L15 14"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function SummaryCard({
-  href,
-  label,
-  mobileLabel,
-  value,
-  icon,
-  accent,
-  onClick,
-  pending = false,
-}: {
-  href: string;
-  label: string;
-  mobileLabel: string;
-  value: number;
-  icon:
-    | "calendar"
-    | "home"
-    | "refresh";
-  accent:
-    | "blue"
-    | "emerald"
-    | "amber";
-  onClick: () => void;
-  pending?: boolean;
-}) {
-  const style = {
-    blue: {
-      icon:
-        "bg-blue-50 text-blue-600 group-hover:bg-blue-100",
-      value:
-        "text-blue-700",
-      border:
-        "hover:shadow-[inset_0_0_0_1px_rgba(59,130,246,0.22)]",
-    },
-
-    emerald: {
-      icon:
-        "bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100",
-      value:
-        "text-emerald-700",
-      border:
-        "hover:shadow-[inset_0_0_0_1px_rgba(16,185,129,0.24)]",
-    },
-
-    amber: {
-      icon:
-        "bg-amber-50 text-amber-600 group-hover:bg-amber-100",
-      value:
-        "text-amber-700",
-      border:
-        "hover:shadow-[inset_0_0_0_1px_rgba(245,158,11,0.22)]",
-    },
-  }[accent];
-
-  return (
-    <Link
-      href={href}
-      onClick={(event) => {
-        // Preserve native open-in-new-tab and modified-click navigation.
-        if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
-        event.preventDefault();
-        if (!pending) onClick();
-      }}
-      aria-disabled={pending || undefined}
-      aria-busy={pending}
-      className={[
-        "group relative flex min-w-0 cursor-pointer flex-col items-center justify-center",
-        "px-1.5 py-3 text-center",
-        "even:border-x even:border-emerald-100/90",
-        "transition-all duration-200",
-        "hover:bg-emerald-50/45",
-        "active:scale-[0.98] active:bg-emerald-100/45",
-        "sm:min-h-[92px] sm:flex-row sm:justify-start sm:gap-4 sm:px-6 sm:py-5 sm:text-left",
-        "focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset",
-        pending
-          ? "bg-emerald-600 text-white shadow-[0_14px_34px_rgba(5,150,105,0.22)]"
-          : style.border,
-      ].join(" ")}
-    >
-      <span
-        className={[
-          "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-sm font-black",
-          "transition-all duration-200 group-hover:-translate-y-0.5",
-          "sm:h-12 sm:w-12 sm:rounded-2xl sm:text-xl",
-          pending
-            ? "bg-white/15 text-white"
-            : style.icon,
-        ].join(" ")}
-      >
-        <SummaryIcon
-          name={icon}
-        />
-      </span>
-
-      <div className="mt-1 min-w-0 sm:mt-0">
-        <p
-          className={[
-            "text-xs font-bold sm:hidden",
-            pending
-              ? "text-white/80"
-              : "text-zinc-500",
-          ].join(" ")}
-        >
-          {pending
-            ? "이동 중"
-            : mobileLabel}
-        </p>
-
-        <p
-          className={[
-            "hidden text-sm font-bold sm:block",
-            pending
-              ? "text-white/80"
-              : "text-zinc-500",
-          ].join(" ")}
-        >
-          {pending
-            ? `${label} 여는 중…`
-            : label}
-        </p>
-
-        <p
-          className={[
-            "mt-0.5 text-lg font-black sm:mt-1 sm:text-xl",
-            pending
-              ? "text-white"
-              : style.value,
-          ].join(" ")}
-        >
-          {value}
-
-          <span
-            className={[
-              "ml-1 hidden text-sm font-bold sm:inline",
-              pending
-                ? "text-white/70"
-                : "text-zinc-500",
-            ].join(" ")}
-          >
-            개 단지
-          </span>
-        </p>
-      </div>
-
-      <span
-        className={[
-          "ml-auto hidden text-lg font-black transition-transform duration-200 sm:block",
-          pending
-            ? "animate-spin text-white"
-            : "text-emerald-400 group-hover:translate-x-1 group-hover:text-emerald-600",
-        ].join(" ")}
-        aria-hidden="true"
-      >
-        {pending ? "◌" : "→"}
-      </span>
-    </Link>
-  );
-}
-
-function MobileDashboardPanel({
-  title,
-  href,
-  children,
-}: {
-  title: string;
-  href: string;
-  children: ReactNode;
-}) {
-  return (
-    <section className="overflow-hidden rounded-2xl border border-emerald-200/90 bg-white py-3 shadow-[0_12px_30px_rgba(15,118,110,0.07)]">
-      <div className="flex items-center justify-between gap-3 px-3">
-        <h2 className="text-base font-black text-[#111827]">
-          {title}
-        </h2>
-
-        <Link
-          href={href}
-          className="text-xs font-bold text-emerald-700"
-        >
-          전체보기 →
-        </Link>
-      </div>
-
-      <div className="mt-3">
-        {children}
-      </div>
-    </section>
-  );
-}
-
-function DashboardPanel({
-  title,
-  href,
-  children,
-}: {
-  title: string;
-  href: string;
-  children: ReactNode;
-}) {
-  return (
-    <section className="min-w-0 px-1 py-1">
-      <div className="mb-4 flex items-center justify-between gap-3 border-b border-zinc-200/70 pb-3">
-        <h2 className="text-base font-black text-[#111827]">
-          {title}
-        </h2>
-
-        <Link
-          href={href}
-          className="shrink-0 text-xs font-bold text-zinc-500 transition-all duration-200 hover:translate-x-0.5 hover:text-emerald-700"
-        >
-          전체보기 →
-        </Link>
-      </div>
-
-      {children}
-    </section>
-  );
-}
-
-function MobileApartmentCarousel({
-  apartments,
-  type,
-}: {
-  apartments: Apartment[];
-  type:
-    | "subscription"
-    | "sale";
-}) {
-  const scrollRef =
-    useRef<HTMLDivElement | null>(
-      null
-    );
-
-  const pointerStartX =
-    useRef(0);
-
-  const initialScrollLeft =
-    useRef(0);
-
-  const isPointerDragging =
-    useRef(false);
-
-  const movedDistance =
-    useRef(0);
-
-  const [dragging, setDragging] =
-    useState(false);
-
-  const move = (
-    direction: "prev" | "next"
-  ) => {
-    const container =
-      scrollRef.current;
-
-    if (!container) {
-      return;
-    }
-
-    const card =
-      container.querySelector<HTMLElement>(
-        "[data-home-card]"
-      );
-
-    const amount =
-      (card?.offsetWidth ??
-        container.clientWidth * 0.78) +
-      12;
-
-    container.scrollBy({
-      left:
-        direction === "next"
-          ? amount
-          : -amount,
-
-      behavior: "smooth",
-    });
-  };
-
-  const onPointerDown = (
-    event: PointerEvent<HTMLDivElement>
-  ) => {
-    if (
-      event.pointerType !== "mouse" ||
-      event.button !== 0
-    ) {
-      return;
-    }
-
-    const container =
-      scrollRef.current;
-
-    if (!container) {
-      return;
-    }
-
-    isPointerDragging.current =
-      true;
-
-    movedDistance.current = 0;
-
-    pointerStartX.current =
-      event.clientX;
-
-    initialScrollLeft.current =
-      container.scrollLeft;
-
-    setDragging(true);
-
-    container.setPointerCapture(
-      event.pointerId
-    );
-  };
-
-  const onPointerMove = (
-    event: PointerEvent<HTMLDivElement>
-  ) => {
-    if (
-      !isPointerDragging.current ||
-      event.pointerType !== "mouse"
-    ) {
-      return;
-    }
-
-    const container =
-      scrollRef.current;
-
-    if (!container) {
-      return;
-    }
-
-    const distance =
-      event.clientX -
-      pointerStartX.current;
-
-    movedDistance.current =
-      Math.max(
-        movedDistance.current,
-        Math.abs(distance)
-      );
-
-    container.scrollLeft =
-      initialScrollLeft.current -
-      distance;
-  };
-
-  const finishPointer = (
-    event: PointerEvent<HTMLDivElement>
-  ) => {
-    if (
-      event.pointerType !== "mouse"
-    ) {
-      return;
-    }
-
-    isPointerDragging.current =
-      false;
-
-    setDragging(false);
-
-    const container =
-      scrollRef.current;
-
-    if (
-      container?.hasPointerCapture(
-        event.pointerId
-      )
-    ) {
-      container.releasePointerCapture(
-        event.pointerId
-      );
-    }
-  };
-
-  return (
-    <div className="relative">
-      {apartments.length > 1 && (
-        <>
-          <button
-            type="button"
-            onClick={() =>
-              move("prev")
-            }
-            aria-label="이전 단지 보기"
-            className="absolute left-1 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/80 bg-white/95 text-xl font-black text-zinc-700 shadow-lg"
-          >
-            ‹
-          </button>
-
-          <button
-            type="button"
-            onClick={() =>
-              move("next")
-            }
-            aria-label="다음 단지 보기"
-            className="absolute right-1 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/80 bg-white/95 text-xl font-black text-zinc-700 shadow-lg"
-          >
-            ›
-          </button>
-        </>
-      )}
-
-      <div
-        ref={scrollRef}
-        onPointerDown={
-          onPointerDown
-        }
-        onPointerMove={
-          onPointerMove
-        }
-        onPointerUp={
-          finishPointer
-        }
-        onPointerCancel={
-          finishPointer
-        }
-        className={[
-          "overflow-x-auto px-8 pb-2",
-          "snap-x snap-mandatory scroll-smooth",
-          "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
-          dragging
-            ? "cursor-grabbing scroll-auto"
-            : "cursor-grab",
-        ].join(" ")}
-      >
-        <div className="flex w-max gap-3">
-          {apartments.map(
-            (apartment) => {
-              const image =
-                getHeroImage(
-                  apartment
-                );
-
-              const privateRental =
-                isPrivateRental(
-                  apartment
-                );
-
-              return (
+        <section className="home-listings">
+          <div className="home-section-title">
+            <h2>지금 살펴볼 단지</h2>
+            <Link href="/first-come">
+              전체 보기 <span>›</span>
+            </Link>
+          </div>
+          <div className="home-unit-grid">
+            {firstCome.slice(0, 4).map((a) => (
+              <UnitCard key={a.slug} a={a} />
+            ))}
+          </div>
+          {!firstCome.length && (
+            <p className="home-small-empty">
+              현재 공개된 선착순 단지가 없습니다.
+            </p>
+          )}
+        </section>
+        {recent.length > 0 && (
+          <section className="home-recent">
+            <div className="home-section-title">
+              <h2>최근 업데이트</h2>
+              <Link href="/search?recent=1">전체 보기 ›</Link>
+            </div>
+            <div className="home-recent-grid">
+              {recent.map((a) => (
                 <Link
-                  data-home-card
-                  key={apartment.slug}
-                  href={`/apartments/${apartment.slug}`}
-                  onClick={(event) => {
-                    if (
-                      movedDistance.current >
-                      6
-                    ) {
-                      event.preventDefault();
-
-                      movedDistance.current =
-                        0;
-
-                      return;
-                    }
-
-                    window.dispatchEvent(
-                      new CustomEvent(
-                        "jibnun:navigation-start",
-                        {
-                          detail: {
-                            href: `/apartments/${apartment.slug}`,
-                          },
-                        }
-                      )
-                    );
-                  }}
-                  className="
-                    group w-[72vw]
-                    max-w-[280px]
-                    shrink-0 snap-center
-                    cursor-pointer
-                    overflow-hidden rounded-2xl
-                    border border-zinc-200
-                    bg-white text-left
-                    shadow-sm transition
-                    active:scale-[0.98]
-                    active:border-emerald-400
-                    active:bg-emerald-50
-                    focus-visible:outline-none
-                    focus-visible:ring-2
-                    focus-visible:ring-emerald-500
-                    focus-visible:ring-offset-2
-                  "
+                  key={a.slug}
+                  href={`/apartments/${encodeURIComponent(a.slug)}`}
                 >
-                  <div className="relative h-28 overflow-hidden bg-zinc-100">
-                    {image ? (
-                      <Image
-                        src={image}
-                        alt={
-                          apartment.name
-                        }
-                        fill
-                        quality={72}
-                        sizes="(max-width: 639px) 72vw, 280px"
-                        draggable={false}
-                        className="pointer-events-none object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-xs text-zinc-400">
-                        이미지 준비 중
-                      </div>
-                    )}
-
-                    <div className="absolute left-2 top-2 flex flex-wrap items-center gap-1">
-                      <span
-                        className={[
-                          "rounded-full px-2 py-1 text-[10px] font-bold shadow-sm",
-                          type ===
-                          "subscription"
-                            ? "bg-blue-600 text-white"
-                            : "bg-emerald-600 text-white",
-                        ].join(" ")}
-                      >
-                        {type ===
-                        "subscription"
-                          ? apartment.status ||
-                            "청약"
-                          : "선착순"}
-                      </span>
-
-                      {privateRental && (
-                        <span className="rounded-full border border-[#132238]/15 bg-white/95 px-2 py-1 text-[10px] font-extrabold text-[#132238] shadow-sm">
-                          민간임대
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="p-3">
-                    <p className="text-[10px] font-bold text-emerald-600">
-                      {apartment.cityName ||
-                        apartment.city}
-                    </p>
-
-                    <h3 className="mt-1 line-clamp-2 min-h-10 break-keep text-sm font-black leading-5">
-                      {apartment.name}
-                    </h3>
-
-                    <p className="mt-2 truncate text-xs font-bold text-emerald-700">
-                      {getHomePriceText(
-                        apartment,
-                        "상세정보 확인"
-                      )}
-                    </p>
-                  </div>
+                  <span>{a.lastUpdateType || "정보 업데이트"}</span>
+                  <strong>{a.name}</strong>
+                  <span aria-hidden="true">↗</span>
                 </Link>
-              );
-            }
-          )}
-        </div>
-      </div>
-
-      <p className="px-4 text-center text-[10px] text-zinc-400">
-        버튼을 누르거나 좌우로
-        밀어서 확인하세요.
-      </p>
-    </div>
-  );
-}
-
-function CompactApartmentCard({
-  apartment,
-  type,
-}: {
-  apartment: Apartment;
-  type:
-    | "subscription"
-    | "sale";
-}) {
-  const image =
-    getHeroImage(apartment);
-
-  const privateRental =
-    isPrivateRental(apartment);
-
-  return (
-    <Link
-      href={`/apartments/${apartment.slug}`}
-      className="
-        group min-w-0 cursor-pointer
-        overflow-hidden rounded-2xl
-        border border-zinc-200
-        bg-white text-left
-        transition-all duration-200
-        hover:-translate-y-0.5
-        hover:border-emerald-300
-        hover:shadow-md
-        active:scale-[0.98]
-        active:border-emerald-400
-        active:bg-emerald-50
-        focus-visible:outline-none
-        focus-visible:ring-2
-        focus-visible:ring-emerald-500
-        focus-visible:ring-offset-2
-      "
-    >
-      <div className="relative h-28 overflow-hidden bg-zinc-100">
-        {image ? (
-          <Image
-            src={image}
-            alt={apartment.name}
-            fill
-            quality={72}
-            sizes="(max-width: 1279px) 30vw, 240px"
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center text-xs font-medium text-zinc-400">
-            이미지 준비 중
-          </div>
+              ))}
+            </div>
+          </section>
         )}
-
-        <div className="absolute left-2 top-2 flex flex-wrap items-center gap-1">
-          <span
-            className={[
-              "rounded-full px-2 py-1 text-[10px] font-bold shadow-sm",
-              type ===
-              "subscription"
-                ? "bg-blue-600 text-white"
-                : "bg-emerald-600 text-white",
-            ].join(" ")}
-          >
-            {type ===
-            "subscription"
-              ? apartment.status ||
-                "청약"
-              : "선착순"}
-          </span>
-
-          {privateRental && (
-            <span className="rounded-full border border-[#132238]/15 bg-white/95 px-2 py-1 text-[10px] font-extrabold text-[#132238] shadow-sm">
-              민간임대
-            </span>
-          )}
-        </div>
-      </div>
-
-      <div className="p-3">
-        <h3 className="line-clamp-2 min-h-10 break-keep text-sm font-extrabold leading-5 text-[#111827]">
-          {apartment.name}
-        </h3>
-
-        <p className="mt-1 truncate text-[11px] text-zinc-500">
-          {apartment.cityName ||
-            apartment.region}
-        </p>
-
-        <p className="mt-2 truncate text-xs font-bold text-emerald-700">
-          {getHomePriceText(
-            apartment,
-            "상세정보 확인"
-          )}
-        </p>
-      </div>
-    </Link>
-  );
-}
-
-function RecentApartmentRow({
-  apartment,
-  compact = false,
-}: {
-  apartment: Apartment;
-  compact?: boolean;
-}) {
-  const image =
-    getHeroImage(apartment);
-
-  const privateRental =
-    isPrivateRental(apartment);
-
-  return (
-    <Link
-      href={`/apartments/${apartment.slug}`}
-      className={[
-        "group flex w-full cursor-pointer items-center text-left transition-all duration-200",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500",
-        compact
-          ? "gap-2 rounded-xl px-3 py-2"
-          : "gap-3 rounded-2xl border border-transparent p-2 hover:border-emerald-200 hover:bg-emerald-50/50 focus-visible:ring-offset-2",
-      ].join(" ")}
-    >
-      <div
-        className={[
-          "relative shrink-0 overflow-hidden bg-zinc-100",
-          compact
-            ? "h-14 w-14 rounded-xl"
-            : "h-16 w-16 rounded-xl",
-        ].join(" ")}
-      >
-        {image ? (
-          <Image
-            src={image}
-            alt={apartment.name}
-            fill
-            quality={68}
-            sizes={
-              compact
-                ? "56px"
-                : "64px"
-            }
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center text-[10px] text-zinc-400">
-            이미지
+        <DeferredRegionMapSection apartments={visible} />
+        <section className="home-region-links">
+          <div className="home-section-title">
+            <h2>지역별 분양정보</h2>
+            <Link href="/region">전체 보기 ›</Link>
           </div>
-        )}
+          <nav aria-label="지역별 분양정보">
+            {regions.map((region) => (
+              <Link key={region} href={`/region/${encodeURIComponent(region)}`}>
+                {region}
+              </Link>
+            ))}
+          </nav>
+        </section>
+        <HomeBriefingSection briefings={briefings} />
       </div>
-
-      <div className="min-w-0 flex-1">
-        <div className="flex min-w-0 items-center gap-1.5">
-          <p className="min-w-0 truncate text-sm font-extrabold text-[#111827] transition-colors group-hover:text-emerald-700">
-            {apartment.name}
-          </p>
-
-          {privateRental && (
-            <span className="shrink-0 rounded-full border border-[#132238]/15 bg-zinc-50 px-2 py-0.5 text-[9px] font-extrabold text-[#132238]">
-              민간임대
-            </span>
-          )}
-        </div>
-
-        <p className="mt-0.5 truncate text-[11px] text-zinc-500 sm:mt-1 sm:text-xs">
-          {apartment.cityName ||
-            apartment.region}
-        </p>
-
-        <p className="mt-0.5 truncate text-[11px] font-bold text-zinc-700 sm:mt-1 sm:text-xs">
-          {getHomePriceText(
-            apartment,
-            "정보 확인"
-          )}
-        </p>
-      </div>
-
-      {compact && (
-        <span className="shrink-0 text-xs font-bold text-emerald-700">
-          →
-        </span>
-      )}
-    </Link>
-  );
-}
-
-function EmptyMessage({
-  text,
-  compact = false,
-}: {
-  text: string;
-  compact?: boolean;
-}) {
-  return (
-    <div
-      className={[
-        "flex items-center justify-center bg-zinc-50 px-4 text-center text-zinc-500",
-        compact
-          ? "mx-3 min-h-[100px] rounded-xl text-xs"
-          : "min-h-[180px] rounded-2xl text-sm",
-      ].join(" ")}
-    >
-      {text}
-    </div>
+    </main>
   );
 }

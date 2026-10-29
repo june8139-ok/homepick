@@ -288,7 +288,7 @@ export default function SiteHeader() {
   };
 
   return (
-    <header className={`${pathname.startsWith("/apartments/") ? "relative" : "sticky top-0"} z-[100] border-b border-zinc-200/80 bg-white/95 backdrop-blur-xl`}>
+    <header className={`${pathname === "/" ? "home-site-header" : ""} ${pathname.startsWith("/apartments/") ? "relative" : "sticky top-0"} z-[100] border-b border-zinc-200/80 bg-white/95 backdrop-blur-xl`}>
       <div className="mx-auto flex min-h-[60px] max-w-7xl items-center justify-between gap-4 px-4 sm:min-h-[68px] sm:px-6">
         {/* 로고 */}
         <Link

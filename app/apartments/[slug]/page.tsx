@@ -1,10 +1,10 @@
+import PropertyHomeContent from "../../../components/Apartment/PropertyHomeContent";
 import PropertyHero from "../../../components/Apartment/PropertyHero";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 
-import { conditionHistories } from "../../../data/history";
 
 import { getApartment } from "../../../lib/getApartment";
 import { getApartments } from "../../../lib/getApartments";
@@ -21,9 +21,6 @@ import {
 } from "../../../lib/listingStage";
 
 import InquiryActions from "../../../components/Apartment/InquiryActions";
-import ApartmentHero from "../../../components/Apartment/ApartmentHero";
-import SubscriptionDetail from "../../../components/Apartment/SubscriptionDetail";
-import SaleDetail from "../../../components/Apartment/SaleDetail";
 import RelatedApartments from "../../../components/Apartment/RelatedApartments";
 import RelatedBriefings from "../../../components/Apartment/RelatedBriefings";
 import ApartmentFAQ, {
@@ -1039,20 +1036,6 @@ export default async function ApartmentDetailPage({
     );
   }
 
-  const legacyConditionHistory =
-    conditionHistories.find(
-      (item) =>
-        item.apartmentSlug ===
-        apartment.slug
-    );
-
-  const conditionHistory =
-    apartment.conditionHistory
-      ?.length > 0
-      ? apartment.conditionHistory
-      : legacyConditionHistory
-          ?.history ?? [];
-
   const cityName =
     apartment.cityName ||
     apartment.city ||
@@ -1204,20 +1187,8 @@ export default async function ApartmentDetailPage({
             </Link>
           </nav>
 
-          {isSubscription ? <ApartmentHero apartment={apartment}/> : <PropertyHero apartment={apartment}/>}
-
-          {isSubscription ? (
-            <SubscriptionDetail
-              apartment={apartment}
-            />
-          ) : (
-            <SaleDetail
-              apartment={apartment}
-              conditionHistory={
-                conditionHistory
-              }
-            />
-          )}
+          <PropertyHero apartment={apartment}/>
+          <PropertyHomeContent a={apartment}/>
 
           <ApartmentFAQ
             apartment={apartment}

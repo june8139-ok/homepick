@@ -33,9 +33,9 @@ function getImagePreset(
     folder.includes("/hero")
   ) {
     return {
-      maxWidth: 1920,
-      maxHeight: 1920,
-      quality: 0.82,
+      maxWidth: 2400,
+      maxHeight: 2400,
+      quality: 0.9,
     };
   }
 

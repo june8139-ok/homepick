@@ -287,6 +287,7 @@ export default function RegisterButton({
 
     setIsDirty,
     detailPages,
+    isUploadingDetails,
   } = useAdmin();
 
   const [
@@ -296,7 +297,7 @@ export default function RegisterButton({
 
   const handleRegister =
     async () => {
-      if (isSaving) {
+      if (isSaving || isUploadingDetails) {
         return;
       }
 
@@ -802,7 +803,7 @@ export default function RegisterButton({
 
       <button
         type="button"
-        disabled={isSaving}
+        disabled={isSaving || isUploadingDetails}
         onClick={
           handleRegister
         }

@@ -14,6 +14,8 @@ import RouteLoadingIndicator from "../components/Layout/RouteLoadingIndicator";
 
 import "./globals.css";
 import "./redesign.css";
+import "./editorial.css";
+import "./home-refinement.css";
 
 const notoSansKr = Noto_Sans_KR({
   variable: "--font-noto-sans-kr",

@@ -1,5 +1,5 @@
 "use client";
-import DetailPagesSection from "./DetailPagesSection";
+import DetailPagesSection, {AdminContentStatus} from "./DetailPagesSection";
 
 import BasicInfoSection from "./BasicInfoSection";
 import PriceInfoSection from "./PriceInfoSection";
@@ -16,19 +16,21 @@ export default function AdminEditor({
   mode?: "create" | "edit";
 }) {
   return (
+    <>
+    <AdminContentStatus/>
     <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
       <div className="space-y-6">
-        <BasicInfoSection />
+        <div id="edit-basic" className="scroll-mt-24"><BasicInfoSection /></div>
 
-        <PriceInfoSection />
+        <div id="edit-price" className="scroll-mt-24"><PriceInfoSection /></div>
 
-        <ContractSection />
+        <div id="edit-contract" className="scroll-mt-24"><ContractSection /></div>
 
         <ConditionHistorySection />
 
-        <LocationSection />
+        <div id="edit-location" className="scroll-mt-24"><LocationSection /></div>
 
-        <ImageSection />
+        <div id="edit-images" className="scroll-mt-24"><ImageSection /></div>
 
         <DetailPagesSection />
 
@@ -41,5 +43,6 @@ export default function AdminEditor({
         <PreviewSection />
       </aside>
     </div>
+    </>
   );
 }

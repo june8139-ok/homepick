@@ -1,5 +1,5 @@
+import PropertySectionContent from "../../../../components/Apartment/PropertySectionContent";
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { getApartment } from "../../../../lib/getApartment";
@@ -13,8 +13,8 @@ import {
   getDetailSections,
   sectionLabels,
   detailDescription,
+  sectionImages,
 } from "../../../../lib/apartmentPages";
-import PriceConditionCard from "../../../../components/Apartment/PriceConditionCard";
 import InquiryActions from "../../../../components/Apartment/InquiryActions";
 import SubscriptionAlertForm from "../../../../components/Apartment/SubscriptionAlertForm";
 import ReservationCard from "../../../../components/Apartment/ReservationCard";
@@ -27,7 +27,7 @@ async function resolve(params: Props["params"]) {
     notFound();
   if (decodeURIComponent(slug) !== a.slug)
     permanentRedirect(detailHref(a.slug, section));
-  return { a, section, content: a.detailPages![section]! };
+  return { a, section, content: a.detailPages?.[section] || {} };
 }
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { a, section, content } = await resolve(params);
@@ -38,14 +38,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const title = `${a.name} ${sectionLabels[section]}${content.seoTitle ? ` · ${content.seoTitle}` : ""} | 집눈`;
   const description = detailDescription(a, section);
   const url = site + detailHref(a.slug, section);
-  const images = a.images.hero
-    ? [
-        {
-          url: new URL(a.images.hero, site).href,
-          alt: `${a.name} ${sectionLabels[section]}`,
-        },
-      ]
-    : [{ url: site + "/opengraph-image" }];
+  const representative=sectionImages(a,section)[0]||a.images.hero;
+  const images=representative?[{url:new URL(representative,site).href,alt:`${a.name} ${sectionLabels[section]}`}]:[{url:site+"/opengraph-image"}];
   return {
     title: { absolute: title },
     description,
@@ -69,46 +63,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 export default async function DetailSectionPage({ params }: Props) {
-  const { a, section, content } = await resolve(params);
+  const { a, section } = await resolve(params);
   const stage = getListingStage(a);
   const canInquire =
     (stage === "firstCome" || stage === "subscription") &&
     a.leadType !== "closed";
-  const projectRows = [
-    ["위치", a.region],
-    ["규모", a.projectInfo?.scale],
-    ["총 세대수", a.projectInfo?.totalHouseholds],
-    ["시공사", a.builder],
-    ["주차", a.projectInfo?.parking],
-    ["입주예정", a.projectInfo?.moveInDate],
-  ];
-  const locationRows = [
-    ["교통", a.locationInfo?.transport],
-    ["교육", a.locationInfo?.education],
-    ["생활", a.locationInfo?.living],
-    ["자연환경", a.locationInfo?.nature],
-    ["미래계획", a.locationInfo?.futureValue],
-    ["확인사항", a.locationInfo?.cautions],
-  ];
-  const rows = section === "overview" ? projectRows : locationRows;
-  const pictures =
-    section === "plans"
-      ? a.images.floorPlans
-      : section === "location"
-        ? a.images.location.map((url, i) => ({
-            name: `${a.name} 입지 자료 ${i + 1}`,
-            url,
-          }))
-        : [];
+  const site = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://jibnun.com";
   const breadcrumb = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { name: "집눈", item: "https://jibnun.com" },
-      { name: a.name, item: "https://jibnun.com" + detailHref(a.slug) },
+      { name: "집눈", item: site },
+      { name: a.name, item: site + detailHref(a.slug) },
       {
         name: sectionLabels[section],
-        item: "https://jibnun.com" + detailHref(a.slug, section),
+        item: site + detailHref(a.slug, section),
       },
     ].map((x, i) => ({ "@type": "ListItem", position: i + 1, ...x })),
   };
@@ -130,61 +99,7 @@ export default async function DetailSectionPage({ params }: Props) {
         <br />
         <span>{sectionLabels[section]}</span>
       </h1>
-      <div className="property-prose">
-        {content.body?.split(/\n\s*\n/).map((p, i) => (
-          <p key={i}>{p}</p>
-        ))}
-      </div>
-      {section === "pricing" && (
-        <>
-          <PriceConditionCard apartment={a} />
-          {a.contractDetails && (
-            <div className="property-prose">
-              <h2>계약조건 상세</h2>
-              <p>{a.contractDetails}</p>
-            </div>
-          )}
-        </>
-      )}
-      {(section === "overview" || section === "location") && (
-        <dl className="property-facts">
-          {rows
-            .filter(([, v]) => v)
-            .map(([label, value]) => (
-              <div key={label}>
-                <dt>{label}</dt>
-                <dd>{value}</dd>
-              </div>
-            ))}
-        </dl>
-      )}
-      {pictures.map((p, i) => (
-        <figure key={p.url + i} className="property-figure">
-          <h2>{p.name}</h2>
-          <a
-            href={p.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={`${p.name} 원본 크게 보기`}
-          >
-            <Image
-              src={p.url}
-              alt={p.name}
-              width={1200}
-              height={900}
-              sizes="(max-width:768px) 100vw, 1000px"
-              className="h-auto w-full object-contain"
-            />
-          </a>
-          <figcaption>이미지를 누르면 원본을 크게 볼 수 있습니다.</figcaption>
-        </figure>
-      ))}
-      {(content.source || content.checkedAt) && (
-        <p className="property-source">
-          {content.source && `자료 출처: ${content.source}`}{" "}
-          {content.checkedAt && ` · 최근 확인: ${content.checkedAt}`}
-        </p>
-      )}
+      <PropertySectionContent a={a} section={section}/>
       <nav aria-label="다른 단지 정보" className="property-next">
         {getDetailSections(a)
           .filter((k) => k !== section)

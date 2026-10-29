@@ -1,4 +1,5 @@
 import Image from "next/image";
+import PropertyGallery from "./PropertyGallery";
 import Link from "next/link";
 import type { Apartment } from "../../types/apartment";
 import { getListingCardPrice, getMoveInText } from "../../lib/apartmentDisplay";
@@ -7,6 +8,8 @@ import {
   detailHref,
   getDetailSections,
   sectionLabels,
+  sectionImages,
+  validImage,
 } from "../../lib/apartmentPages";
 import InquiryActions from "./InquiryActions";
 import ApartmentDataTrust from "./ApartmentDataTrust";
@@ -17,9 +20,7 @@ export default function PropertyHero({
 }) {
   const stage = getListingStage(a);
   const first = stage === "firstCome";
-  const image = [a.images.hero, ...a.images.gallery].find(
-    (x) => x && !x.includes("/default/"),
-  );
+
   const price = getListingCardPrice(a, first).text;
   const facts = [
     [a.housingSupplyType === "privateRental" ? "임대보증금" : "분양가", price],
@@ -29,32 +30,32 @@ export default function PropertyHero({
   ];
   return (
     <section className="property-hero">
-      {image && (
-        <div className="property-hero-image">
-          <Image
-            src={image}
-            alt={`${a.name} 대표 이미지`}
-            fill
-            priority
-            sizes="(max-width:768px) 100vw, 1152px"
-            quality={80}
-            className="object-cover"
-          />
-          <span>단지 대표 이미지</span>
-        </div>
-      )}
+      <PropertyGallery
+        key={a.slug}
+        name={a.name}
+        images={[
+          ...new Set([a.images.hero, ...a.images.gallery].filter(validImage)),
+        ]}
+      />
       <div className="property-hero-summary">
         <p className="property-status">
           {first
             ? "선착순 분양"
             : stage === "soldOut"
               ? "분양완료 · 보관 정보"
-              : "단지 정보"}
+              : stage === "subscription"
+                ? a.status || "청약 정보"
+                : "단지 정보"}
           {a.housingSupplyType === "privateRental" ? " · 민간임대" : ""}
         </p>
         <h1>{a.name}</h1>
         <p className="property-address">{a.region}</p>
-        {a.jibnunSummary && <p className="property-intro">{a.jibnunSummary}</p>}
+        {a.jibnunSummary && (
+          <p className="property-intro">
+            {a.jibnunSummary.slice(0, 240)}
+            {a.jibnunSummary.length > 240 ? "…" : ""}
+          </p>
+        )}
         <dl className="property-summary-grid">
           {facts
             .filter(([, v]) => v)
@@ -80,6 +81,20 @@ export default function PropertyHero({
         <nav className="property-page-cards" aria-label="단지 정보 바로가기">
           {getDetailSections(a).map((key) => (
             <Link key={key} href={detailHref(a.slug, key)}>
+              {(sectionImages(a, key)[0] || a.images.hero) && (
+                <div className="property-page-preview">
+                  <Image
+                    src={sectionImages(a, key)[0] || a.images.hero!}
+                    alt={`${a.name} ${sectionLabels[key]} 바로가기`}
+                    fill
+                    sizes="(max-width:768px) 45vw,280px"
+                    quality={88}
+                    className={
+                      key === "plans" ? "object-contain" : "object-cover"
+                    }
+                  />
+                </div>
+              )}
               <span>{sectionLabels[key]}</span>
               <small>
                 {key === "pricing"

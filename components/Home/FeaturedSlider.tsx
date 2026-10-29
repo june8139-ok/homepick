@@ -53,7 +53,7 @@ export default function FeaturedSlider({
     return (
       <section className="featured-empty">
         <p>집눈 분양정보</p>
-        <h2>관심 있는 집을, 더 선명하게</h2>
+        <h1>관심 있는 집을, 더 선명하게</h1>
         <Link href="/search">지도에서 단지 찾기 →</Link>
       </section>
     );
@@ -70,6 +70,13 @@ export default function FeaturedSlider({
           setInteracting(false);
       }}
     >
+      <div className="featured-brand-title">
+        <p>집눈이 전하는 분양정보</p>
+        <h1>
+          관심 있는 집을,
+          <br />더 선명하게
+        </h1>
+      </div>
       <div
         ref={track}
         className="featured-track"
@@ -101,12 +108,12 @@ export default function FeaturedSlider({
               fill
               priority={i === 0}
               sizes="100vw"
-              quality={80}
+              quality={90}
               className="object-cover"
             />
             <div className="featured-shade" />
             <div className="featured-copy">
-              <p className="featured-eyebrow">새로 만나는 선착순 분양</p>
+              <p className="featured-eyebrow">선착순 분양</p>
               <h2>{a.name}</h2>
               <p>{a.cityName || a.region}</p>
               {a.condition && (

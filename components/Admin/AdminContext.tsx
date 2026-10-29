@@ -173,6 +173,8 @@ type InitialApartment = {
 };
 
 type AdminContextType = {
+  isUploadingDetails: boolean;
+  setIsUploadingDetails: (value: boolean) => void;
   detailPages: DetailPages;
   setDetailPages: (value: DetailPages) => void;
   editingSlug?: string;
@@ -865,6 +867,7 @@ export function AdminProvider({
   children: ReactNode;
   initialApartment?: InitialApartment;
 }) {
+  const [isUploadingDetails, setIsUploadingDetails] = useState(false);
   const [detailPages, setDetailPagesState] = useState<DetailPages>(() => normalizeDetailPages(initialApartment?.detailPages));
   const setDetailPages = (value: DetailPages) => { setDetailPagesState(value); setIsDirty(true); };
 
@@ -1075,6 +1078,7 @@ export function AdminProvider({
     <AdminContext.Provider
       value={{
         detailPages, setDetailPages,
+        isUploadingDetails, setIsUploadingDetails,
         editingSlug:
           initialApartment?.slug,
 
