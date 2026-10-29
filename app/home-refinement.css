@@ -831,3 +831,40 @@
     box-shadow: inset 0 1px 0 #ffffff26;
   }
 }
+
+/* PC 홈: 사진의 오른쪽은 밝게, 글자 뒤에만 음영을 둡니다. */
+@media (min-width: 1024px) {
+  .home-refined .featured-shade {
+    background: linear-gradient(90deg, #0c151db8 0%, #0c151d5c 30%, #0c151d0a 55%, transparent 70%),
+      linear-gradient(0deg, #0c151d24, transparent 35%);
+  }
+  .home-refined .home-lead {
+    background: linear-gradient(125deg, #16483e, #20574b);
+    padding-bottom: 24px;
+  }
+  .home-refined .home-lead > .home-schedules { margin-top: 24px; }
+  .home-lead .home-schedule-card { min-height: 156px; }
+}
+
+/* PC 홈도 모바일처럼 흰색 콘텐츠 배경으로 연결합니다. */
+@media (min-width: 1024px) {
+  .home-refined .home-lead { background: #fff; }
+  .home-refined .home-lead .home-section-title h2 { color: #192e2b; }
+  .home-refined .home-lead .home-schedule-subtitle { color: #687973; }
+  .home-refined .home-lead .home-section-title > a { color: #526b61; }
+  .home-refined .home-lead .home-schedule-card {
+    border-color: #dfe7e2;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 4px 16px #163b2e06;
+  }
+  .home-refined .home-lead .home-schedule-card:hover {
+    border-color: #9fb9ad;
+    box-shadow: 0 8px 24px #163b2e0d;
+  }
+  .home-refined .home-lead .home-small-empty { color: #687973; border-color: #dfe7e2; }
+  .home-refined .home-lead a:focus-visible,
+  .home-refined .home-lead button:focus-visible { outline-color: #0f766e; }
+  .home-refined .featured-slider a:focus-visible,
+  .home-refined .featured-slider button:focus-visible { outline-color: #d9c6a1; }
+}

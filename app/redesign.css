@@ -645,7 +645,7 @@ box-shadow: var(--j-shadow);
 }
 .listing-design > section > section:first-of-type > [aria-hidden="true"] { opacity: .18; }
 .listing-design h1 { color: var(--j-ink); font-weight: 800; }
-.listing-design h2 { color: var(--j-ink); letter-spacing: -.035em; }
+.listing-design h2:not(.text-white) { color: var(--j-ink); letter-spacing: -.035em; }
 /* 주요 동작은 브랜드 청록색, 청약 표시는 차분한 파랑입니다. */
 :is(.listing-design, .property-site) :is(.text-emerald-600,.text-emerald-700,.text-emerald-800) { color: var(--j-teal); }
 :is(.listing-design, .property-site) :is(.text-blue-600,.text-blue-700) { color: var(--j-blue); }
@@ -809,4 +809,10 @@ background: center / 18px 18px no-repeat url("data:image/svg+xml,%3Csvg xmlns='h
 .region-hub-stats dd { margin-top: 9px; font-size: 27px; }
 .region-hub-stats dd > span { margin-left: 3px; font-size: 11px; }
 .region-hub-search { padding: 20px; }
+}
+
+/* 사진 위의 지역명은 밝게 유지합니다. */
+.listing-design a.group > .relative > .absolute h2.text-white {
+color: #fff;
+text-shadow: 0 2px 8px #0009;
 }
