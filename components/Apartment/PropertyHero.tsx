@@ -12,6 +12,7 @@ import {
   validImage,
 } from "../../lib/apartmentPages";
 import styles from "./PropertyPricePreview.module.css";
+import priceStyles from "./PropertyHeroPrice.module.css";
 import InquiryActions from "./InquiryActions";
 import ApartmentDataTrust from "./ApartmentDataTrust";
 export default function PropertyHero({
@@ -24,6 +25,9 @@ export default function PropertyHero({
 
   const price = getListingCardPrice(a, first).text;
   const rental = a.housingSupplyType === "privateRental";
+  const priceParts = !rental
+    ? price.match(/^(\d+(?:\.\d+)?\s*(?:㎡|m²|m2))\s*(.+)$/u)
+    : null;
   const reviewed = !isApplyHomeUnverified(a);
   const clean = (value?: string) => {
     const text = value?.trim() || "";
@@ -76,7 +80,14 @@ export default function PropertyHero({
             .map(([label, value]) => (
               <div key={label}>
                 <dt>{label}</dt>
-                <dd>{value}</dd>
+                <dd>
+                  {label === "분양가" && priceParts ? (
+                    <span className={priceStyles.price}>
+                      <span className={priceStyles.area}>{priceParts[1]}</span>{" "}
+                      <span className={priceStyles.amount}>{priceParts[2]}</span>
+                    </span>
+                  ) : value}
+                </dd>
               </div>
             ))}
         </dl>
