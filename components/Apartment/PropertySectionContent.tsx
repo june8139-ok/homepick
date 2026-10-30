@@ -11,6 +11,7 @@ import {
   type DetailSection,
 } from "../../lib/apartmentPages";
 import PropertyPlanBrowser from "./PropertyPlanBrowser";
+import PropertyConditionSummary from "./PropertyConditionSummary";
 import PriceConditionCard from "./PriceConditionCard";
 import ConditionHistory from "./ConditionHistory";
 export function SectionPictures({
@@ -99,6 +100,7 @@ export default function PropertySectionContent({
               아닙니다.
             </p>
           )}
+          <PropertyConditionSummary apartment={a} />
           <PriceConditionCard apartment={a} />
           {paymentRows(a).length > 0 && (
             <section className="property-detail-block">

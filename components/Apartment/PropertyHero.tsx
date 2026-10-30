@@ -2,7 +2,7 @@ import Image from "next/image";
 import PropertyGallery from "./PropertyGallery";
 import Link from "next/link";
 import type { Apartment } from "../../types/apartment";
-import { getListingCardPrice, getMoveInText } from "../../lib/apartmentDisplay";
+import { getListingCardPrice, getMoveInText, isApplyHomeUnverified } from "../../lib/apartmentDisplay";
 import { getListingStage } from "../../lib/listingStage";
 import {
   detailHref,
@@ -11,6 +11,7 @@ import {
   sectionImages,
   validImage,
 } from "../../lib/apartmentPages";
+import styles from "./PropertyPricePreview.module.css";
 import InquiryActions from "./InquiryActions";
 import ApartmentDataTrust from "./ApartmentDataTrust";
 export default function PropertyHero({
@@ -22,6 +23,19 @@ export default function PropertyHero({
   const first = stage === "firstCome";
 
   const price = getListingCardPrice(a, first).text;
+  const rental = a.housingSupplyType === "privateRental";
+  const reviewed = !isApplyHomeUnverified(a);
+  const clean = (value?: string) => {
+    const text = value?.trim() || "";
+    return ["-", "없음", "정보 없음", "확인 필요"].includes(text) ? "" : text;
+  };
+  const paymentRows = reviewed && !rental
+    ? [
+        ["계약금", clean(a.priceDetail?.contractPrice)],
+        ["중도금", clean(a.priceDetail?.middlePayment)],
+      ].filter(([, value]) => value)
+    : [];
+  const condition = reviewed ? clean(a.condition) : "";
   const facts = [
     [a.housingSupplyType === "privateRental" ? "임대보증금" : "분양가", price],
     ["계약조건", a.condition],
@@ -81,7 +95,25 @@ export default function PropertyHero({
         <nav className="property-page-cards" aria-label="단지 정보 바로가기">
           {getDetailSections(a).map((key) => (
             <Link key={key} href={detailHref(a.slug, key)}>
-              {(sectionImages(a, key)[0] || a.images.hero) && (
+              {key === "pricing" ? (
+                <div className={`property-page-preview ${styles.preview}`}>
+                  <div className={styles.brand}>집눈 · {rental ? "임대조건" : "분양정보"}</div>
+                  <div className={styles.label}>{rental ? "임대조건" : "분양가"}</div>
+                  <div className={styles.price}>{clean(price) || "가격 확인 중"}</div>
+                  <div className={styles.details}>
+                    {paymentRows.length > 0 ? paymentRows.map(([label, value]) => (
+                      <div className={styles.row} key={label}>
+                        <div className={styles.term}>{label}</div>
+                        <div className={styles.value}>{value}</div>
+                      </div>
+                    )) : (
+                      <div className={styles.condition}>
+                        {condition || "상세 조건을 확인해 주세요"}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (sectionImages(a, key)[0] || a.images.hero) ? (
                 <div className="property-page-preview">
                   <Image
                     src={sectionImages(a, key)[0] || a.images.hero!}
@@ -94,11 +126,11 @@ export default function PropertyHero({
                     }
                   />
                 </div>
-              )}
-              <span>{sectionLabels[key]}</span>
+              ) : null}
+              <span>{rental && key === "pricing" ? "임대·계약조건" : sectionLabels[key]}</span>
               <small>
                 {key === "pricing"
-                  ? "가격과 납부조건 확인"
+                  ? rental ? "보증금과 임대조건 확인" : "가격과 납부조건 확인"
                   : key === "plans"
                     ? "타입별 구조 살펴보기"
                     : key === "overview"

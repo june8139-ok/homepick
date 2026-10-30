@@ -3,10 +3,14 @@ import {
   getDetailSections,
   detailHref,
   sectionLabels,
+  overviewRows,
+  locationRows,
 } from "../../lib/apartmentPages";
 import Link from "next/link";
 import { formatSubscriptionDate } from "../../lib/subscriptionVisibility";
 import { getListingStage } from "../../lib/listingStage";
+import PropertyConditionSummary from "./PropertyConditionSummary";
+import styles from "./PropertyDetailSummary.module.css";
 import ReservationCard from "./ReservationCard";
 import SubscriptionAlertForm from "./SubscriptionAlertForm";
 import ProjectGroupLinks from "./ProjectGroupLinks";
@@ -15,6 +19,11 @@ export default function PropertyHomeContent({ a }: { a: Apartment }) {
   const canInquire =
     (stage === "firstCome" || stage === "subscription") &&
     a.leadType !== "closed";
+  const sections = getDetailSections(a);
+  const overview = sections.includes("overview")
+    ? overviewRows(a).filter(([label]) => ["사업지 위치", "건축 용도", "시공사", "건축 규모", "총 세대수", "주차", "입주예정"].includes(label))
+    : [];
+  const location = sections.includes("location") ? locationRows(a) : [];
   const schedule = a.subscription;
   const rows = [
     ["특별공급", schedule?.specialSupplyStartDate],
@@ -59,6 +68,43 @@ export default function PropertyHomeContent({ a }: { a: Apartment }) {
               모집공고·청약홈 확인 ↗
             </a>
           )}
+        </section>
+      )}
+      {overview.length > 0 && (
+        <section className={styles.panel}>
+          <p className={styles.eyebrow}>집눈 · 단지 기본정보</p>
+          <h2 className={styles.heading}>{a.name} 사업개요</h2>
+          <dl className={styles.facts}>
+            {overview.map(([label, value]) => (
+              <div key={label}><dt>{label}</dt><dd>{value}</dd></div>
+            ))}
+          </dl>
+          <Link className={styles.more} href={detailHref(a.slug, "overview")}>
+            사업개요 자세히 보기 <span aria-hidden="true">→</span>
+          </Link>
+        </section>
+      )}
+      {sections.includes("pricing") && (
+        <>
+          <PropertyConditionSummary apartment={a} compact />
+          <Link className={styles.more} href={detailHref(a.slug, "pricing")}>
+            {a.housingSupplyType === "privateRental" ? "임대·계약조건" : "평형별 분양가·계약조건"} 자세히 보기 <span aria-hidden="true">→</span>
+          </Link>
+        </>
+      )}
+      {location.length > 0 && (
+        <section className={styles.panel}>
+          <p className={styles.eyebrow}>집눈 · 주변 환경</p>
+          <h2 className={styles.heading}>입지·생활환경 살펴보기</h2>
+          <dl className={styles.facts}>
+            {location.map(([label, value]) => (
+              <div key={label}><dt>{label}</dt><dd>{value}</dd></div>
+            ))}
+          </dl>
+          <p className={styles.note}>예정·계획 사항은 추진 상황에 따라 달라질 수 있습니다.</p>
+          <Link className={styles.more} href={detailHref(a.slug, "location")}>
+            입지환경 자료 보기 <span aria-hidden="true">→</span>
+          </Link>
         </section>
       )}
       <ProjectGroupLinks apartment={a} />
