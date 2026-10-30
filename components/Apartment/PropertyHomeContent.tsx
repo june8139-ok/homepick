@@ -14,6 +14,16 @@ import styles from "./PropertyDetailSummary.module.css";
 import ReservationCard from "./ReservationCard";
 import SubscriptionAlertForm from "./SubscriptionAlertForm";
 import ProjectGroupLinks from "./ProjectGroupLinks";
+/** 문장을 중간에서 자르지 않고 첫 두 항목까지만 요약합니다. */
+function locationPreview(value: string) {
+  const lines = value.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  const selected: string[] = [];
+  for (const line of lines.slice(0, 2)) {
+    if ([...selected, line].join(" · ").length > 100) break;
+    selected.push(line);
+  }
+  return selected.join(" · ") || "상세 메뉴에서 등록된 내용을 확인하세요.";
+}
 export default function PropertyHomeContent({ a }: { a: Apartment }) {
   const stage = getListingStage(a);
   const canInquire =
@@ -21,9 +31,13 @@ export default function PropertyHomeContent({ a }: { a: Apartment }) {
     a.leadType !== "closed";
   const sections = getDetailSections(a);
   const overview = sections.includes("overview")
-    ? overviewRows(a).filter(([label]) => ["사업지 위치", "건축 용도", "시공사", "건축 규모", "총 세대수", "주차", "입주예정"].includes(label))
+    ? overviewRows(a).filter(([label]) => ["사업지 위치", "건축 규모", "총 세대수", "입주예정"].includes(label))
     : [];
-  const location = sections.includes("location") ? locationRows(a) : [];
+  const location = sections.includes("location")
+    ? locationRows(a)
+        .filter(([label]) => ["교통", "교육·통학", "생활 편의"].includes(label))
+        .map(([label, value]) => [label, locationPreview(value)])
+    : [];
   const schedule = a.subscription;
   const rows = [
     ["특별공급", schedule?.specialSupplyStartDate],
@@ -95,13 +109,13 @@ export default function PropertyHomeContent({ a }: { a: Apartment }) {
       {location.length > 0 && (
         <section className={styles.panel}>
           <p className={styles.eyebrow}>집눈 · 주변 환경</p>
-          <h2 className={styles.heading}>입지·생활환경 살펴보기</h2>
+          <h2 className={styles.heading}>입지 핵심 요약</h2>
           <dl className={styles.facts}>
             {location.map(([label, value]) => (
               <div key={label}><dt>{label}</dt><dd>{value}</dd></div>
             ))}
           </dl>
-          <p className={styles.note}>예정·계획 사항은 추진 상황에 따라 달라질 수 있습니다.</p>
+          <p className={styles.note}>등록된 주요 항목 일부를 요약했습니다. 전체 내용과 예정·계획 사항은 상세 안내에서 확인하세요.</p>
           <Link className={styles.more} href={detailHref(a.slug, "location")}>
             입지환경 자료 보기 <span aria-hidden="true">→</span>
           </Link>
