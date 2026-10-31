@@ -1,4 +1,6 @@
 import { unstable_cache } from "next/cache";
+import { gzipSync, gunzipSync } from "node:zlib";
+import type { Apartment } from "../types/apartment";
 
 import { supabase } from "./supabase";
 import { normalizeApartment } from "./normalizeApartment";
@@ -32,8 +34,15 @@ async function fetchPublishedApartments() {
 
 const getCachedPublishedApartments =
   unstable_cache(
-    fetchPublishedApartments,
-    ["published-apartments"],
+    async () => {
+      const apartments = await fetchPublishedApartments();
+      // Next Data Cache는 항목 하나당 2MB로 제한됩니다.
+      // 전체 목록을 압축된 문자열로 저장하고 반환 직전에 복원합니다.
+      // 원본 DB와 상세페이지의 청약 기록은 변경하지 않습니다.
+      return gzipSync(Buffer.from(JSON.stringify(apartments), "utf8"))
+        .toString("base64");
+    },
+    ["published-apartments-gzip-v1"],
     {
       revalidate: 3600,
       tags: ["apartments"],
@@ -48,7 +57,10 @@ export async function getApartments(
   } = options;
 
   if (publishedOnly) {
-    return getCachedPublishedApartments();
+    const compressed = await getCachedPublishedApartments();
+    return JSON.parse(
+      gunzipSync(Buffer.from(compressed, "base64")).toString("utf8")
+    ) as Apartment[];
   }
 
   /*
