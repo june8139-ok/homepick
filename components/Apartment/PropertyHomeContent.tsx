@@ -7,7 +7,7 @@ import {
   locationRows,
 } from "../../lib/apartmentPages";
 import Link from "next/link";
-import { formatSubscriptionDate } from "../../lib/subscriptionVisibility";
+import SubscriptionDetail from "./SubscriptionDetail";
 import { getListingStage } from "../../lib/listingStage";
 import PropertyConditionSummary from "./PropertyConditionSummary";
 import styles from "./PropertyDetailSummary.module.css";
@@ -38,15 +38,6 @@ export default function PropertyHomeContent({ a }: { a: Apartment }) {
         .filter(([label]) => ["교통", "교육·통학", "생활 편의"].includes(label))
         .map(([label, value]) => [label, locationPreview(value)])
     : [];
-  const schedule = a.subscription;
-  const rows = [
-    ["특별공급", schedule?.specialSupplyStartDate],
-    ["1순위", schedule?.firstPriorityStartDate],
-    ["2순위", schedule?.secondPriorityStartDate],
-    ["당첨자 발표", schedule?.winnerDate],
-    ["계약 시작", schedule?.contractStartDate],
-    ["계약 종료", schedule?.contractEndDate],
-  ].filter(([, v]) => v);
   return (
     <>
       {stage === "soldOut" && (
@@ -55,35 +46,7 @@ export default function PropertyHomeContent({ a }: { a: Apartment }) {
           다를 수 있습니다.
         </p>
       )}
-      {stage === "subscription" && rows.length > 0 && (
-        <section className="property-home-schedule">
-          <h2>청약 주요 일정</h2>
-          <dl className="property-facts">
-            {rows.map(([k, v]) => (
-              <div key={k}>
-                <dt>{k}</dt>
-                <dd>{formatSubscriptionDate(v)}</dd>
-              </div>
-            ))}
-          </dl>
-          {(schedule?.noticeUrl ||
-            schedule?.applyHomeUrl ||
-            a.applyHomeUrl) && (
-            <a
-              href={
-                schedule?.noticeUrl ||
-                schedule?.applyHomeUrl ||
-                a.applyHomeUrl ||
-                "#"
-              }
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              모집공고·청약홈 확인 ↗
-            </a>
-          )}
-        </section>
-      )}
+      {stage === "subscription" && <SubscriptionDetail apartment={a} />}
       {overview.length > 0 && (
         <section className={styles.panel}>
           <p className={styles.eyebrow}>집눈 · 단지 기본정보</p>
@@ -121,6 +84,7 @@ export default function PropertyHomeContent({ a }: { a: Apartment }) {
           </Link>
         </section>
       )}
+      {stage !== "subscription" && <SubscriptionDetail apartment={a} archived />}
       <ProjectGroupLinks apartment={a} />
       {!getDetailSections(a).length && (
         <p className="property-source">

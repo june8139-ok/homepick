@@ -4,7 +4,7 @@ import PropertyHero from "../../../components/Apartment/PropertyHero";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 
 
 import { getApartment } from "../../../lib/getApartment";
@@ -755,44 +755,6 @@ function RelatedContentFallback() {
   );
 }
 
-function getApartmentPriceNumber(
-  apartment: Apartment
-) {
-  const structuredValues = [
-    apartment.priceInfo?.minimumPrice,
-    apartment.priceInfo?.maximumPrice,
-  ].filter(
-    (value): value is number =>
-      typeof value === "number" &&
-      Number.isFinite(value) &&
-      value > 0
-  );
-
-  if (structuredValues.length > 0) {
-    return (
-      structuredValues.reduce(
-        (sum, value) => sum + value,
-        0
-      ) / structuredValues.length
-    );
-  }
-
-  const priceText =
-    apartment.priceDetail?.salePrice ||
-    apartment.price ||
-    "";
-
-  const eokMatch = priceText.match(
-    /(\d+(?:\.\d+)?)\s*억/
-  );
-
-  if (!eokMatch) {
-    return null;
-  }
-
-  return Number(eokMatch[1]) * 10000;
-}
-
 function getRelatedApartmentScore(
   current: Apartment,
   candidate: Apartment
@@ -820,24 +782,9 @@ function getRelatedApartmentScore(
     score += 40;
   }
 
-  const currentPrice =
-    getApartmentPriceNumber(current);
-  const candidatePrice =
-    getApartmentPriceNumber(candidate);
-
-  if (
-    currentPrice &&
-    candidatePrice
-  ) {
-    const differenceRatio =
-      Math.abs(
-        currentPrice - candidatePrice
-      ) / currentPrice;
-
-    score += Math.max(
-      0,
-      30 - differenceRatio * 30
-    );
+  // 공급 유형이 같은 단지를 우선하되 후보 수가 적어도 다른 유형은 남깁니다.
+  if ((current.housingSupplyType || "sale") === (candidate.housingSupplyType || "sale")) {
+    score += 60;
   }
 
   return score;
@@ -932,6 +879,10 @@ export default async function ApartmentDetailPage({
 
   if (!apartment) {
     notFound();
+  }
+
+  if (decodeURIComponent(slug) !== apartment.slug) {
+    permanentRedirect(`/apartments/${encodeURIComponent(apartment.slug)}`);
   }
 
   const listingStage =

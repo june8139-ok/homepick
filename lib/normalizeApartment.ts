@@ -1,3 +1,4 @@
+import { getApartmentStatusLabel } from "./listingStage";
 import { normalizeDetailPages } from "./apartmentPages";
 import type {
   Apartment,
@@ -326,8 +327,9 @@ export function normalizeApartment(
   const projectInfo =
     data.projectInfo ??
     {
+      // 공고 공급세대수만으로 단지 전체 세대수를 추정하지 않습니다.
       totalHouseholds:
-        normalizedTotalSupply !== null
+        source !== "applyhome" && normalizedTotalSupply !== null
           ? `${normalizedTotalSupply.toLocaleString()}세대`
           : "",
       saleHouseholds:
@@ -532,7 +534,11 @@ export function normalizeApartment(
         data.searchAliases
       ),
 
-    status,
+    status: getApartmentStatusLabel({
+      listingStage: normalizeListingStage(row, data),
+      housingSupplyType: data.housingSupplyType === "privateRental" ? "privateRental" : "sale",
+      status,
+    } as Apartment),
 
     listingStage:
       normalizeListingStage(
@@ -640,6 +646,11 @@ export function normalizeApartment(
 
     locationInfo:
       locationInfo as Apartment["locationInfo"],
+
+    applyHomeModels: Array.isArray(data.applyHomeModels)
+      ? data.applyHomeModels.filter((item): item is UnknownRecord =>
+          item !== null && typeof item === "object" && !Array.isArray(item))
+      : [],
 
     applyHome:
       applyHome as Apartment["applyHome"],

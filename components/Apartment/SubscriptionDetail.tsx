@@ -1,679 +1,156 @@
-import { getDetailSections } from "../../lib/apartmentPages";
-import SubscriptionAlertForm from "./SubscriptionAlertForm";
-import UnitPriceCard from "./UnitPriceCard";
-import ApartmentImageSections from "./ApartmentImageSections";
-import ProjectGroupLinks from "./ProjectGroupLinks";
-import {
-  getMoveInText,
-} from "../../lib/apartmentDisplay";
+import type { Apartment } from "../../types/apartment";
+import { formatSubscriptionDate } from "../../lib/subscriptionVisibility";
+import { getMoveInText } from "../../lib/apartmentDisplay";
+import styles from "./PropertyDetailSummary.module.css";
 
-import type {
-  Apartment,
-  SubscriptionSchedule,
-} from "../../types/apartment";
-
-type ApplyHomeData = Record<
-  string,
-  unknown
->;
-
-const APPLYHOME_MAIN_URL =
-  "https://www.applyhome.co.kr";
-
-function getText(
-  data: ApplyHomeData | undefined,
-  key: string
-) {
-  const value = data?.[key];
-
-  return value === null ||
-    value === undefined ||
-    value === ""
-    ? ""
-    : String(value).trim();
+type Row = Record<string, unknown>;
+function text(row: Row, key: string) {
+  const value = row[key];
+  return value == null ? "" : String(value).trim();
+}
+function count(row: Row, key: string): number | null {
+  const value = text(row, key).replace(/,/g, "");
+  if (!/^\d+(\.\d+)?$/.test(value)) return null;
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? number : null;
+}
+function period(start?: string | null, end?: string | null) {
+  if (!start && !end) return "";
+  return start && end && start !== end
+    ? `${formatSubscriptionDate(start)} ~ ${formatSubscriptionDate(end)}`
+    : formatSubscriptionDate(start || end);
+}
+function safeUrl(value?: string | null) {
+  if (!value) return "";
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" || url.protocol === "http:" ? url.href : "";
+  } catch { return ""; }
+}
+function amount(value: number | null) {
+  if (value === null || value <= 0) return "—";
+  const eok = Math.floor(value / 10000);
+  const rest = value % 10000;
+  return `${eok ? `${eok}억 ` : ""}${rest ? `${rest.toLocaleString("ko-KR")}만원` : eok ? "원" : ""}`.trim();
 }
 
-function formatDate(
-  value?: string | null
-) {
-  if (!value) {
-    return "일정 확인 중";
-  }
-
-  const parts = value
-    .replace(/\./g, "-")
-    .replace(/\//g, "-")
-    .split("-");
-
-  return parts.length === 3
-    ? `${parts[0]}.${parts[1]}.${parts[2]}`
-    : value;
-}
-
-function formatPeriod(
-  start?: string | null,
-  end?: string | null
-) {
-  if (!start && !end) {
-    return "일정 확인 중";
-  }
-
-  if (
-    start &&
-    end &&
-    start !== end
-  ) {
-    return `${formatDate(
-      start
-    )} ~ ${formatDate(end)}`;
-  }
-
-  return formatDate(
-    start ?? end
-  );
-}
-
-function timeline(
-  schedule?: SubscriptionSchedule
-) {
-  return [
-    {
-      label: "모집공고",
-      value: formatDate(
-        schedule?.announcementDate
-      ),
-    },
-    {
-      label: "특별공급",
-      value: formatPeriod(
-        schedule?.specialSupplyStartDate,
-        schedule?.specialSupplyEndDate
-      ),
-    },
-    {
-      label: "1순위",
-      value: formatPeriod(
-        schedule?.firstPriorityStartDate,
-        schedule?.firstPriorityEndDate
-      ),
-    },
-    {
-      label: "2순위",
-      value: formatPeriod(
-        schedule?.secondPriorityStartDate,
-        schedule?.secondPriorityEndDate
-      ),
-    },
-    {
-      label: "당첨자 발표",
-      value: formatDate(
-        schedule?.winnerDate
-      ),
-    },
-    {
-      label: "계약기간",
-      value: formatPeriod(
-        schedule?.contractStartDate,
-        schedule?.contractEndDate
-      ),
-    },
-  ];
-}
-
-function statusDescription(
-  status: string
-) {
-  if (status === "청약예정") {
-    return "청약 접수를 앞두고 있는 단지입니다. 모집공고와 접수 일정을 확인해보세요.";
-  }
-
-  if (
-    [
-      "특별공급",
-      "1순위",
-      "2순위",
-      "청약중",
-    ].includes(status)
-  ) {
-    return "현재 청약 접수가 진행 중인 단지입니다.";
-  }
-
-  if (
-    status ===
-      "당첨자 발표 예정"
-  ) {
-    return "청약 접수가 끝나 당첨자 발표를 기다리는 단계입니다.";
-  }
-
-  if (
-    status ===
-      "당첨자 발표" ||
-    status ===
-      "당첨자발표"
-  ) {
-    return "당첨자 발표와 서류 제출 일정을 확인할 단계입니다.";
-  }
-
-  if (
-    status ===
-      "계약 예정"
-  ) {
-    return "당첨자 계약 시작을 앞두고 있는 단계입니다.";
-  }
-
-  if (status === "계약중") {
-    return "당첨자 계약 일정이 진행 중입니다.";
-  }
-
-  if (
-    status === "청약마감"
-  ) {
-    return "청약 접수가 종료된 단지입니다.";
-  }
-
-  return "청약 일정과 모집공고를 확인해보세요.";
-}
-
-function applyButtonText(
-  status: string
-) {
-  if (status === "청약예정") {
-    return "청약홈에서 일정 확인 ↗";
-  }
-
-  if (
-    [
-      "특별공급",
-      "1순위",
-      "2순위",
-      "청약중",
-    ].includes(status)
-  ) {
-    return "청약홈에서 청약하기 ↗";
-  }
-
-  if (
-    [
-      "당첨자 발표 예정",
-      "당첨자 발표",
-      "당첨자발표",
-      "계약 예정",
-      "계약중",
-      "청약마감",
-    ].includes(status)
-  ) {
-    return "청약 접수 종료";
-  }
-
-  return "청약홈으로 이동 ↗";
-}
-
-function InfoItem({
-  label,
-  value,
-  wide = false,
-}: {
-  label: string;
-  value?: string;
-  wide?: boolean;
-}) {
-  if (!value?.trim()) {
-    return null;
-  }
-
-  return (
-    <article
-      className={[
-        "min-w-0 rounded-xl border border-zinc-100 bg-zinc-50 p-3",
-        "transition-all duration-200",
-        "sm:rounded-2xl sm:p-4",
-        "sm:hover:-translate-y-0.5",
-        "sm:hover:border-emerald-200",
-        "sm:hover:bg-emerald-50/40",
-        "sm:hover:shadow-sm",
-        wide
-          ? "col-span-2"
-          : "",
-      ].join(" ")}
-    >
-      <p className="text-[10px] font-semibold leading-4 text-zinc-500 sm:text-xs">
-        {label}
-      </p>
-
-      <p className="mt-1 break-words text-xs font-extrabold leading-5 text-zinc-900 sm:mt-2 sm:text-sm sm:leading-6">
-        {value}
-      </p>
-    </article>
-  );
-}
-
-function ScheduleCard({
-  index,
-  label,
-  value,
-}: {
-  index: number;
-  label: string;
-  value: string;
-}) {
-  return (
-    <article
-      className="
-        min-w-0 rounded-xl
-        border border-zinc-200
-        bg-zinc-50 p-3
-        transition-all duration-200
-        sm:rounded-2xl sm:p-5
-        sm:hover:-translate-y-0.5
-        sm:hover:border-emerald-300
-        sm:hover:bg-emerald-50/50
-        sm:hover:shadow-sm
-      "
-    >
-      <div className="flex items-center gap-2 sm:gap-3">
-        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-extrabold text-white sm:h-8 sm:w-8 sm:text-xs">
-          {index + 1}
-        </span>
-
-        <p className="truncate text-xs font-extrabold text-zinc-900 sm:text-base">
-          {label}
-        </p>
-      </div>
-
-      <p className="mt-2 break-words text-[11px] font-semibold leading-5 text-zinc-700 sm:mt-4 sm:text-sm sm:leading-6">
-        {value}
-      </p>
-    </article>
-  );
-}
-
-export default function SubscriptionDetail({
-  apartment,
-}: {
+/** 청약 원문만 사용합니다. 현재 선착순 가격·계약조건으로 과거 기록을 덮지 않습니다. */
+export default function SubscriptionDetail({ apartment: a, archived = false }: {
   apartment: Apartment;
+  archived?: boolean;
 }) {
-  const applyHome =
-    apartment.applyHome as
-      | ApplyHomeData
-      | undefined;
+  const raw = a.applyHome || {};
+  const schedule = a.subscription;
+  const schedules = [
+    ["모집공고", period(schedule?.announcementDate || text(raw, "RCRIT_PBLANC_DE"))],
+    ["특별공급", period(schedule?.specialSupplyStartDate || text(raw, "SPSPLY_RCEPT_BGNDE"), schedule?.specialSupplyEndDate || text(raw, "SPSPLY_RCEPT_ENDDE"))],
+    ["1순위", period(schedule?.firstPriorityStartDate, schedule?.firstPriorityEndDate)],
+    ["2순위", period(schedule?.secondPriorityStartDate, schedule?.secondPriorityEndDate)],
+    ["당첨자 발표", period(schedule?.winnerDate || text(raw, "PRZWNER_PRESNATN_DE"))],
+    ["계약기간", period(schedule?.contractStartDate || text(raw, "CNTRCT_CNCLS_BGNDE"), schedule?.contractEndDate || text(raw, "CNTRCT_CNCLS_ENDDE"))],
+  ].filter(([, value]) => Boolean(value));
+  // 지역별 일정이 다른 경우 접수일을 별도로 보존합니다.
+  const regional = [
+    ["1순위 해당지역", "GNRL_RNK1_CRSPAREA_RCEPT_PD"],
+    ["1순위 기타경기", "GNRL_RNK1_ETC_GG_RCPTDE_PD"],
+    ["1순위 기타지역", "GNRL_RNK1_ETC_AREA_RCPTDE_PD"],
+    ["2순위 해당지역", "GNRL_RNK2_CRSPAREA_RCEPT_PD"],
+    ["2순위 기타경기", "GNRL_RNK2_ETC_GG_RCPTDE_PD"],
+    ["2순위 기타지역", "GNRL_RNK2_ETC_AREA_RCPTDE_PD"],
+  ].map(([label, key]) => [label, text(raw, key)]).filter(([, value]) => value);
+  const supply = count(raw, "TOT_SUPLY_HSHLDCO") ?? a.totalSupply;
+  const moveIn = text(raw, "MVN_PREARNGE_YM");
+  const moveInText = moveIn ? getMoveInText({ ...a, projectInfo: { moveInDate: moveIn } }) : "";
+  const facts = [
+    ["공고명", text(raw, "HOUSE_NM") || (!archived ? a.name : "")],
+    ["공급위치", text(raw, "HSSPLY_ADRES") || (!archived ? a.region : "")],
+    ["이번 공고 공급 세대수", supply != null && supply > 0 ? `${supply.toLocaleString("ko-KR")}세대` : ""],
+    ["주택 구분", text(raw, "HOUSE_DTL_SECD_NM")],
+    ["시공사", text(raw, "CNSTRCT_ENTRPS_NM")],
+    ["사업주체", text(raw, "BSNS_MBY_NM")],
+    ["공고 당시 입주예정", moveInText],
+  ].filter(([, value]) => Boolean(value));
+  const notice = safeUrl(schedule?.noticeUrl || text(raw, "PBLANC_URL") || a.applyHomeUrl);
+  const homepage = safeUrl(text(raw, "HMPG_ADRES"));
+  const models = (a.applyHomeModels || []).filter((row) => text(row, "HOUSE_TY"));
+  const flags = [
+    ["분양가상한제 적용", "PARCPRC_ULS_AT"],
+    ["투기과열지구", "SPECLT_RDN_EARTH_AT"],
+    ["조정대상지역", "MDAT_TRGET_AREA_SECD"],
+    ["공공주택지구", "PUBLIC_HOUSE_EARTH_AT"],
+  ].filter(([, key]) => text(raw, key) === "Y");
+  if (!schedules.length && !Object.keys(raw).length && !models.length) return null;
 
-  const schedule =
-    apartment.subscription;
-
-  const items =
-    timeline(schedule);
-
-  const totalSupply =
-    apartment.totalSupply ??
-    Number(
-      getText(
-        applyHome,
-        "TOT_SUPLY_HSHLDCO"
-      )
-    );
-
-  const developer =
-    apartment.projectInfo
-      ?.developer ||
-    getText(
-      applyHome,
-      "BSNS_MBY_NM"
-    );
-
-  const builder =
-    apartment.builder ||
-    getText(
-      applyHome,
-      "CNSTRCT_ENTRPS_NM"
-    );
-
-  const moveInDate =
-    getMoveInText({
-      ...apartment,
-
-      projectInfo: {
-        ...apartment.projectInfo,
-
-        moveInDate:
-          apartment.projectInfo
-            ?.moveInDate ||
-          getText(
-            applyHome,
-            "MVN_PREARNGE_YM"
-          ),
-      },
-    });
-
-  const housingType =
-    getText(
-      applyHome,
-      "HOUSE_DTL_SECD_NM"
-    ) || apartment.type;
-
-  const noticeUrl =
-    schedule?.noticeUrl ||
-    apartment.applyHomeUrl ||
-    getText(
-      applyHome,
-      "PBLANC_URL"
-    );
-
-  const applyUrl =
-    schedule?.applyUrl ||
-    schedule?.applyHomeUrl ||
-    APPLYHOME_MAIN_URL;
-
-  const applyClosed = [
-    "당첨자 발표 예정",
-    "당첨자 발표",
-    "당첨자발표",
-    "계약 예정",
-    "계약중",
-    "청약마감",
-  ].includes(
-    apartment.status
-  );
-
-  const hasDetailImages = Boolean(
-    apartment.images?.location
-      ?.length ||
-      apartment.images?.floorPlans
-        ?.length ||
-      apartment.images?.community
-        ?.length ||
-      apartment.images?.gallery?.length
-  );
-
-  return (
-    <div className="mt-5 space-y-5 sm:mt-6 sm:space-y-6">
-      {/* 현재 청약 상태 */}
-      <section className="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-white p-4 shadow-sm sm:rounded-3xl sm:p-7">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="min-w-0">
-            <p className="text-xs font-bold text-emerald-700 sm:text-sm">
-              SUBSCRIPTION STATUS
-            </p>
-
-            <h2 className="mt-1 text-xl font-extrabold text-zinc-900 sm:mt-2 sm:text-2xl">
-              {apartment.status}
-            </h2>
-
-            <p className="mt-2 break-keep text-xs leading-5 text-zinc-600 sm:text-sm sm:leading-6">
-              {statusDescription(
-                apartment.status
-              )}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 sm:min-w-[320px] sm:gap-3">
-            <InfoItem
-              label="공급 세대수"
-              value={
-                Number.isFinite(
-                  totalSupply
-                ) &&
-                totalSupply > 0
-                  ? `${totalSupply.toLocaleString()}세대`
-                  : "정보 확인 중"
-              }
-            />
-
-            <InfoItem
-              label="당첨자 발표"
-              value={formatDate(
-                schedule?.winnerDate
-              )}
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* 청약 일정 */}
-      <section
-        id="schedule"
-        className="scroll-mt-24 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-7"
-      >
-        <p className="text-xs font-bold text-emerald-700 sm:text-sm">
-          SUBSCRIPTION SCHEDULE
-        </p>
-
-        <h2 className="mt-1 text-xl font-extrabold text-zinc-900 sm:text-2xl">
-          청약 일정
-        </h2>
-
-        <p className="mt-1 text-sm leading-6 text-zinc-500 sm:mt-2 sm:text-sm sm:leading-6">
-          모집공고부터 계약기간까지 주요 일정을 확인하세요.
-        </p>
-
-        <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-6 sm:gap-3 lg:grid-cols-3">
-          {items.map(
-            (item, index) => (
-              <ScheduleCard
-                key={item.label}
-                index={index}
-                label={item.label}
-                value={item.value}
-              />
-            )
+  const content = (
+    <>
+      <p className={styles.note}>
+        {archived
+          ? "청약홈에 등록된 공고 당시 기록입니다. 아래 공급세대수·공급금액은 현재 잔여세대수·선착순 계약조건을 뜻하지 않습니다."
+          : "청약홈 공개자료 기준입니다. 공급 유형과 신청자별 자격·세부 조건은 공식 모집공고를 확인하세요."}
+      </p>
+      {schedules.length > 0 && (
+        <div id={archived ? undefined : "schedule"}>
+          <h3 className={styles.subheading}>{archived ? "공고 당시 청약 일정" : "청약 주요 일정"}</h3>
+          <dl className={styles.facts}>
+            {schedules.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
+          </dl>
+          {regional.length > 0 && (
+            <details className={styles.subdetails}>
+              <summary>지역별 접수 일정</summary>
+              <dl className={styles.facts}>
+                {regional.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
+              </dl>
+            </details>
           )}
         </div>
-      </section>
-
-      {/* 평형별 분양가 */}
-      {!getDetailSections(apartment).includes("pricing") && (<section
-        id="price"
-        className="scroll-mt-24"
-      >
-        <UnitPriceCard
-          apartment={apartment}
-          title="평형별 분양가"
-        />
-      </section>)}
-
-      {/* 사업개요 */}
-      {!getDetailSections(apartment).includes("overview") && (<section
-        id="overview"
-        className="scroll-mt-24 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-7"
-      >
-        <p className="text-xs font-bold text-zinc-500 sm:text-sm">
-          PROJECT OVERVIEW
-        </p>
-
-        <h2 className="mt-1 text-xl font-extrabold text-zinc-900 sm:text-2xl">
-          사업개요
-        </h2>
-
-        <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-6 sm:gap-3 lg:grid-cols-3">
-          <InfoItem
-            label="사업지 주소"
-            value={apartment.region}
-            wide
-          />
-
-          <InfoItem
-            label="주택 구분"
-            value={housingType}
-          />
-
-          <InfoItem
-            label="시공사"
-            value={builder}
-          />
-
-          <InfoItem
-            label="사업주체"
-            value={developer}
-          />
-
-          <InfoItem
-            label={
-              moveInDate.includes(
-                "입주 완료"
-              )
-                ? "입주 완료"
-                : "입주 예정"
-            }
-            value={
-              moveInDate
-                .replace(
-                  /\s입주\s(?:예정|완료)$/,
-                  ""
-                ) ||
-              "정보 확인 중"
-            }
-          />
-
-        </div>
-      </section>)}
-
-      <ProjectGroupLinks
-        apartment={apartment}
-      />
-
-      {/* 단지 사진·평면도 */}
-      {hasDetailImages && (
-        <section
-          id="images"
-          className="scroll-mt-24"
-        >
-          <header>
-            <p className="text-xs font-extrabold text-zinc-500 sm:text-sm">
-              PHOTO &amp; FLOOR PLAN
-            </p>
-
-            <h2 className="mt-1 text-xl font-extrabold tracking-tight text-[#132238] sm:text-2xl">
-              단지 사진·평면정보
-            </h2>
-
-            <p className="mt-1 text-sm leading-6 text-zinc-500 sm:mt-2 sm:text-sm sm:leading-6">
-              입지환경과 평면도, 커뮤니티 이미지를 확인하세요.
-            </p>
-          </header>
-
-          <ApartmentImageSections
-            images={getDetailSections(apartment).includes("plans") ? {...apartment.images, floorPlans: []} : apartment.images}
-            apartmentName={
-              apartment.name
-            }
-          />
-        </section>
       )}
-
-      {/* 청약 상담·알림 */}
-      <section
-        id="inquiry"
-        tabIndex={-1}
-        aria-label="청약 상담 및 알림 신청폼"
-        className="scroll-mt-24"
-      >
-        <SubscriptionAlertForm
-          apartmentSlug={
-            apartment.slug
-          }
-          apartmentName={
-            apartment.name
-          }
-          leadType={
-            apartment.leadType ??
-            "schedule"
-          }
-        />
-      </section>
-
-      {/* 청약홈 연결 */}
-      <section className="rounded-2xl bg-zinc-900 p-4 text-white shadow-sm sm:rounded-3xl sm:p-7">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="text-xs font-bold text-emerald-300 sm:text-sm">
-              APPLYHOME
-            </p>
-
-            <h2 className="mt-1 text-xl font-extrabold sm:text-2xl">
-              모집공고와 청약 신청
-            </h2>
-
-            <p className="mt-2 break-keep text-xs leading-5 text-zinc-300 sm:max-w-2xl sm:text-sm sm:leading-6">
-              모집공고 확인과 실제 청약 신청은 청약홈에서 진행됩니다.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:min-w-[430px]">
-            {noticeUrl ? (
-              <a
-                href={noticeUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="
-                  inline-flex min-h-11
-                  cursor-pointer items-center
-                  justify-center rounded-xl
-                  border border-zinc-600
-                  bg-zinc-800 px-3 py-3
-                  text-center text-xs
-                  font-extrabold text-white
-                  transition
-                  hover:-translate-y-0.5
-                  hover:border-zinc-400
-                  hover:bg-zinc-700
-                  hover:shadow-md
-                  focus:outline-none
-                  focus:ring-2
-                  focus:ring-zinc-400
-                  focus:ring-offset-2
-                  focus:ring-offset-zinc-900
-                  sm:min-h-12
-                  sm:rounded-2xl
-                  sm:px-5 sm:text-sm
-                "
-              >
-                모집공고 보기 ↗
-              </a>
-            ) : (
-              <span className="inline-flex min-h-11 items-center justify-center rounded-xl bg-zinc-800 px-3 py-3 text-center text-xs font-bold text-zinc-400 sm:min-h-12 sm:rounded-2xl sm:px-5 sm:text-sm">
-                모집공고 준비 중
-              </span>
-            )}
-
-            {applyClosed ? (
-              <span className="inline-flex min-h-11 items-center justify-center rounded-xl bg-zinc-700 px-3 py-3 text-center text-xs font-extrabold text-zinc-300 sm:min-h-12 sm:rounded-2xl sm:px-5 sm:text-sm">
-                {applyButtonText(
-                  apartment.status
-                )}
-              </span>
-            ) : (
-              <a
-                href={applyUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="
-                  inline-flex min-h-11
-                  cursor-pointer items-center
-                  justify-center rounded-xl
-                  bg-emerald-600 px-3 py-3
-                  text-center text-xs
-                  font-extrabold text-white
-                  shadow-sm transition
-                  hover:-translate-y-0.5
-                  hover:bg-emerald-500
-                  hover:shadow-md
-                  focus:outline-none
-                  focus:ring-2
-                  focus:ring-emerald-400
-                  focus:ring-offset-2
-                  focus:ring-offset-zinc-900
-                  sm:min-h-12
-                  sm:rounded-2xl
-                  sm:px-5 sm:text-sm
-                "
-              >
-                {applyButtonText(
-                  apartment.status
-                )}
-              </a>
-            )}
-          </div>
+      {facts.length > 0 && (
+        <div>
+          <h3 className={styles.subheading}>모집공고 기본정보</h3>
+          <dl className={styles.facts}>
+            {facts.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
+          </dl>
         </div>
-      </section>
-    </div>
+      )}
+      {flags.length > 0 && <p className={styles.note}>공고 기준: {flags.map(([label]) => label).join(" · ")}</p>}
+      {models.length > 0 && (
+        <div>
+          <h3 className={styles.subheading}>공고 당시 타입별 공급정보</h3>
+          <div className={styles.tableScroll} tabIndex={0} role="region" aria-label="타입별 공급정보 표">
+            <table className={styles.supplyTable}>
+              <caption className="sr-only">{a.name} 공고 당시 주택형별 공급정보</caption>
+              <thead><tr><th scope="col">주택형</th><th scope="col">일반공급</th><th scope="col">특별공급</th><th scope="col">최고 공급금액</th></tr></thead>
+              <tbody>{models.map((row, index) => {
+                const general = count(row, "SUPLY_HSHLDCO");
+                const special = count(row, "SPSPLY_HSHLDCO");
+                return <tr key={`${text(row, "MODEL_NO")}-${index}`}>
+                  <th scope="row">{text(row, "HOUSE_TY").replace(/^0+(?=\d)/, "")}㎡</th>
+                  <td>{general == null ? "—" : `${general.toLocaleString("ko-KR")}세대`}</td>
+                  <td>{special == null ? "—" : `${special.toLocaleString("ko-KR")}세대`}</td>
+                  <td>{amount(count(row, "LTTOT_TOP_AMOUNT"))}</td>
+                </tr>;
+              })}</tbody>
+            </table>
+          </div>
+          <p className={styles.note}>최고 공급금액은 해당 타입의 공고 당시 최고금액입니다. 실제 최저가·현재 판매가격·발코니 및 옵션 포함 총액과 다릅니다. ‘—’는 제공된 값이 없는 항목입니다.</p>
+        </div>
+      )}
+      {(notice || homepage) && <div className={styles.sourceLinks}>
+        {notice && <a className={styles.more} href={notice} target="_blank" rel="noopener noreferrer">공식 모집공고 확인 ↗</a>}
+        {homepage && <a className={styles.more} href={homepage} target="_blank" rel="noopener noreferrer">공고에 등록된 홈페이지 ↗</a>}
+      </div>}
+    </>
+  );
+  return archived ? (
+    <details className={styles.panel}>
+      <summary className={styles.archiveSummary}>청약·모집공고 기록 보기</summary>
+      {content}
+    </details>
+  ) : (
+    <section className={styles.panel} aria-label="청약 공고 정보">
+      <p className={styles.eyebrow}>집눈 · 청약홈 공개자료</p>
+      <h2 className={styles.heading}>청약 일정·공급정보</h2>
+      {content}
+    </section>
   );
 }

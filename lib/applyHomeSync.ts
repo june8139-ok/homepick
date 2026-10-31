@@ -732,29 +732,17 @@ function typeName(row: Row) {
 }
 
 function households(row: Row) {
-  const total = firstNumber(row, [
-    "SUPLY_HSHLDCO",
-    "TOT_SUPLY_HSHLDCO",
-    "SUPLY_HSHLD_CNT",
-  ]);
-
+  const total = firstNumber(row, ["TOT_SUPLY_HSHLDCO"]);
   if (total !== null) return Math.max(0, Math.round(total));
 
-  const general =
-    firstNumber(row, [
-      "GNRL_HSHLDCO",
-      "GNRL_SUPLY_HSHLDCO",
-    ]) ?? 0;
-
-  const special =
-    firstNumber(row, [
-      "SPSPLY_HSHLDCO",
-      "SPECIAL_SUPLY_HSHLDCO",
-    ]) ?? 0;
-
-  return general + special > 0
-    ? Math.round(general + special)
-    : null;
+  // APT 주택형별 API의 SUPLY_HSHLDCO는 일반공급 세대수입니다.
+  // 특별공급을 함께 합산해야 타입별 전체 공급세대수가 됩니다.
+  const general = firstNumber(row, [
+    "SUPLY_HSHLDCO", "GNRL_HSHLDCO", "GNRL_SUPLY_HSHLDCO", "SUPLY_HSHLD_CNT",
+  ]);
+  const special = firstNumber(row, ["SPSPLY_HSHLDCO", "SPECIAL_SUPLY_HSHLDCO"]);
+  if (general === null && special === null) return null;
+  return Math.max(0, Math.round(general ?? 0)) + Math.max(0, Math.round(special ?? 0));
 }
 
 function maximumPrice(row: Row) {

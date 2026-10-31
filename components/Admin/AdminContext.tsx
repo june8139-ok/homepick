@@ -467,6 +467,11 @@ function createInitialEvaluation(
     defaultEvaluation.middlePaymentType;
 
   if (
+    middlePaymentText.includes("해당없음") ||
+    middlePaymentText.includes("해당 없음")
+  ) {
+    middlePaymentType = "not-applicable";
+  } else if (
     middlePaymentText.includes("일부무이자")
   ) {
     middlePaymentType = "partial-free";

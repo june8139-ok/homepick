@@ -175,7 +175,9 @@ export function paymentRows(a: Apartment) {
   return paymentFields
     .map(([key, label]) => [
       label,
-      p[key] ||
+      (key === "middlePayment" && a.evaluation?.middlePaymentType === "not-applicable"
+        ? "해당 없음 · 상세 납부 일정 확인"
+        : p[key]) ||
         (key === "depositTotal"
           ? a.priceDetail?.contractPrice
           : key === "middlePayment"

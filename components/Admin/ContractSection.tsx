@@ -76,7 +76,7 @@ export default function ContractSection() {
 
         <OptionGroup
           title="중도금"
-          description="중도금 이자와 납부 방식을 선택하세요."
+          description="중도금 이자와 납부 방식을 선택하세요. 중도금 대출을 이용하지 않는 경우 ‘해당 없음’을 선택하세요."
           options={[
             [
               "interest-deferred",
@@ -93,6 +93,10 @@ export default function ContractSection() {
             [
               "self",
               "중도금 자납",
+            ],
+            [
+              "not-applicable",
+              "해당 없음",
             ],
           ]}
           value={

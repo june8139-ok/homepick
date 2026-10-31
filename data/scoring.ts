@@ -19,6 +19,7 @@ export type MiddlePaymentType =
   | "partial-free"
   | "interest-deferred"
   | "self"
+  | "not-applicable"
   | "unknown";
 
 export type OptionBenefitType =
@@ -149,6 +150,7 @@ function calculateContractScore(evaluation: EvaluationInput) {
     "partial-free": 3,
     "interest-deferred": 1,
     self: 0,
+    "not-applicable": 0,
     unknown: 0,
   };
 

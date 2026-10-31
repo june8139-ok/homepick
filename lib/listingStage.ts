@@ -230,3 +230,15 @@ export function getApartmentStageLabel(
     getListingStage(apartment)
   );
 }
+
+/** 관리자 노출 단계가 과거 청약 상태보다 우선합니다. */
+export function getApartmentStatusLabel(apartment: Apartment): string {
+  const stage = getListingStage(apartment);
+  if (stage === "firstCome") {
+    return apartment.housingSupplyType === "privateRental" ? "선착순 임차인 모집" : "선착순 분양";
+  }
+  if (stage === "soldOut") return "100% 분양완료";
+  if (stage === "completed") return "노출 종료";
+  if (stage === "existing") return "기존 아파트";
+  return apartment.status || "청약";
+}

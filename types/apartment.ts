@@ -167,6 +167,7 @@ export type Apartment = {
   projectInfo?: ProjectInfo;
   locationInfo?: LocationInfo;
   applyHome?: Record<string, unknown>;
+  applyHomeModels?: Record<string, unknown>[];
   conditionHistory: ApartmentConditionHistoryItem[];
   priceInfo?: ApartmentPriceInfo;
 

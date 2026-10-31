@@ -36,7 +36,7 @@ export default function PropertyHero({
   const paymentRows = reviewed && !rental
     ? [
         ["계약금", clean(a.priceDetail?.contractPrice)],
-        ["중도금", clean(a.priceDetail?.middlePayment)],
+        ["중도금", a.evaluation?.middlePaymentType === "not-applicable" ? "" : clean(a.priceDetail?.middlePayment)],
       ].filter(([, value]) => value)
     : [];
   const condition = reviewed ? clean(a.condition) : "";

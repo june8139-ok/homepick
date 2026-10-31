@@ -20,6 +20,8 @@ import {
   getApartmentRegionKey,
 } from "../../lib/regionUtils";
 
+import { getApartmentStatusLabel, getListingStage } from "../../lib/listingStage";
+
 type Props = {
   apartment: Apartment;
   relatedApartments: Apartment[];
@@ -120,89 +122,18 @@ function getRegionText(
 }
 
 
-function representativePriceValue(
-  apartment: Apartment
-) {
-  return getRepresentativePrice(
-    apartment
-  ).value;
-}
-
-function getPriceComparisonText(
-  currentApartment: Apartment,
-  apartment: Apartment
-) {
-  const currentPrice =
-    representativePriceValue(
-      currentApartment
-    );
-
-  const candidatePrice =
-    representativePriceValue(
-      apartment
-    );
-
-  if (
-    !currentPrice ||
-    !candidatePrice
-  ) {
-    return "";
-  }
-
-  const difference =
-    Math.round(
-      Math.abs(
-        currentPrice -
-          candidatePrice
-      )
-    );
-
-  if (
-    difference < 500
-  ) {
-    return "현재 단지와 비슷한 가격대";
-  }
-
-  const eok =
-    Math.floor(
-      difference / 10000
-    );
-
-  const manwon =
-    difference % 10000;
-
-  const amount =
-    eok > 0
-      ? manwon > 0
-        ? `${eok}억 ${manwon.toLocaleString(
-            "ko-KR"
-          )}만원`
-        : `${eok}억원`
-      : `${manwon.toLocaleString(
-          "ko-KR"
-        )}만원`;
-
-  return candidatePrice <
-    currentPrice
-    ? `현재 단지보다 약 ${amount} 낮음`
-    : `현재 단지보다 약 ${amount} 높음`;
-}
-
-
 function getRecommendationReasons(
   currentApartment: Apartment,
   apartment: Apartment
 ) {
   const reasons: string[] = [];
 
-  if (apartment.status?.includes("선착순")) {
-    reasons.push("선착순 분양 중");
+  if (getListingStage(apartment) === "firstCome") {
+    reasons.push(getApartmentStatusLabel(apartment));
   }
 
   if (
-    apartment.listingStage &&
-    apartment.listingStage ===
-      currentApartment.listingStage
+    getListingStage(apartment) === getListingStage(currentApartment)
   ) {
     reasons.push("같은 분양 단계");
   }
@@ -212,18 +143,6 @@ function getRecommendationReasons(
     getRegionText(currentApartment)
   ) {
     reasons.push(`같은 ${getRegionText(apartment)}`);
-  }
-
-  const priceComparison =
-    getPriceComparisonText(
-      currentApartment,
-      apartment
-    );
-
-  if (priceComparison) {
-    reasons.unshift(
-      priceComparison
-    );
   }
 
   if (reasons.length === 0) {
@@ -277,12 +196,11 @@ function MobileRelatedCard({
             "absolute left-2 top-2 rounded-full px-2 py-1",
             "text-[10px] font-bold shadow-sm",
             getStatusStyle(
-              apartment.status
+              getApartmentStatusLabel(apartment)
             ),
           ].join(" ")}
         >
-          {apartment.status ||
-            "정보 확인 중"}
+          {getApartmentStatusLabel(apartment)}
         </span>
 
         <span className="absolute right-2 top-2 max-w-[45%] truncate rounded-full bg-black/55 px-2 py-1 text-[9px] font-bold text-white backdrop-blur">
@@ -428,12 +346,11 @@ function DesktopRelatedCard({
           className={[
             "absolute left-3 top-3 rounded-full px-3 py-1.5 text-xs font-black shadow-sm",
             getStatusStyle(
-              apartment.status
+              getApartmentStatusLabel(apartment)
             ),
           ].join(" ")}
         >
-          {apartment.status ||
-            "정보 확인 중"}
+          {getApartmentStatusLabel(apartment)}
         </span>
 
         <span className="absolute right-3 top-3 max-w-[46%] truncate rounded-full bg-black/60 px-3 py-1.5 text-[10px] font-bold text-white backdrop-blur">

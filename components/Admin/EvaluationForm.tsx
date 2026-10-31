@@ -55,6 +55,7 @@ export default function EvaluationForm({ evaluation, setEvaluation }: Props) {
             ["partial-free", "일부 무이자"],
             ["interest-deferred", "이자후불제"],
             ["self", "자납"],
+  ["not-applicable", "해당 없음"],
             ["unknown", "확인 필요"],
           ]}
         />
