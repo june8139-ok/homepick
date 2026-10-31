@@ -661,7 +661,14 @@ function normalize(row: Row): NormalizedApartment | null {
   };
 }
 
+// ‘취소’ 전체를 제외하지 않고 공고명에 명시된 조합원 취소분만 제외합니다.
+// 기존 등록 건을 삭제하거나 숨기지는 않으며, 이 공고의 자동 생성·갱신만 건너뜁니다.
+function isExcludedNoticeName(name: string) {
+  return /조합원\s*취소\s*분/u.test(name.normalize("NFKC"));
+}
+
 function relevant(apartment: NormalizedApartment) {
+  if (isExcludedNoticeName(apartment.name)) return false;
   const today = koreaToday();
   const recentLimit = addDays(today, -RECENT_DAYS);
   const announcement = parseDate(
@@ -1797,7 +1804,7 @@ export async function syncApplyHomeApartments():
       targets.length === 0
     ) {
       result.warnings.push(
-        "청약홈 목록은 조회됐지만 최근/진행중 동기화 대상이 0건입니다. 날짜 필드 또는 필터 기준을 확인해주세요."
+        "청약홈 목록은 조회됐지만 최근/진행중 및 수집 제외 기준 적용 후 동기화 대상이 0건입니다. 날짜 필드 또는 필터 기준을 확인해주세요."
       );
     }
 
