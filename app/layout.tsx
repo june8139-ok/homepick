@@ -183,14 +183,9 @@ export const metadata: Metadata = {
   },
 
   icons: {
-    icon: [
-      {
-        url: "/favicon.ico",
-      },
-    ],
 
     shortcut:
-      "/favicon.ico",
+      "https://jibnun.com/favicon.ico",
 
     apple:
       "/apple-touch-icon.png",
