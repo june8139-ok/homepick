@@ -14,6 +14,7 @@ import PropertyPlanBrowser from "./PropertyPlanBrowser";
 import PropertyConditionSummary from "./PropertyConditionSummary";
 import PriceConditionCard from "./PriceConditionCard";
 import ConditionHistory from "./ConditionHistory";
+
 export function SectionPictures({
   images,
   label,
@@ -50,6 +51,7 @@ export function SectionPictures({
     </>
   );
 }
+
 function Facts({ rows }: { rows: [string, string][] }) {
   return (
     <dl className="property-facts">
@@ -62,6 +64,57 @@ function Facts({ rows }: { rows: [string, string][] }) {
     </dl>
   );
 }
+
+function LocationCards({ rows }: { rows: [string, string][] }) {
+  const cards = rows
+    .map(([label, value]) => ({
+      label: label.trim(),
+      lines: value
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean),
+    }))
+    .filter(({ lines }) => lines.length > 0);
+
+  if (!cards.length) return null;
+
+  const orderedCards = [
+    ...cards.filter(
+      ({ label }) => label !== "개발계획" && label !== "확인사항",
+    ),
+    ...cards.filter(({ label }) => label === "개발계획"),
+    ...cards.filter(({ label }) => label === "확인사항"),
+  ];
+
+  return (
+    <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
+      {orderedCards.map(({ label, lines }, index) => (
+        <section
+          key={`${label}-${index}`}
+          className={`min-w-0 rounded-xl border border-[#d8e4df] px-5 py-4 md:px-6 md:py-5 ${
+            label === "개발계획"
+              ? "bg-[#f2f7f4] md:col-span-2"
+              : label === "확인사항"
+                ? "bg-slate-50 md:col-span-2"
+                : "bg-white"
+          }`}
+        >
+          <h2 className="text-lg font-bold leading-snug text-[#103f36]">
+            {label}
+          </h2>
+          <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-slate-700 marker:text-[#59766a] md:text-base">
+            {lines.map((line, lineIndex) => (
+              <li key={lineIndex} className="break-words">
+                {line}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+  );
+}
+
 export default function PropertySectionContent({
   a,
   section,
@@ -73,6 +126,7 @@ export default function PropertySectionContent({
   const history = a.conditionHistory.length
     ? a.conditionHistory
     : conditionHistories.find((x) => x.apartmentSlug === a.slug)?.history || [];
+
   return (
     <>
       {section === "overview" && (
@@ -87,6 +141,7 @@ export default function PropertySectionContent({
           />
         </>
       )}
+
       {section === "pricing" && (
         <>
           <p className="property-section-lead">
@@ -126,6 +181,7 @@ export default function PropertySectionContent({
           )}
         </>
       )}
+
       {section === "plans" && (
         <>
           <PropertyPlanBrowser
@@ -146,16 +202,18 @@ export default function PropertySectionContent({
           )}
         </>
       )}
+
       {section === "location" && (
         <>
-          <p className="property-section-lead">{a.region}</p>
+          {a.region && <p className="property-section-lead">{a.region}</p>}
           <SectionPictures
             images={sectionImages(a, section)}
             label={`${a.name} 입지·주변 환경`}
           />
-          <Facts rows={locationRows(a)} />
+          <LocationCards rows={locationRows(a)} />
         </>
       )}
+
       {content.body && (
         <section className="property-prose">
           <h2>추가 안내</h2>
@@ -164,6 +222,7 @@ export default function PropertySectionContent({
           ))}
         </section>
       )}
+
       {(content.source || content.checkedAt) && (
         <p className="property-source">
           {content.source && `자료 출처: ${content.source}`}

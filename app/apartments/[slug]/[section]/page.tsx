@@ -18,28 +18,49 @@ import {
 import InquiryActions from "../../../../components/Apartment/InquiryActions";
 import SubscriptionAlertForm from "../../../../components/Apartment/SubscriptionAlertForm";
 import ReservationCard from "../../../../components/Apartment/ReservationCard";
+
 type Props = { params: Promise<{ slug: string; section: string }> };
+
 async function resolve(params: Props["params"]) {
   const { slug, section } = await params;
+
   if (!isDetailSection(section)) notFound();
+
   const a = await getApartment(slug);
-  if (!a || isCompletedListing(a) || !getDetailSections(a).includes(section))
+
+  if (!a || isCompletedListing(a) || !getDetailSections(a).includes(section)) {
     notFound();
-  if (decodeURIComponent(slug) !== a.slug)
+  }
+
+  if (decodeURIComponent(slug) !== a.slug) {
     permanentRedirect(detailHref(a.slug, section));
+  }
+
   return { a, section, content: a.detailPages?.[section] || {} };
 }
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { a, section, content } = await resolve(params);
+
   const site =
     process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
     "https://jibnun.com";
+
   // 단지명과 메뉴명을 항상 포함해 관리자 입력이 같아도 페이지 역할을 구분합니다.
   const title = `${a.name} ${sectionLabels[section]}${content.seoTitle ? ` · ${content.seoTitle}` : ""} | 집눈`;
   const description = detailDescription(a, section);
   const url = site + detailHref(a.slug, section);
-  const representative=sectionImages(a,section)[0]||a.images.hero;
-  const images=representative?[{url:new URL(representative,site).href,alt:`${a.name} ${sectionLabels[section]}`}]:[{url:site+"/opengraph-image"}];
+
+  const representative = sectionImages(a, section)[0] || a.images.hero;
+  const images = representative
+    ? [
+        {
+          url: new URL(representative, site).href,
+          alt: `${a.name} ${sectionLabels[section]}`,
+        },
+      ]
+    : [{ url: site + "/opengraph-image" }];
+
   return {
     title: { absolute: title },
     description,
@@ -62,13 +83,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
   };
 }
+
 export default async function DetailSectionPage({ params }: Props) {
   const { a, section } = await resolve(params);
   const stage = getListingStage(a);
   const canInquire =
     (stage === "firstCome" || stage === "subscription") &&
     a.leadType !== "closed";
-  const site = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://jibnun.com";
+
+  const site =
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
+    "https://jibnun.com";
+
   const breadcrumb = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -81,25 +107,34 @@ export default async function DetailSectionPage({ params }: Props) {
       },
     ].map((x, i) => ({ "@type": "ListItem", position: i + 1, ...x })),
   };
+
   return (
     <main className="property-subpage">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(breadcrumb).replace(/</g, "\u003c"),
+          __html: JSON.stringify(breadcrumb).replace(/</g, "\\u003c"),
         }}
       />
+
       <nav aria-label="현재 위치" className="property-breadcrumb">
         <Link href={detailHref(a.slug)}>{a.name}</Link>
         <span>/</span>
         {sectionLabels[section]}
       </nav>
-      <h1>
-        {a.name}
-        <br />
-        <span>{sectionLabels[section]}</span>
+
+      <h1 className="flex flex-col gap-1">
+        <span className="order-1 md:order-2">{sectionLabels[section]}</span>
+        <span
+          className="order-2 text-base font-medium leading-snug md:order-1 md:text-inherit md:font-inherit md:leading-[inherit]"
+          style={{ wordBreak: "keep-all", overflowWrap: "break-word" }}
+        >
+          {a.name}
+        </span>
       </h1>
-      <PropertySectionContent a={a} section={section}/>
+
+      <PropertySectionContent a={a} section={section} />
+
       <nav aria-label="다른 단지 정보" className="property-next">
         {getDetailSections(a)
           .filter((k) => k !== section)
@@ -109,6 +144,7 @@ export default async function DetailSectionPage({ params }: Props) {
             </Link>
           ))}
       </nav>
+
       {canInquire && (
         <>
           <section id="inquiry" tabIndex={-1} className="scroll-mt-40">
@@ -122,6 +158,7 @@ export default async function DetailSectionPage({ params }: Props) {
               <ReservationCard apartmentName={a.name} apartmentSlug={a.slug} />
             )}
           </section>
+
           <InquiryActions
             apartmentSlug={a.slug}
             placement="mobile"
