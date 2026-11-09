@@ -1,14 +1,11 @@
 "use client";
 
 import Script from "next/script";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 
-const CONSENT_STORAGE_KEY = "jibnun:meta-pixel-consent";
-const PIXEL_SCRIPT_URL = "https://connect.facebook.net/en_US/fbevents.js";
-
-type StoredConsent = "granted" | "denied";
-type ConsentStatus = "loading" | "unset" | StoredConsent;
+const PIXEL_SCRIPT_URL =
+  "https://connect.facebook.net/en_US/fbevents.js";
 
 type InquiryAnalyticsDetail = {
   event?: string;
@@ -43,11 +40,13 @@ function normalizePathname(pathname: string) {
   if (pathname.length > 1 && pathname.endsWith("/")) {
     return pathname.replace(/\/+$/, "");
   }
+
   return pathname || "/";
 }
 
 function isTrackingExcluded(pathname: string) {
   const path = normalizePathname(pathname);
+
   return (
     path === "/admin" ||
     path.startsWith("/admin/") ||
@@ -57,10 +56,14 @@ function isTrackingExcluded(pathname: string) {
 }
 
 function getApartmentSlug(pathname: string) {
-  const segments = normalizePathname(pathname).split("/").filter(Boolean);
+  const segments = normalizePathname(pathname)
+    .split("/")
+    .filter(Boolean);
+
   if (segments[0] !== "apartments" || !segments[1]) {
     return null;
   }
+
   try {
     return decodeURIComponent(segments[1]);
   } catch {
@@ -68,47 +71,34 @@ function getApartmentSlug(pathname: string) {
   }
 }
 
-function readConsent(): StoredConsent | null {
-  try {
-    const value = window.localStorage.getItem(CONSENT_STORAGE_KEY);
-    if (value === "granted" || value === "denied") {
-      return value;
-    }
-  } catch {
-    return null;
-  }
-  return null;
-}
-
-function writeConsent(value: StoredConsent) {
-  try {
-    window.localStorage.setItem(CONSENT_STORAGE_KEY, value);
-  } catch {
-    // Storage can be blocked; tracking still follows in-memory consent.
-  }
-}
-
 function trackFbq(...args: unknown[]) {
   try {
     window.fbq?.(...args);
   } catch {
-    // Tracking must never affect page rendering or form submission.
+    // 픽셀 오류가 사이트 기능에 영향을 주지 않도록 처리
   }
 }
 
 function trackCurrentRoute(pathname: string) {
-  if (isTrackingExcluded(pathname) || typeof window.fbq !== "function") {
+  if (
+    isTrackingExcluded(pathname) ||
+    typeof window.fbq !== "function"
+  ) {
     return;
   }
 
   const path = normalizePathname(pathname);
 
+  // 페이지 방문 추적
   if (lastPageViewPath !== path) {
     lastPageViewPath = path;
+
     trackFbq("track", "PageView");
   }
 
+  // 아파트 상세페이지 조회 추적
   const slug = getApartmentSlug(path);
+
   if (!slug) {
     lastViewContentSlug = null;
     return;
@@ -119,6 +109,7 @@ function trackCurrentRoute(pathname: string) {
   }
 
   lastViewContentSlug = slug;
+
   trackFbq("track", "ViewContent", {
     content_ids: [slug],
     content_name: slug,
@@ -126,81 +117,62 @@ function trackCurrentRoute(pathname: string) {
   });
 }
 
-function MetaPixelConsentBar({
-  onChoice,
-}: {
-  onChoice: (value: StoredConsent) => void;
-}) {
-  return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 p-3 sm:p-4">
-      <div className="pointer-events-auto mx-auto flex max-w-3xl flex-col gap-3 rounded-2xl border border-zinc-200 bg-white/95 p-4 shadow-[0_-4px_20px_rgba(15,23,42,0.08)] backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm leading-6 text-zinc-600">
-          광고 성과 측정을 위해 Meta 픽셀을 사용합니다. 동의 전에는
-          실행되지 않으며,{" "}
-          <a href="/privacy" className="font-semibold text-zinc-800 underline-offset-2 hover:underline">
-            개인정보처리방침
-          </a>
-          에서 자세한 내용을 확인할 수 있습니다.
-        </p>
-        <div className="flex shrink-0 gap-2">
-          <button
-            type="button"
-            onClick={() => onChoice("denied")}
-            className="min-h-11 rounded-xl border border-zinc-200 px-4 text-sm font-semibold text-zinc-600 transition hover:bg-zinc-50"
-          >
-            거부
-          </button>
-          <button
-            type="button"
-            onClick={() => onChoice("granted")}
-            className="min-h-11 rounded-xl bg-[#0F766E] px-4 text-sm font-extrabold text-white transition hover:bg-[#115E59]"
-          >
-            동의
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function MetaPixel() {
   const pathname = usePathname();
-  const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID?.trim() ?? "";
-  const [consent, setConsent] = useState<ConsentStatus>("loading");
 
-  useEffect(() => {
-    setConsent(readConsent() ?? "unset");
-  }, []);
+  const pixelId =
+    process.env.NEXT_PUBLIC_META_PIXEL_ID?.trim() ?? "";
 
+  const validPixelId = isValidPixelId(pixelId);
+
+  const excluded = isTrackingExcluded(pathname);
+
+  // 페이지 이동 추적
   useEffect(() => {
-    if (consent !== "granted") {
+    if (!validPixelId || excluded) {
       return;
     }
 
     trackCurrentRoute(pathname);
-  }, [consent, pathname]);
+  }, [pathname, validPixelId, excluded]);
 
+  // 상담 신청 성공 추적
   useEffect(() => {
-    if (consent !== "granted") {
+    if (!validPixelId || excluded) {
       return;
     }
 
     const handleInquiry = (event: Event) => {
-      const detail = (event as CustomEvent<InquiryAnalyticsDetail>).detail;
+      const detail = (
+        event as CustomEvent<InquiryAnalyticsDetail>
+      ).detail;
+
       if (detail?.event !== "inquiry_success") {
         return;
       }
 
-      if (isTrackingExcluded(pathname)) {
+      const slug = String(
+        detail.apartment_slug ?? ""
+      ).trim();
+
+      const leadKey =
+        slug || normalizePathname(pathname);
+
+      const now = Date.now();
+
+      // 동일 이벤트의 짧은 시간 내 중복 방지
+      if (
+        lastLeadKey === leadKey &&
+        now - lastLeadAt < 2000
+      ) {
         return;
       }
 
-      const slug = String(detail.apartment_slug ?? "").trim();
-      const leadKey = slug || normalizePathname(pathname);
-      const now = Date.now();
-      if (lastLeadKey === leadKey && now - lastLeadAt < 2000) {
+      // 픽셀이 초기화되지 않았다면 전송하지 않음
+      if (typeof window.fbq !== "function") {
         return;
       }
+
       lastLeadKey = leadKey;
       lastLeadAt = now;
 
@@ -213,37 +185,35 @@ export default function MetaPixel() {
               content_name: slug,
               content_type: "product",
             }
-          : { content_type: "product" },
+          : {
+              content_type: "product",
+            }
       );
     };
 
-    window.addEventListener("jibnun:inquiry", handleInquiry);
-    return () => {
-      window.removeEventListener("jibnun:inquiry", handleInquiry);
-    };
-  }, [consent, pathname]);
+    window.addEventListener(
+      "jibnun:inquiry",
+      handleInquiry
+    );
 
-  if (!isValidPixelId(pixelId)) {
+    return () => {
+      window.removeEventListener(
+        "jibnun:inquiry",
+        handleInquiry
+      );
+    };
+  }, [pathname, validPixelId, excluded]);
+
+  if (!validPixelId || excluded) {
     return null;
   }
 
-  const excluded = isTrackingExcluded(pathname);
-  const showConsentBar = !excluded && consent === "unset";
-  const loadPixel = !excluded && consent === "granted";
-
-  function handleConsent(value: StoredConsent) {
-    writeConsent(value);
-    setConsent(value);
-  }
-
   return (
-    <>
-      {loadPixel ? (
-        <Script
-          id="meta-pixel"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
+    <Script
+      id="meta-pixel"
+      strategy="afterInteractive"
+      dangerouslySetInnerHTML={{
+        __html: `
 !function(f,b,e,v,n,t,s)
 {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
 n.callMethod.apply(n,arguments):n.queue.push(arguments)};
@@ -252,16 +222,13 @@ n.queue=[];t=b.createElement(e);t.async=!0;
 t.src=v;s=b.getElementsByTagName(e)[0];
 s.parentNode.insertBefore(t,s)}(window, document,'script',
 '${PIXEL_SCRIPT_URL}');
+
 fbq('init', '${pixelId}');
 `,
-          }}
-          onReady={() => {
-            trackCurrentRoute(window.location.pathname);
-          }}
-        />
-      ) : null}
-
-      {showConsentBar ? <MetaPixelConsentBar onChoice={handleConsent} /> : null}
-    </>
+      }}
+      onReady={() => {
+        trackCurrentRoute(window.location.pathname);
+      }}
+    />
   );
 }
