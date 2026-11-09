@@ -1,54 +1,43 @@
 import type {
   Metadata,
 } from "next";
-
 import Image from "next/image";
 import Link from "next/link";
 import {
   notFound,
   permanentRedirect,
 } from "next/navigation";
-
 import { cache } from "react";
-
 import {
   getApartments,
 } from "../../../lib/getApartments";
-
 import {
   isFirstComeApartment,
   isVisibleHomeSubscription,
   isSubscriptionApartment,
 } from "../../../lib/subscriptionVisibility";
-
 import {
   getListingStage,
   isCompletedListing,
 } from "../../../lib/listingStage";
-
 import {
   isApartmentInRegion,
   normalizeRegionRoute,
 } from "../../../lib/regionUtils";
-
 import type {
   Apartment,
 } from "../../../types/apartment";
-
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(
     /\/$/,
     ""
   ) || "https://jibnun.com";
-
 export const revalidate = 300;
-
 type PageProps = {
   params: Promise<{
     city: string;
   }>;
 };
-
 type RegionDescription = {
   title: string;
   paragraphs: [
@@ -56,7 +45,6 @@ type RegionDescription = {
     string,
   ];
 };
-
 const REGION_DESCRIPTIONS: Record<
   string,
   RegionDescription
@@ -198,7 +186,6 @@ const REGION_DESCRIPTIONS: Record<
     ],
   },
 };
-
 function getRegionDescription(
   cityName: string
 ): RegionDescription {
@@ -215,7 +202,6 @@ function getRegionDescription(
     }
   );
 }
-
 function decodeRouteValue(
   value: string
 ) {
@@ -231,7 +217,6 @@ function decodeRouteValue(
       .trim();
   }
 }
-
 function isPrivateRental(
   apartment: Apartment
 ) {
@@ -240,13 +225,11 @@ function isPrivateRental(
     "privateRental"
   );
 }
-
 function getHeroImage(
   apartment: Apartment
 ) {
   const hero =
     apartment.images?.hero;
-
   if (
     typeof hero === "string" &&
     hero.trim() &&
@@ -256,7 +239,6 @@ function getHeroImage(
   ) {
     return hero;
   }
-
   return (
     apartment.images?.gallery?.find(
       (image) =>
@@ -267,7 +249,6 @@ function getHeroImage(
     ) ?? ""
   );
 }
-
 function getStatusInfo(
   apartment: Apartment
 ) {
@@ -284,7 +265,6 @@ function getStatusInfo(
         "bg-blue-600 text-white",
     };
   }
-
   if (
     isFirstComeApartment(
       apartment
@@ -296,7 +276,6 @@ function getStatusInfo(
         "bg-emerald-600 text-white",
     };
   }
-
   return {
     label:
       apartment.status ||
@@ -305,7 +284,6 @@ function getStatusInfo(
       "bg-amber-500 text-white",
   };
 }
-
 function getPriceText(
   apartment: Apartment
 ) {
@@ -318,7 +296,6 @@ function getPriceText(
       : "분양가 확인 중")
   );
 }
-
 function getConditionText(
   apartment: Apartment
 ) {
@@ -327,7 +304,6 @@ function getConditionText(
   ) {
     return apartment.condition;
   }
-
   const details = [
     apartment.priceDetail
       ?.contractPrice,
@@ -341,7 +317,6 @@ function getConditionText(
     ): value is string =>
       Boolean(value)
   );
-
   return (
     details
       .slice(0, 2)
@@ -349,7 +324,6 @@ function getConditionText(
     "계약조건 확인 중"
   );
 }
-
 function normalizeConditionText(
   apartment: Apartment
 ) {
@@ -370,7 +344,6 @@ function normalizeConditionText(
     .replace(/,/g, "")
     .toLowerCase();
 }
-
 function hasFreeMiddlePayment(
   apartment: Apartment
 ) {
@@ -381,12 +354,10 @@ function hasFreeMiddlePayment(
   ) {
     return true;
   }
-
   const text =
     normalizeConditionText(
       apartment
     );
-
   return (
     text.includes(
       "중도금무이자"
@@ -396,14 +367,12 @@ function hasFreeMiddlePayment(
     )
   );
 }
-
 function hasLowInitialContract(
   apartment: Apartment
 ) {
   const contractType =
     apartment.evaluation
       ?.contractType;
-
   if (
     contractType ===
       "fixed-500" ||
@@ -414,12 +383,10 @@ function hasLowInitialContract(
   ) {
     return true;
   }
-
   const text =
     normalizeConditionText(
       apartment
     );
-
   return (
     text.includes(
       "계약금500만원"
@@ -438,7 +405,6 @@ function hasLowInitialContract(
     )
   );
 }
-
 function getListingPriority(
   apartment: Apartment
 ) {
@@ -449,7 +415,6 @@ function getListingPriority(
   ) {
     return 3;
   }
-
   if (
     isSubscriptionApartment(
       apartment
@@ -457,10 +422,8 @@ function getListingPriority(
   ) {
     return 2;
   }
-
   return 1;
 }
-
 const getPublishedApartments =
   cache(async () => {
     return (
@@ -469,7 +432,6 @@ const getPublishedApartments =
       })
     ) as Apartment[];
   });
-
 const getRegionData =
   cache(async (
     city: string
@@ -478,19 +440,15 @@ const getRegionData =
       normalizeRegionRoute(
         city
       );
-
     const apartments =
       await getPublishedApartments();
-
     const allRegionApartments = normalizedCity
       ? apartments.filter((apartment) =>
           Boolean(apartment.slug) &&
           isApartmentInRegion(apartment, normalizedCity)
         )
       : [];
-
     const referenceDate = new Date();
-
     const regionApartments =
       normalizedCity
         ? apartments
@@ -515,7 +473,6 @@ const getRegionData =
                 getListingPriority(a)
             )
         : [];
-
     return {
       cityKey:
         normalizedCity,
@@ -525,13 +482,11 @@ const getRegionData =
       allRegionApartments,
     };
   });
-
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { city } =
     await params;
-
   const {
     cityKey,
     cityName,
@@ -540,34 +495,28 @@ export async function generateMetadata({
   } = await getRegionData(
     city
   );
-
   const safeCityName =
     cityName ||
     decodeRouteValue(city) ||
     "지역";
-
   const canonical =
     cityKey
       ? `${SITE_URL}/region/${encodeURIComponent(
           cityKey
         )}`
       : `${SITE_URL}/region`;
-
   const hasPrivateRental =
     regionApartments.some(
       isPrivateRental
     );
-
   const title =
     hasPrivateRental
       ? `${safeCityName} 아파트 분양·청약·선착순·민간임대`
       : `${safeCityName} 아파트 분양·청약·선착순 정보`;
-
   const description =
     hasPrivateRental
       ? `${safeCityName} 아파트 분양과 청약 일정, 선착순 분양, 민간임대 단지의 분양가·임대조건·계약조건·입지 정보를 집눈에서 확인하고 비교하세요.`
       : `${safeCityName} 아파트 분양과 청약 일정, 선착순 분양 단지의 분양가, 계약조건, 입지 정보를 집눈에서 확인하고 비교하세요.`;
-
   const keywords = [
     `${safeCityName} 아파트 분양`,
     `${safeCityName} 분양 아파트`,
@@ -581,7 +530,6 @@ export async function generateMetadata({
       ? `${safeCityName} 민간임대 아파트`
       : "",
   ].filter(Boolean);
-
   if (
     !cityKey ||
     allRegionApartments.length ===
@@ -591,36 +539,29 @@ export async function generateMetadata({
       title,
       description,
       keywords,
-
       alternates: {
         canonical,
       },
-
       robots: {
         index: false,
         follow: true,
       },
     };
   }
-
   const representativeImage =
     getHeroImage(
       regionApartments[0] ?? allRegionApartments[0]
     );
-
   return {
     title,
     description,
     keywords,
-
     alternates: {
       canonical,
     },
-
     robots: {
       index: true,
       follow: true,
-
       googleBot: {
         index: true,
         follow: true,
@@ -631,7 +572,6 @@ export async function generateMetadata({
           -1,
       },
     },
-
     openGraph: {
       type: "website",
       locale: "ko_KR",
@@ -640,7 +580,6 @@ export async function generateMetadata({
       title:
         `${title} | 집눈`,
       description,
-
       images: [
         {
           url:
@@ -659,7 +598,6 @@ export async function generateMetadata({
         },
       ],
     },
-
     twitter: {
       card:
         representativeImage
@@ -675,7 +613,6 @@ export async function generateMetadata({
     },
   };
 }
-
 function SummaryBox({ label, count }: { label: string; count: number }) {
   return (
     <div className="inline-flex items-baseline gap-2">
@@ -684,7 +621,6 @@ function SummaryBox({ label, count }: { label: string; count: number }) {
     </div>
   );
 }
-
 function ApartmentCard({
   apartment,
 }: {
@@ -692,19 +628,14 @@ function ApartmentCard({
 }) {
   const status =
     getStatusInfo(apartment);
-
   const image =
     getHeroImage(apartment);
-
   const price =
     getPriceText(apartment);
-
   const condition =
     getConditionText(apartment);
-
   const privateRental =
     isPrivateRental(apartment);
-
   return (
     <article className="group min-w-0 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition hover:border-emerald-300 hover:shadow-md sm:rounded-3xl">
       <Link
@@ -726,7 +657,6 @@ function ApartmentCard({
             이미지 준비 중
           </div>
         )}
-
         <div className="absolute left-3 top-3 flex flex-wrap items-center gap-1.5">
           <span
             className={[
@@ -737,7 +667,6 @@ function ApartmentCard({
           >
             {status.label}
           </span>
-
           {privateRental && (
             <span className="rounded-full border border-[#132238]/15 bg-white/95 px-3 py-1.5 text-xs font-black text-[#132238] shadow-sm backdrop-blur">
               민간임대
@@ -745,7 +674,6 @@ function ApartmentCard({
           )}
         </div>
       </Link>
-
       <div className="p-3 sm:p-4">
         <div className="flex flex-wrap items-center gap-2">
           {apartment.brand && (
@@ -753,14 +681,12 @@ function ApartmentCard({
               {apartment.brand}
             </span>
           )}
-
           {apartment.type && (
             <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-[10px] font-bold text-zinc-600 sm:text-xs">
               {apartment.type}
             </span>
           )}
         </div>
-
         <Link
           href={`/apartments/${apartment.slug}`}
           className="block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
@@ -769,12 +695,10 @@ function ApartmentCard({
             {apartment.name}
           </h3>
         </Link>
-
         <p className="mt-1 line-clamp-1 text-[10px] text-zinc-500 sm:text-xs">
           {apartment.region ||
             "주소 정보 확인 중"}
         </p>
-
         <div className="mt-3 space-y-1.5">
           <div className="min-w-0 rounded-lg bg-zinc-50 px-2.5 py-2">
             <p className="text-[9px] font-bold text-zinc-500 sm:text-[10px]">
@@ -782,23 +706,19 @@ function ApartmentCard({
                 ? "임대조건"
                 : "분양가"}
             </p>
-
             <p className="mt-0.5 line-clamp-1 break-keep text-[11px] font-black leading-4 text-[#132238] sm:text-xs">
               {price}
             </p>
           </div>
-
           <div className="min-w-0 rounded-lg bg-emerald-50/70 px-2.5 py-2">
             <p className="text-[9px] font-bold text-emerald-700 sm:text-[10px]">
               계약조건
             </p>
-
             <p className="mt-0.5 line-clamp-1 break-keep text-[11px] font-black leading-4 text-emerald-900 sm:text-xs">
               {condition}
             </p>
           </div>
         </div>
-
         <div className="mt-3 grid grid-cols-[0.8fr_1.2fr] gap-1.5">
           <Link
             href={`/compare?left=${encodeURIComponent(
@@ -808,7 +728,6 @@ function ApartmentCard({
           >
             비교
           </Link>
-
           <Link
             href={`/apartments/${apartment.slug}`}
             className="inline-flex min-h-9 items-center justify-center rounded-lg bg-[#132238] px-2 text-[10px] font-bold text-white transition hover:bg-emerald-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 sm:text-xs"
@@ -820,7 +739,6 @@ function ApartmentCard({
     </article>
   );
 }
-
 function MainApartmentSection({
   id,
   title,
@@ -840,17 +758,14 @@ function MainApartmentSection({
     accent === "emerald"
       ? "text-emerald-600"
       : "text-blue-600";
-
   const initialApartments =
     typeof initialLimit === "number"
       ? apartments.slice(0, initialLimit)
       : apartments;
-
   const remainingApartments =
     typeof initialLimit === "number"
       ? apartments.slice(initialLimit)
       : [];
-
   return (
     <section
       id={id}
@@ -861,17 +776,14 @@ function MainApartmentSection({
           <h2 className="text-xl font-bold tracking-tight text-[#132238] sm:text-2xl">
             {title}
           </h2>
-
           <p className="mt-2 break-keep text-xs leading-5 text-zinc-500 sm:text-sm sm:leading-6">
             {description}
           </p>
         </div>
-
         <span className={["w-fit text-xs font-semibold sm:text-sm", accentClass].join(" ")}>
           {apartments.length}개 단지
         </span>
       </div>
-
       {apartments.length > 0 ? (
         <>
           <div className="mt-5 grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4 xl:gap-4">
@@ -888,7 +800,6 @@ function MainApartmentSection({
               )
             )}
           </div>
-
           {remainingApartments.length >
             0 && (
             <details className="group mt-5">
@@ -897,12 +808,10 @@ function MainApartmentSection({
                   {remainingApartments.length}
                   개 단지 더보기 ↓
                 </span>
-
                 <span className="hidden group-open:inline">
                   접기 ↑
                 </span>
               </summary>
-
               <div className="mt-5 grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4 xl:gap-4">
                 {remainingApartments.map(
                   (apartment) => (
@@ -928,16 +837,13 @@ function MainApartmentSection({
     </section>
   );
 }
-
 export default async function RegionPage({
   params,
 }: PageProps) {
   const { city } =
     await params;
-
   const routeCity =
     decodeRouteValue(city);
-
   const {
     cityKey,
     cityName,
@@ -946,7 +852,6 @@ export default async function RegionPage({
   } = await getRegionData(
     city
   );
-
   /*
    * 기존 시·군 URL을 광역시·도 URL로 영구 이전합니다.
    * 예: /region/김포 → /region/경기
@@ -961,21 +866,17 @@ export default async function RegionPage({
       )}`
     );
   }
-
   if (!cityKey) {
     notFound();
   }
-
   const safeCityName =
     cityName ||
     routeCity ||
     "해당";
-
   const subscriptionApartments =
     regionApartments.filter(
       isSubscriptionApartment
     );
-
   const firstComeApartments =
     regionApartments.filter(
       (apartment) =>
@@ -986,7 +887,6 @@ export default async function RegionPage({
           apartment
         )
     );
-
   // Archived public listings remain reachable after active sales end.
   const soldOutApartments = allRegionApartments.filter(
     (apartment) => getListingStage(apartment) === "soldOut"
@@ -994,27 +894,35 @@ export default async function RegionPage({
   const existingApartments = allRegionApartments.filter(
     (apartment) => getListingStage(apartment) === "existing"
   );
-
   const privateRentalApartments =
     regionApartments.filter(
       isPrivateRental
     );
+  const listedSlugs = new Set(
+    [
+      ...firstComeApartments,
+      ...subscriptionApartments,
+      ...privateRentalApartments,
+      ...soldOutApartments,
+      ...existingApartments,
+    ].map((apartment) => apartment.slug),
+  );
+  const otherRegionApartments = allRegionApartments.filter(
+    (apartment) => !listedSlugs.has(apartment.slug),
+  );
 
   const freeMiddlePaymentApartments =
     regionApartments.filter(
       hasFreeMiddlePayment
     );
-
   const lowInitialContractApartments =
     regionApartments.filter(
       hasLowInitialContract
     );
-
   const regionDescription =
     getRegionDescription(
       safeCityName
     );
-
   const currentStatusSummary = [
     `${safeCityName} 지역에서 현재 ${regionApartments.length}개 단지를 확인할 수 있습니다.`,
     subscriptionApartments.length >
@@ -1040,20 +948,17 @@ export default async function RegionPage({
   ]
     .filter(Boolean)
     .join(" ");
-
   const pageUrl =
     cityKey
       ? `${SITE_URL}/region/${encodeURIComponent(
           cityKey
         )}`
       : `${SITE_URL}/region`;
-
   const breadcrumbJsonLd = {
     "@context":
       "https://schema.org",
     "@type":
       "BreadcrumbList",
-
     itemListElement: [
       {
         "@type":
@@ -1082,7 +987,6 @@ export default async function RegionPage({
       },
     ],
   };
-
   const itemListJsonLd = {
     "@context":
       "https://schema.org",
@@ -1096,7 +1000,6 @@ export default async function RegionPage({
       regionApartments.length,
     itemListOrder:
       "https://schema.org/ItemListOrderDescending",
-
     itemListElement:
       regionApartments.map(
         (
@@ -1116,7 +1019,6 @@ export default async function RegionPage({
         })
       ),
   };
-
   if (
     !cityKey ||
     allRegionApartments.length ===
@@ -1128,18 +1030,15 @@ export default async function RegionPage({
           <p className="text-xs font-bold text-emerald-600">
             집눈 지역별 분양정보
           </p>
-
           <h1 className="mt-2 break-keep text-2xl font-black">
             {safeCityName} 지역에 공개된
             단지가 없습니다.
           </h1>
-
           <p className="mt-3 break-keep text-sm leading-6 text-zinc-500">
             공개 중인 분양 단지가
             등록되면 이 페이지에 자동으로
             표시됩니다.
           </p>
-
           <div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row">
             <Link
               href="/region"
@@ -1163,7 +1062,6 @@ export default async function RegionPage({
             >
               지역 목록으로
             </Link>
-
             <Link
               href="/search"
               className="
@@ -1189,7 +1087,6 @@ export default async function RegionPage({
       </main>
     );
   }
-
   return (
     <main className="listing-design min-h-screen bg-zinc-50 px-4 py-6 text-zinc-900 sm:px-6 sm:py-10">
       <script
@@ -1204,7 +1101,6 @@ export default async function RegionPage({
             ),
         }}
       />
-
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -1217,7 +1113,6 @@ export default async function RegionPage({
             ),
         }}
       />
-
       <section className="mx-auto max-w-7xl">
         <nav
           aria-label="현재 위치"
@@ -1229,38 +1124,32 @@ export default async function RegionPage({
           >
             홈
           </Link>
-
           <span
             aria-hidden="true"
             className="mx-2"
           >
             /
           </span>
-
           <Link
             href="/region"
             className="rounded transition hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
           >
             지역
           </Link>
-
           <span
             aria-hidden="true"
             className="mx-2"
           >
             /
           </span>
-
           <span className="font-semibold text-zinc-700">
             {cityName}
           </span>
         </nav>
-
         <section className="mt-5 border-b border-zinc-200 pb-5 sm:mt-6 sm:pb-6">
             <h1 className="break-keep text-2xl font-bold tracking-tight text-[#132238] sm:text-3xl">
               {cityName} 분양 아파트
             </h1>
-
             <p className="mt-2 max-w-3xl break-keep text-sm leading-6 text-zinc-500">
               {cityName} 지역에서 공개 중인
               청약 아파트와 선착순 분양
@@ -1280,21 +1169,18 @@ export default async function RegionPage({
               regionApartments.length
             }
           />
-
           <SummaryBox
             label="선착순"
             count={
               firstComeApartments.length
             }
           />
-
           <SummaryBox
             label="청약"
             count={
               subscriptionApartments.length
             }
           />
-
           {privateRentalApartments.length >
             0 && (
             <SummaryBox
@@ -1306,7 +1192,6 @@ export default async function RegionPage({
           )}
           </div>
         </section>
-
         <nav
           aria-label={`${safeCityName} 분양정보 바로가기`}
           className="flex flex-wrap items-center gap-x-5 gap-y-3 border-b border-zinc-200 py-4 text-xs font-semibold text-zinc-600 sm:text-sm"
@@ -1317,14 +1202,12 @@ export default async function RegionPage({
           >
             {safeCityName} 선착순 분양
           </Link>
-
           <Link
             href="#subscription"
             className="transition hover:text-blue-700"
           >
             {safeCityName} 청약 아파트
           </Link>
-
           {privateRentalApartments.length >
             0 && (
             <Link
@@ -1334,7 +1217,6 @@ export default async function RegionPage({
               {safeCityName} 민간임대
             </Link>
           )}
-
           <Link
             href="/briefing"
             className="transition hover:text-emerald-700"
@@ -1342,7 +1224,6 @@ export default async function RegionPage({
             집눈 브리핑
           </Link>
         </nav>
-
         <MainApartmentSection
           id="first-come"
           title={`${cityName} 선착순 분양`}
@@ -1352,7 +1233,6 @@ export default async function RegionPage({
           }
           accent="emerald"
         />
-
         {privateRentalApartments.length >
           0 && (
           <MainApartmentSection
@@ -1366,7 +1246,6 @@ export default async function RegionPage({
             initialLimit={8}
           />
         )}
-
         <MainApartmentSection
           id="subscription"
           title={`${cityName} 청약 아파트`}
@@ -1377,7 +1256,6 @@ export default async function RegionPage({
           accent="blue"
           initialLimit={12}
         />
-
         <ArchivedApartmentLinks
           title={`${cityName} 분양완료 단지 기록`}
           description="분양 당시 가격과 계약조건, 평면도·입지 정보를 확인할 수 있습니다. 현재 모집 중인 단지가 아닙니다."
@@ -1390,6 +1268,14 @@ export default async function RegionPage({
           apartments={existingApartments}
           label="기존 아파트"
         />
+        {otherRegionApartments.length > 0 && (
+          <ArchivedApartmentLinks
+            title="이 지역의 다른 단지"
+            description="이 지역에 등록된 다른 단지 정보도 확인할 수 있어요."
+            apartments={otherRegionApartments}
+            label="단지 정보"
+          />
+        )}
 
         <section
           id="region-guide"
@@ -1400,13 +1286,11 @@ export default async function RegionPage({
               <p className="text-xs font-extrabold text-emerald-600 sm:text-sm">
                 REGION GUIDE
               </p>
-
               <h2 className="mt-1 break-keep text-2xl font-black tracking-tight text-[#132238] sm:text-3xl">
                 {
                   regionDescription.title
                 }
               </h2>
-
               <div className="mt-4 space-y-3 break-keep text-sm leading-7 text-zinc-600 sm:text-base sm:leading-8">
                 {regionDescription.paragraphs.map(
                   (
@@ -1424,12 +1308,10 @@ export default async function RegionPage({
                   )
                 )}
               </div>
-
               <div className="mt-5 rounded-xl bg-emerald-50 px-4 py-4 sm:rounded-2xl sm:px-5">
                 <p className="text-xs font-black text-emerald-700 sm:text-sm">
                   현재 등록 현황
                 </p>
-
                 <p className="mt-1.5 break-keep text-xs leading-6 text-emerald-900/80 sm:text-sm sm:leading-7">
                   {
                     currentStatusSummary
@@ -1437,16 +1319,13 @@ export default async function RegionPage({
                 </p>
               </div>
             </div>
-
             <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 sm:p-5">
               <p className="text-sm font-black text-[#132238]">
                 {safeCityName} 단지 더 찾아보기
               </p>
-
               <p className="mt-2 break-keep text-xs leading-5 text-zinc-500">
                 지도검색에서 위치와 목록을 함께 확인하거나 전국 지역 허브로 이동할 수 있습니다.
               </p>
-
               <div className="mt-4 grid gap-2">
                 <Link
                   href={`/search?q=${encodeURIComponent(
@@ -1456,21 +1335,18 @@ export default async function RegionPage({
                 >
                   {safeCityName} 지도검색 →
                 </Link>
-
                 <Link
                   href="/first-come"
                   className="inline-flex min-h-11 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-4 text-sm font-bold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
                 >
                   전국 선착순 단지 보기
                 </Link>
-
                 <Link
                   href="/subscription"
                   className="inline-flex min-h-11 items-center justify-center rounded-xl border border-blue-200 bg-blue-50 px-4 text-sm font-bold text-blue-700 transition hover:border-blue-300 hover:bg-blue-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                 >
                   전국 청약 단지 보기
                 </Link>
-
                 <Link
                   href="/region"
                   className="inline-flex min-h-11 items-center justify-center rounded-xl border border-zinc-200 bg-white px-4 text-sm font-bold text-zinc-700 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
@@ -1485,7 +1361,6 @@ export default async function RegionPage({
     </main>
   );
 }
-
 function ArchivedApartmentLinks({ title, description, apartments, label }: {
   title: string;
   description: string;
