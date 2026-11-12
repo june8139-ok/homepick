@@ -2,7 +2,7 @@ import { Resend } from "resend";
 
 type InquiryNotificationInput = {
   apartmentName: string;
-  inquiryType: "visit" | "subscription-alert";
+  inquiryType: "visit" | "subscription-alert" | "kakao";
   customerName: string;
   phone: string;
   interestedType?: string;
@@ -13,6 +13,7 @@ type InquiryNotificationInput = {
 function getInquiryTypeLabel(
   type: InquiryNotificationInput["inquiryType"]
 ) {
+  if (type === "kakao") return "카카오톡 상담";
   return type === "visit"
     ? "방문예약"
     : "청약일정 알림";

@@ -5,6 +5,7 @@ import { useState } from "react";
 type Inquiry = {
   id: string;
   customer_name: string;
+  inquiry_type?: string | null;
   apartment_name: string;
   phone: string;
   interested_type: string | null;
@@ -103,6 +104,8 @@ export default function InquiryManager({
               value={item.phone}
             />
 
+            {item.inquiry_type === "kakao" && <Info label="접수 유형" value="카카오톡 상담" />}
+
             <Info
               label="관심타입"
               value={
@@ -112,7 +115,7 @@ export default function InquiryManager({
             />
 
             <Info
-              label="예약일"
+              label="방문 희망일"
               value={
                 item.visit_date ??
                 "-"

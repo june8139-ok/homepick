@@ -1111,8 +1111,8 @@ export default async function ApartmentDetailPage({
           </Suspense>
         </section>
       </main>
-      {canInquire && <InquiryActions apartmentSlug={apartment.slug} placement="mobile"
-        inquiryLabel={isSubscription ? (apartment.leadType === "consult" ? "청약 상담신청" : "청약알림 신청") : "상담신청"} />}
+      {canInquire && <InquiryActions apartmentSlug={apartment.slug} apartmentName={apartment.name} placement="mobile"
+        inquiryLabel={isSubscription ? (apartment.leadType === "consult" ? "청약 상담신청" : "청약알림 신청") : "방문예약"} />}
     </>
   );
 }

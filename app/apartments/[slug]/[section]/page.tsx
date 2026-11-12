@@ -161,13 +161,14 @@ export default async function DetailSectionPage({ params }: Props) {
 
           <InquiryActions
             apartmentSlug={a.slug}
+            apartmentName={a.name}
             placement="mobile"
             inquiryLabel={
               stage === "subscription"
                 ? a.leadType === "consult"
                   ? "청약 상담신청"
                   : "청약알림 신청"
-                : "상담신청"
+                : "방문예약"
             }
           />
         </>
