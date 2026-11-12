@@ -2,41 +2,42 @@
 
 import { useEffect, useRef, useState } from "react";
 
-// Analytics never contain names, telephone numbers, messages or inquiry IDs.
-export function trackInquiryEvent(event: string, apartmentSlug: string, placement: string) {
-  if (typeof window === "undefined") return;
-  const detail = { event, apartment_slug: apartmentSlug, placement };
-  try {
-    window.dispatchEvent(new CustomEvent("jibnun:inquiry", { detail }));
-    const analyticsWindow = window as Window & { dataLayer?: { push: (value: unknown) => unknown } };
-    analyticsWindow.dataLayer?.push(detail);
-  } catch {
-    // Analytics must never block an inquiry or navigation.
-  }
-}
+import KakaoConsultDialog from "./KakaoConsultDialog";
+import { trackInquiryEvent } from "./inquiryAnalytics";
+
+export { trackInquiryEvent } from "./inquiryAnalytics";
 
 export const KAKAO_CONSULT_URL = "https://pf.kakao.com/_RxfsxnX/chat";
 export const NAVER_TALK_URL = "https://talk.naver.com/profile/wettd18/form/3";
 
-export function ChatConsultLinks({ apartmentSlug, placement, kakaoUrl = KAKAO_CONSULT_URL }: {
+export function ChatConsultLinks({ apartmentSlug, apartmentName, placement, kakaoUrl = KAKAO_CONSULT_URL, onKakao }: {
   apartmentSlug: string;
+  apartmentName: string;
   placement: string;
   kakaoUrl?: string;
+  onKakao?: () => void;
 }) {
+  const [kakaoOpen, setKakaoOpen] = useState(false);
   const classes = "flex min-h-12 items-center justify-center rounded-xl px-3 py-3 text-center text-sm font-bold transition hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2";
-  return <div className="grid grid-cols-2 gap-2.5">
-    <a href={kakaoUrl} target="_blank" rel="noopener noreferrer"
-      onClick={() => trackInquiryEvent("kakao_click", apartmentSlug, placement)}
-      className={`${classes} bg-[#FEE500] text-zinc-900`}>카카오톡 상담</a>
+  return <><div className="grid grid-cols-2 gap-2.5">
+    <button type="button" aria-haspopup="dialog" onClick={() => {
+      trackInquiryEvent("kakao_click", apartmentSlug, placement);
+      if (onKakao) onKakao();
+      else setKakaoOpen(true);
+    }} className={`${classes} bg-[#FEE500] text-zinc-900`}>카카오톡 상담</button>
     <a href={NAVER_TALK_URL} target="_blank" rel="noopener noreferrer"
       onClick={() => trackInquiryEvent("naver_talk_click", apartmentSlug, placement)}
       className={`${classes} bg-[#03C75A] text-white`}>네이버 톡톡</a>
-  </div>;
+  </div>
+    {kakaoOpen && <KakaoConsultDialog apartmentSlug={apartmentSlug} apartmentName={apartmentName}
+      kakaoUrl={kakaoUrl} placement={placement} onClose={() => setKakaoOpen(false)} />}
+  </>;
 }
 
-function ChatPicker({ apartmentSlug, placement }: { apartmentSlug: string; placement: string }) {
+function ChatPicker({ apartmentSlug, apartmentName, placement }: { apartmentSlug: string; apartmentName: string; placement: string }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [open, setOpen] = useState(false);
+  const [kakaoOpen, setKakaoOpen] = useState(false);
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!open || !dialog) return;
@@ -77,25 +78,32 @@ function ChatPicker({ apartmentSlug, placement }: { apartmentSlug: string; place
         <button type="button" aria-label="채팅 선택 닫기" onClick={() => setOpen(false)} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-zinc-200 text-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600">×</button>
       </div>
       <p className="mb-5 mt-2 text-sm leading-6 text-zinc-500">관심 있는 단지명을 알려주시면 상담을 도와드립니다.</p>
-      <ChatConsultLinks apartmentSlug={apartmentSlug} placement={`${placement}_picker`} />
+      <ChatConsultLinks apartmentSlug={apartmentSlug} apartmentName={apartmentName}
+        placement={`${placement}_picker`} onKakao={() => {
+          setOpen(false);
+          setKakaoOpen(true);
+        }} />
     </dialog>
+    {kakaoOpen && <KakaoConsultDialog apartmentSlug={apartmentSlug} apartmentName={apartmentName}
+      kakaoUrl={KAKAO_CONSULT_URL} placement={`${placement}_picker`} onClose={() => setKakaoOpen(false)} />}
   </>;
 }
 
 type Props = {
   apartmentSlug: string;
+  apartmentName: string;
   placement?: "hero" | "mobile";
   inquiryLabel?: string;
 };
 
-export default function InquiryActions({ apartmentSlug, placement = "hero", inquiryLabel = "상담신청" }: Props) {
+export default function InquiryActions({ apartmentSlug, apartmentName, placement = "hero", inquiryLabel = "상담신청" }: Props) {
   const [editing, setEditing] = useState(false);
   useEffect(() => {
     if (placement !== "mobile") return;
     const update = () => {
       const active = document.activeElement;
       setEditing(active instanceof HTMLElement &&
-        (Boolean(active.closest("form")) || active.isContentEditable));
+        (Boolean(active.closest("form") && !active.closest("dialog")) || active.isContentEditable));
     };
     document.addEventListener("focusin", update);
     document.addEventListener("focusout", update);
@@ -119,7 +127,7 @@ export default function InquiryActions({ apartmentSlug, placement = "hero", inqu
     }} className="flex min-h-12 items-center justify-center rounded-xl bg-[#0F766E] px-3 py-3 text-center text-sm font-extrabold text-white shadow-sm transition hover:bg-[#115E59] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2">
       {isMobile ? inquiryLabel : (inquiryLabel === "상담신청" ? "잔여세대·최신조건 상담받기" : inquiryLabel)}
     </a>
-    <ChatPicker apartmentSlug={apartmentSlug} placement={placement} />
+    <ChatPicker apartmentSlug={apartmentSlug} apartmentName={apartmentName} placement={placement} />
   </div>;
 
   if (isMobile) return <nav aria-label="모바일 상담 바로가기" className="fixed inset-x-0 bottom-0 z-40 border-t border-zinc-200 bg-white p-3 shadow-[0_-4px_20px_rgba(15,23,42,0.06)] md:hidden" style={{ paddingBottom: "calc(12px + env(safe-area-inset-bottom, 0px))" }}>

@@ -99,7 +99,7 @@ export default function PropertyHero({
         </div>
         <ApartmentDataTrust apartment={a} />
         {first && a.leadType !== "closed" && (
-          <InquiryActions apartmentSlug={a.slug} />
+          <InquiryActions apartmentSlug={a.slug} apartmentName={a.name} />
         )}
       </div>
       {getDetailSections(a).length > 0 && (

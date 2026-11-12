@@ -1,6 +1,7 @@
 "use client";
 
 import { ChatConsultLinks, trackInquiryEvent } from "./InquiryActions";
+import { isAllowedVisitDate, todayIsoDate, VISIT_SUCCESS_MESSAGE } from "../../lib/inquiryDate";
 
 import {
   useEffect,
@@ -28,6 +29,7 @@ type ReservationCardProps = {
 type ReservationForm = {
   customerName: string;
   phone: string;
+  visitDate: string;
   interestedType: string;
   message: string;
   privacyAgreed: boolean;
@@ -37,6 +39,7 @@ type ReservationForm = {
 const initialForm: ReservationForm = {
   customerName: "",
   phone: "",
+  visitDate: "",
   interestedType: "",
   message: "",
   privacyAgreed: false,
@@ -177,7 +180,7 @@ export default function ReservationCard({
   const inquiryType =
     isSubscription
       ? "subscription-alert"
-      : "visit";
+      : "visit-reservation";
 
   const updateForm = <
     Key extends keyof ReservationForm,
@@ -203,6 +206,11 @@ export default function ReservationCard({
     if (form.customerName.trim().length < 2 || !/^01[016789]\d{7,8}$/.test(form.phone.replace(/\D/g, ""))) {
       setIsSuccess(false);
       setResultMessage("이름을 2자 이상, 휴대전화번호를 정확히 입력해주세요.");
+      return;
+    }
+
+    if (!isSubscription && !isAllowedVisitDate(form.visitDate)) {
+      setResultMessage("방문 희망일은 오늘부터 선택해주세요.");
       return;
     }
 
@@ -256,12 +264,9 @@ export default function ReservationCard({
 
             phone: form.phone,
 
-            interestedType:
-              form.interestedType,
-
-            visitDate: "",
-
-            message: form.message,
+            ...(isSubscription
+              ? { interestedType: form.interestedType, message: form.message }
+              : { visitDate: form.visitDate }),
 
             privacyAgreed:
               form.privacyAgreed,
@@ -289,7 +294,7 @@ export default function ReservationCard({
 
       setResultMessage(isSubscription
         ? "청약일정 알림 신청이 접수되었습니다."
-        : "상담신청이 접수되었습니다. 담당자가 연락드려 최신 조건과 방문 일정을 안내합니다.");
+        : VISIT_SUCCESS_MESSAGE);
 
       setForm(initialForm);
     } catch (error) {
@@ -333,26 +338,26 @@ export default function ReservationCard({
         >
           {isSubscription
             ? "SUBSCRIPTION ALERT"
-            : "CONSULTATION"}
+            : "VISIT RESERVATION"}
         </p>
 
         <h2 className="mt-1 text-xl font-extrabold sm:text-2xl">
           {isSubscription
             ? "청약일정 알림 신청"
-            : "상담신청"}
+            : "방문예약"}
         </h2>
 
         <p className={`mt-2 max-w-3xl break-keep text-xs leading-5 sm:text-sm sm:leading-6 ${isSubscription ? "text-white/75" : "text-zinc-600"}`}>
           {isSubscription
             ? `${apartmentName}의 청약 일정과 주요 정보를 안내받아보세요.`
-            : `${apartmentName}의 잔여세대와 최신 계약조건을 안내받으세요. 방문 일정은 상담 후 결정할 수 있습니다.`}
+            : `${apartmentName}의 방문 희망일을 남겨주세요. 담당자가 확인 후 일정을 안내드립니다.`}
         </p>
         {showVisitBenefit && (
           <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 sm:p-5">
             <p className="inline-flex rounded-full bg-emerald-700 px-3 py-1 text-xs font-bold text-white">집눈 방문예약 고객 혜택</p>
             <p className="mt-3 break-keep text-base leading-7 text-zinc-800">집눈에서 사전 예약 후 모델하우스를 방문하시면 <strong className="font-extrabold text-emerald-800">집눈이 상품권을 드립니다.</strong></p>
             <p className="mt-2 text-xs font-semibold leading-5 text-emerald-900">실제 방문 확인 후 1팀당 1개 지급 · 계약 여부 무관</p>
-            <p className="mt-1 text-xs leading-5 text-zinc-600">상담 신청만으로는 지급되지 않습니다. 방문 일정은 상담 후 확정합니다.</p>
+            <p className="mt-1 text-xs leading-5 text-zinc-600">방문예약 신청만으로는 지급되지 않습니다. 방문 일정은 상담 후 확정합니다.</p>
           </div>
         )}
       </div>
@@ -360,12 +365,12 @@ export default function ReservationCard({
       <div className="p-4 sm:p-7">
         {isSuccess ? (
           <div ref={successRef} tabIndex={-1} className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 outline-none focus-visible:ring-2 focus-visible:ring-emerald-600">
-            <h3 className="text-lg font-extrabold text-emerald-800">{isSubscription ? "청약일정 알림 신청이 완료되었습니다" : "상담신청이 완료되었습니다"}</h3>
+            <h3 className="text-lg font-extrabold text-emerald-800">{isSubscription ? "청약일정 알림 신청이 완료되었습니다" : "방문예약이 접수되었습니다"}</h3>
             <p role="status" className="mt-2 text-sm leading-6 text-emerald-900">{resultMessage}</p>
             <p className="mt-3 break-keep text-sm font-semibold text-zinc-700">{apartmentName}</p>
             <button type="button" onClick={() => {
               setIsSuccess(false); setResultMessage(""); startedRef.current = false;
-            }} className="mt-4 block min-h-11 text-sm font-semibold text-zinc-600 underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600">새 상담 신청하기</button>
+            }} className="mt-4 block min-h-11 text-sm font-semibold text-zinc-600 underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600">{isSubscription ? "새 상담 신청하기" : "새 방문예약 신청하기"}</button>
           </div>
         ) : <form
           onSubmit={handleSubmit}
@@ -411,127 +416,156 @@ export default function ReservationCard({
             />
           </div>
 
-          <details className="rounded-xl border border-zinc-200 p-4">
-            <summary className="cursor-pointer text-sm font-bold text-zinc-600">관심타입·문의내용 추가하기 (선택)</summary>
-            <div className="mt-4 space-y-4">
-          {/* 선택 입력 */}
-          <div>
+          {!isSubscription ? (
             <label className="block min-w-0">
-              <p className="mb-2 text-xs font-medium text-zinc-700 sm:text-sm">
-                관심 평형·타입
-              </p>
-
-              {floorPlanNames.length >
-              0 ? (
-                <select
-                  value={
-                    form.interestedType
+              <span className="mb-2 block text-xs font-medium text-zinc-700 sm:text-sm">
+                방문 희망일 (필수)
+              </span>
+              <input
+                type="date"
+                name="visitDate"
+                required
+                min={todayIsoDate()}
+                suppressHydrationWarning
+                value={form.visitDate}
+                onChange={(event) => updateForm("visitDate", event.target.value)}
+                onFocus={(event) => { event.currentTarget.min = todayIsoDate(); }}
+                onClick={(event) => {
+                  const input = event.currentTarget;
+                  input.min = todayIsoDate();
+                  try {
+                    input.showPicker?.();
+                  } catch {
+                    // Browsers without a programmatic date picker use the native control.
                   }
-                  onChange={(event) =>
-                    updateForm(
-                      "interestedType",
-                      event.target.value
-                    )
-                  }
-                  className="
-                    h-11 w-full min-w-0
-                    cursor-pointer rounded-xl
-                    border border-zinc-200
-                    bg-white px-3 text-base
-                    text-zinc-900 outline-none
-                    transition hover:border-zinc-300
-                    focus:border-emerald-500
-                    focus:ring-2
-                    focus:ring-emerald-100
-                    sm:h-12 sm:px-4 sm:text-base
-                  "
-                >
-                  <option value="">
-                    타입 선택
-                  </option>
-
-                  {floorPlanNames.map(
-                    (name) => (
-                      <option
-                        key={name}
-                        value={name}
-                      >
-                        {name}
-                      </option>
-                    )
-                  )}
-                </select>
-              ) : (
-                <input
-                  value={
-                    form.interestedType
-                  }
-                  placeholder="예: 84A"
-                  onChange={(event) =>
-                    updateForm(
-                      "interestedType",
-                      event.target.value
-                    )
-                  }
-                  className="
-                    h-11 w-full min-w-0
-                    rounded-xl border
-                    border-zinc-200 bg-white
-                    px-3 text-base outline-none
-                    transition
-                    placeholder:text-zinc-400
-                    hover:border-zinc-300
-                    focus:border-emerald-500
-                    focus:ring-2
-                    focus:ring-emerald-100
-                    sm:h-12 sm:px-4 sm:text-base
-                  "
-                />
-              )}
+                }}
+                className="h-11 w-full min-w-0 cursor-pointer rounded-xl border border-zinc-200 bg-white px-3 text-base text-zinc-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 sm:h-12 sm:px-4"
+              />
             </label>
+          ) : (
+            <details className="rounded-xl border border-zinc-200 p-4">
+              <summary className="cursor-pointer text-sm font-bold text-zinc-600">관심타입·문의내용 추가하기 (선택)</summary>
+              <div className="mt-4 space-y-4">
+            {/* 선택 입력 */}
+            <div>
+              <label className="block min-w-0">
+                <p className="mb-2 text-xs font-medium text-zinc-700 sm:text-sm">
+                  관심 평형·타입
+                </p>
 
+                {floorPlanNames.length >
+                0 ? (
+                  <select
+                    value={
+                      form.interestedType
+                    }
+                    onChange={(event) =>
+                      updateForm(
+                        "interestedType",
+                        event.target.value
+                      )
+                    }
+                    className="
+                      h-11 w-full min-w-0
+                      cursor-pointer rounded-xl
+                      border border-zinc-200
+                      bg-white px-3 text-base
+                      text-zinc-900 outline-none
+                      transition hover:border-zinc-300
+                      focus:border-emerald-500
+                      focus:ring-2
+                      focus:ring-emerald-100
+                      sm:h-12 sm:px-4 sm:text-base
+                    "
+                  >
+                    <option value="">
+                      타입 선택
+                    </option>
 
-          </div>
+                    {floorPlanNames.map(
+                      (name) => (
+                        <option
+                          key={name}
+                          value={name}
+                        >
+                          {name}
+                        </option>
+                      )
+                    )}
+                  </select>
+                ) : (
+                  <input
+                    value={
+                      form.interestedType
+                    }
+                    placeholder="예: 84A"
+                    onChange={(event) =>
+                      updateForm(
+                        "interestedType",
+                        event.target.value
+                      )
+                    }
+                    className="
+                      h-11 w-full min-w-0
+                      rounded-xl border
+                      border-zinc-200 bg-white
+                      px-3 text-base outline-none
+                      transition
+                      placeholder:text-zinc-400
+                      hover:border-zinc-300
+                      focus:border-emerald-500
+                      focus:ring-2
+                      focus:ring-emerald-100
+                      sm:h-12 sm:px-4 sm:text-base
+                    "
+                  />
+                )}
+              </label>
 
-          <label className="block">
-            <p className="mb-2 text-xs font-medium text-zinc-700 sm:text-sm">
-              {isSubscription
-                ? "알림 요청사항"
-                : "문의내용"}
-            </p>
-
-            <textarea
-              value={form.message}
-              placeholder={
-                isSubscription
-                  ? "궁금한 청약 일정이나 주택형을 입력해주세요."
-                  : "궁금한 계약조건이나 관심타입을 입력해주세요."
-              }
-              onChange={(event) =>
-                updateForm(
-                  "message",
-                  event.target.value
-                )
-              }
-              rows={3}
-              className="
-                w-full resize-none
-                rounded-xl border
-                border-zinc-200 bg-white
-                px-3 py-3 text-base
-                outline-none transition
-                placeholder:text-zinc-400
-                hover:border-zinc-300
-                focus:border-emerald-500
-                focus:ring-2
-                focus:ring-emerald-100
-                sm:px-4 sm:text-base
-              "
-            />
-          </label>
 
             </div>
-          </details>
+
+            <label className="block">
+              <p className="mb-2 text-xs font-medium text-zinc-700 sm:text-sm">
+                {isSubscription
+                  ? "알림 요청사항"
+                  : "문의내용"}
+              </p>
+
+              <textarea
+                value={form.message}
+                placeholder={
+                  isSubscription
+                    ? "궁금한 청약 일정이나 주택형을 입력해주세요."
+                    : "궁금한 계약조건이나 관심타입을 입력해주세요."
+                }
+                onChange={(event) =>
+                  updateForm(
+                    "message",
+                    event.target.value
+                  )
+                }
+                rows={3}
+                className="
+                  w-full resize-none
+                  rounded-xl border
+                  border-zinc-200 bg-white
+                  px-3 py-3 text-base
+                  outline-none transition
+                  placeholder:text-zinc-400
+                  hover:border-zinc-300
+                  focus:border-emerald-500
+                  focus:ring-2
+                  focus:ring-emerald-100
+                  sm:px-4 sm:text-base
+                "
+              />
+            </label>
+
+              </div>
+            </details>
+          )}
+
 
           <div className="space-y-2">
             <label className="flex cursor-pointer items-start gap-2 rounded-xl border border-transparent bg-zinc-50 p-3 transition hover:border-emerald-200 hover:bg-emerald-50/40 sm:gap-3 sm:rounded-2xl sm:p-4">
@@ -631,7 +665,7 @@ export default function ReservationCard({
                         </strong>
                         <br />
                         이름, 휴대전화번호,
-                        관심 평형 및 문의내용
+                        방문 희망일
                       </p>
 
                       <p>
@@ -678,27 +712,27 @@ export default function ReservationCard({
             type="submit"
             disabled={isSubmitting}
             className={[
-              "w-full cursor-pointer rounded-xl px-4 py-3.5 text-sm font-bold text-white sm:rounded-2xl sm:px-6 sm:py-4",
+              "w-full cursor-pointer rounded-xl px-4 text-sm font-bold text-white sm:rounded-2xl sm:px-6",
               "transition-all duration-200",
               "hover:-translate-y-0.5 hover:shadow-lg",
               "active:translate-y-0 active:scale-[0.99]",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
               "disabled:cursor-wait disabled:opacity-60",
               isSubscription
-                ? "bg-blue-600 hover:bg-blue-500 focus-visible:ring-blue-500"
-                : "bg-emerald-700 hover:bg-emerald-800 focus-visible:ring-emerald-500",
+                ? "py-3.5 sm:py-4 bg-blue-600 hover:bg-blue-500 focus-visible:ring-blue-500"
+                : "min-h-14 py-[18px] sm:py-5 bg-emerald-700 hover:bg-emerald-800 focus-visible:ring-emerald-500",
             ].join(" ")}
           >
             {isSubmitting
               ? "신청 접수 중..."
               : isSubscription
                 ? "청약일정 알림 신청하기"
-                : "상담신청하기"}
+                : "방문예약 신청하기"}
           </button>
         </form>}
 
         <div className="mt-4">
-          <ChatConsultLinks apartmentSlug={apartmentSlug} placement="form" kakaoUrl={kakaoUrl} />
+          <ChatConsultLinks apartmentSlug={apartmentSlug} apartmentName={apartmentName} placement="form" kakaoUrl={kakaoUrl} />
           {normalizedPhone && (
             <a href={`tel:${normalizedPhone}`} className="mt-2 flex min-h-11 items-center justify-center rounded-xl border border-zinc-200 px-3 py-3 text-sm font-bold text-zinc-700">전화상담</a>
           )}

@@ -1077,7 +1077,7 @@ export default function ApartmentHero({
           </>
         )}
         {(isFirstCome || (isSubscription && displayApartment.leadType !== "closed")) && (
-          <InquiryActions apartmentSlug={apartment.slug}
+          <InquiryActions apartmentSlug={apartment.slug} apartmentName={apartment.name}
             inquiryLabel={isSubscription ? (displayApartment.leadType === "consult" ? "청약 상담신청" : "청약알림 신청") : "상담신청"} />
         )}
         <ApartmentDataTrust

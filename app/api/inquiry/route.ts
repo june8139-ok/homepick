@@ -1,3 +1,5 @@
+import { isAllowedVisitDate, VISIT_SUCCESS_MESSAGE } from "../../../lib/inquiryDate";
+
 import {
   NextRequest,
   NextResponse,
@@ -20,6 +22,8 @@ type InquiryRequest = {
 
   inquiryType?:
     | "visit"
+    | "visit-reservation"
+    | "kakao"
     | "subscription-alert";
 
   customerName?: string;
@@ -57,42 +61,6 @@ function isValidPhone(
   );
 }
 
-function isValidIsoDate(
-  value: string
-) {
-  if (
-    !/^\d{4}-\d{2}-\d{2}$/.test(
-      value
-    )
-  ) {
-    return false;
-  }
-
-  const [
-    year,
-    month,
-    day,
-  ] = value
-    .split("-")
-    .map(Number);
-
-  const date =
-    new Date(
-      year,
-      month - 1,
-      day
-    );
-
-  return (
-    date.getFullYear() ===
-      year &&
-    date.getMonth() ===
-      month - 1 &&
-    date.getDate() ===
-      day
-  );
-}
-
 export async function POST(
   request: NextRequest
 ) {
@@ -111,16 +79,15 @@ export async function POST(
         body.apartmentName
       );
 
-    const inquiryType =
-      body.inquiryType ===
-      "subscription-alert"
-        ? "subscription-alert"
-        : "visit";
+    const isVisitReservation = body.inquiryType === "visit-reservation";
+    const inquiryType = body.inquiryType === "kakao" || body.inquiryType === "subscription-alert"
+      ? body.inquiryType
+      : "visit";
+    const isKakao = inquiryType === "kakao";
+    const requiresThirdPartyConsent = inquiryType !== "subscription-alert";
 
-    const customerName =
-      normalizeText(
-        body.customerName
-      );
+    // Kakao only asks for a phone number; keep compatibility with existing non-null CRM names.
+    const customerName = isKakao ? "카카오톡 상담" : normalizeText(body.customerName);
 
     const phone =
       normalizePhone(
@@ -152,7 +119,8 @@ export async function POST(
 
     if (
       !apartmentSlug ||
-      !apartmentName
+      !apartmentName ||
+      (isKakao && apartmentName.length > 200)
     ) {
       return NextResponse.json(
         {
@@ -215,9 +183,7 @@ export async function POST(
     }
 
     if (
-      inquiryType ===
-        "visit" &&
-      !thirdPartyAgreed
+      requiresThirdPartyConsent && !thirdPartyAgreed
     ) {
       return NextResponse.json(
         {
@@ -231,23 +197,12 @@ export async function POST(
       );
     }
 
-    if (
-      inquiryType ===
-        "visit" &&
-      visitDate &&
-      !isValidIsoDate(
-        visitDate
-      )
-    ) {
+    // Legacy callers can still send a general inquiry without a date.
+    const needsDateValidation = isVisitReservation || (inquiryType === "visit" && visitDate !== "");
+    if (needsDateValidation && !isAllowedVisitDate(visitDate)) {
       return NextResponse.json(
-        {
-          success: false,
-          message:
-            "희망 방문일을 정확히 선택해주세요.",
-        },
-        {
-          status: 400,
-        }
+        { success: false, message: "방문 희망일은 오늘부터 선택해주세요." },
+        { status: 400 }
       );
     }
 
@@ -280,8 +235,7 @@ export async function POST(
           phone,
 
           interested_type:
-            interestedType ||
-            null,
+            isVisitReservation || isKakao ? null : interestedType || null,
 
           visit_date:
             inquiryType ===
@@ -290,25 +244,16 @@ export async function POST(
               : null,
 
           message:
-            message || null,
+            isVisitReservation || isKakao ? null : message || null,
 
           status: "new",
 
           privacy_agreed:
             true,
 
-          third_party_agreed:
-            inquiryType ===
-            "visit"
-              ? true
-              : false,
+          third_party_agreed: requiresThirdPartyConsent,
 
-          third_party_agreed_at:
-            inquiryType ===
-              "visit" &&
-            thirdPartyAgreed
-              ? now
-              : null,
+          third_party_agreed_at: requiresThirdPartyConsent ? now : null,
 
           admin_memo: null,
         })
@@ -338,50 +283,23 @@ export async function POST(
     }
 
     try {
-      const mailMessage = [
-        `신청 구분: ${
-          inquiryType ===
-          "visit"
-            ? (visitDate ? "방문예약" : "상담신청")
-            : "청약 일정 알림"
-        }`,
-        `관심 평형·타입: ${
-          interestedType ||
-          "미입력"
-        }`,
-        `희망 방문일: ${
-          inquiryType ===
-          "visit"
-            ? visitDate || "상담 후 결정"
-            : "해당 없음"
-        }`,
-        `제3자 제공 동의: ${
-          inquiryType ===
-          "visit"
-            ? "동의"
-            : "해당 없음"
-        }`,
-        `문의내용: ${
-          message ||
-          "없음"
-        }`,
+      const mailMessage = isKakao ? "카카오톡 상담 연결을 위해 접수되었습니다.\n제3자 제공 동의: 동의" : [
+        `신청 구분: ${inquiryType === "visit" ? (visitDate ? "방문예약" : "상담신청") : "청약 일정 알림"}`,
+        ...(!isVisitReservation ? [`관심 평형·타입: ${interestedType || "미입력"}`] : []),
+        `희망 방문일: ${inquiryType === "visit" ? visitDate || "상담 후 결정" : "해당 없음"}`,
+        `제3자 제공 동의: ${requiresThirdPartyConsent ? "동의" : "해당 없음"}`,
+        ...(!isVisitReservation ? [`문의내용: ${message || "없음"}`] : []),
       ].join("\n");
 
-      const mailResult =
-        await sendInquiryNotification({
-          apartmentName,
-          inquiryType,
-          customerName,
-          phone,
-          interestedType,
-          visitDate:
-            inquiryType ===
-            "visit"
-              ? visitDate
-              : "",
-          message:
-            mailMessage,
-        });
+      const mailResult = await sendInquiryNotification({
+        apartmentName,
+        inquiryType,
+        customerName,
+        phone,
+        interestedType: isVisitReservation || isKakao ? undefined : interestedType,
+        visitDate: inquiryType === "visit" ? visitDate : "",
+        message: mailMessage,
+      });
 
       console.log(
         "문의 이메일 발송 성공:",
@@ -397,11 +315,13 @@ export async function POST(
     return NextResponse.json({
       success: true,
 
-      message:
-        inquiryType ===
-        "visit"
-          ? "상담신청이 접수되었습니다. 담당자가 연락드려 최신 조건과 방문 일정을 안내합니다."
-          : "청약일정 알림 신청이 접수되었습니다.",
+      message: isVisitReservation
+        ? VISIT_SUCCESS_MESSAGE
+        : inquiryType === "kakao"
+          ? "카카오톡 상담이 접수되었습니다."
+          : inquiryType === "visit"
+            ? "상담신청이 접수되었습니다. 담당자가 연락드려 최신 조건과 방문 일정을 안내합니다."
+            : "청약일정 알림 신청이 접수되었습니다.",
 
       inquiryId:
         createdInquiry.id,

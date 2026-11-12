@@ -11,7 +11,7 @@ import { getServerReferenceNow } from "../lib/serverReferenceTime";
  * 새 단지 등록, 공개/숨김 변경, 청약·선착순 상태 변경이
  * 홈 현황과 지역별 지도 숫자에 자동 반영됩니다.
  */
-export const revalidate = 60;
+export const revalidate = 300;
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(
