@@ -731,8 +731,10 @@ export default function ReservationCard({
           </button>
         </form>}
 
-        <div className="mt-4">
-          <ChatConsultLinks apartmentSlug={apartmentSlug} apartmentName={apartmentName} placement="form" kakaoUrl={kakaoUrl} />
+        <div className={isSubscription || normalizedPhone ? "mt-4" : "hidden md:mt-4 md:block"}>
+          <div className={isSubscription ? undefined : "hidden md:block"}>
+            <ChatConsultLinks apartmentSlug={apartmentSlug} apartmentName={apartmentName} placement="form" kakaoUrl={kakaoUrl} />
+          </div>
           {normalizedPhone && (
             <a href={`tel:${normalizedPhone}`} className="mt-2 flex min-h-11 items-center justify-center rounded-xl border border-zinc-200 px-3 py-3 text-sm font-bold text-zinc-700">전화상담</a>
           )}
