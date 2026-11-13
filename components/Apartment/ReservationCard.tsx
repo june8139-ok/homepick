@@ -439,7 +439,7 @@ export default function ReservationCard({
                     // Browsers without a programmatic date picker use the native control.
                   }
                 }}
-                className="h-11 w-full min-w-0 cursor-pointer rounded-xl border border-zinc-200 bg-white px-3 text-base text-zinc-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 sm:h-12 sm:px-4"
+                className="block h-11 w-full min-w-0 cursor-pointer whitespace-nowrap rounded-xl border border-zinc-200 bg-white px-3 text-left text-base text-zinc-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 sm:h-12 sm:px-4 [&::-webkit-date-and-time-value]:w-full [&::-webkit-date-and-time-value]:whitespace-nowrap [&::-webkit-date-and-time-value]:text-left"
               />
             </label>
           ) : (
