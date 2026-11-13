@@ -37,10 +37,13 @@ function findFacts(label: string, units: UnitPrice[]) {
     (unit.types ?? []).filter((type) => normalize(type.typeName) === key),
   );
   if (matches.length) return matches.length === 1 ? matches[0] : undefined;
-  // A named subtype must never inherit the totals of its area group.
-  if (!/^\d+(?:\.\d+)?$/.test(key)) return undefined;
+  if (!key) return undefined;
   const groups = units.filter((unit) => normalize(unit.area) === key);
-  return groups.length === 1 ? groups[0] : undefined;
+  if (groups.length !== 1) return undefined;
+  const group = groups[0];
+  // A named type can use a standalone row, but never a group total.
+  if (!/^\d+(?:\.\d+)?$/.test(key) && group.types?.length) return undefined;
+  return group;
 }
 
 export default function PropertyPlanBrowser({
