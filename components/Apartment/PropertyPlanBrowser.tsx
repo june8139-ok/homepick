@@ -18,6 +18,19 @@ function money(value?: number | null) {
     : `${rest.toLocaleString("ko-KR")}만원`;
 }
 
+const SQUARE_METERS_PER_PYEONG = 400 / 121;
+
+function formatSupplyPyeong(supplyArea?: string) {
+  const value = supplyArea?.normalize("NFKC").trim();
+  const match = value?.match(/^((?:[0-9]+|[0-9]{1,3}(?:,[0-9]{3})+)(?:\.[0-9]+)?)\s*(?:m2)?$/i);
+  if (!match) return "";
+  const squareMeters = Number(match[1].replaceAll(",", ""));
+  if (!Number.isFinite(squareMeters) || squareMeters <= 0) return "";
+  return (squareMeters / SQUARE_METERS_PER_PYEONG).toLocaleString("ko-KR", {
+    maximumFractionDigits: 2,
+  });
+}
+
 function findFacts(label: string, units: UnitPrice[]) {
   const key = normalize(label);
   const matches = units.flatMap((unit) =>
@@ -51,6 +64,7 @@ export default function PropertyPlanBrowser({
     selection.type === selected && matching[selection.image] ? selection.image : 0;
   const current = matching[activeImage];
   const extra = details[selected] || {};
+  const supplyPyeong = formatSupplyPyeong(extra.supplyArea);
   const facts = findFacts(selected || "", units);
   const price = money(facts?.minPrice);
   const highest = money(facts?.maxPrice);
@@ -167,9 +181,16 @@ export default function PropertyPlanBrowser({
               </figure>
 
               <div className="min-w-0 rounded-b-2xl border-t border-[#d8e4df] bg-[#f2f7f4] p-5 md:rounded-r-2xl md:rounded-bl-none md:border-t-0 md:border-l md:p-7">
-                <h3 className="mb-4 break-words text-3xl font-bold text-[#103f36]">
-                  {selected}
-                </h3>
+                <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2">
+                  <h3 className="m-0 min-w-0 break-words text-3xl font-bold text-[#103f36]">
+                    {selected}
+                  </h3>
+                  {supplyPyeong && (
+                    <span className="whitespace-nowrap rounded-full bg-[#e1eee7] px-3 py-1 text-sm font-semibold text-[#103f36]">
+                      구 {supplyPyeong}평형
+                    </span>
+                  )}
+                </div>
                 {extra.notes?.trim() && (
                   <p className="mb-4 whitespace-pre-line break-words text-sm leading-relaxed">
                     {extra.notes}
