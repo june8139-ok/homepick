@@ -246,8 +246,8 @@ export default async function BriefingPage() {
           </span>
         </nav>
 
-        <section className="mt-5 overflow-hidden rounded-2xl bg-[#132238] p-5 text-white shadow-sm sm:mt-6 sm:rounded-3xl sm:p-8 lg:p-10">
-          <p className="text-xs font-extrabold tracking-wide text-emerald-300 sm:text-sm">
+        <section className="jibnun-page-hero jibnun-page-hero-dark mt-5 sm:mt-6">
+          <p className="jibnun-hero-eyebrow">
             집눈 부동산 브리핑
           </p>
 
@@ -255,7 +255,7 @@ export default async function BriefingPage() {
             집눈 브리핑
           </h1>
 
-          <p className="mt-3 max-w-3xl break-keep text-sm leading-6 text-zinc-300 sm:mt-4 sm:text-base sm:leading-8">
+          <p className="jibnun-hero-description mt-3 max-w-3xl break-keep text-sm leading-6 sm:mt-4 sm:text-base sm:leading-8">
             청약 일정과 선착순 분양,
             계약조건 변경과 지역별
             분양시장 소식을 빠르게

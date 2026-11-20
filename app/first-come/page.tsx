@@ -160,7 +160,7 @@ export default async function FirstComePage() {
           </span>
         </nav>
 
-        <section className="mt-5 overflow-hidden rounded-2xl border border-emerald-100 bg-[linear-gradient(135deg,#ffffff_0%,#f4fbf8_60%,#fff7f1_100%)] p-5 shadow-sm sm:mt-6 sm:rounded-3xl sm:p-8 lg:p-10">
+        <section className="jibnun-page-hero mt-5 overflow-hidden rounded-2xl border border-emerald-100 bg-[linear-gradient(135deg,#ffffff_0%,#f4fbf8_60%,#fff7f1_100%)] p-5 shadow-sm sm:mt-6 sm:rounded-3xl sm:p-8 lg:p-10">
           <p className="text-xs font-extrabold text-emerald-700 sm:text-sm">
             집눈 선착순 분양
           </p>

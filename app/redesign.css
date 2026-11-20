@@ -816,3 +816,34 @@ background: center / 18px 18px no-repeat url("data:image/svg+xml,%3Csvg xmlns='h
 color: #fff;
 text-shadow: 0 2px 8px #0009;
 }
+
+/* Explicit page headers shared by public hubs. */
+.listing-design > section > section.jibnun-page-hero {
+  padding: 28px 24px;
+  border: 1px solid var(--j-line);
+  border-top: 3px solid var(--j-forest);
+  border-radius: 12px;
+  background: linear-gradient(120deg,#fff 55%,#eef4f0);
+}
+.jibnun-hero-eyebrow { margin-bottom: 10px; color: var(--j-teal); font-size:14px; font-weight:800; }
+.listing-design > section > section.jibnun-page-hero-dark { background:linear-gradient(110deg,#103e35,#1b5045); border-color:#24594d; color:#fff; }
+.listing-design .jibnun-page-hero-dark h1 { color:#fff; }
+.jibnun-page-hero-dark .jibnun-hero-eyebrow { color:#bce4d6; }
+.jibnun-page-hero-dark .jibnun-hero-description { color:#e0eee8; }
+.subscription-timeline { margin-top:28px; }
+.subscription-timeline-heading { display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 16px; margin-bottom:12px; }
+.subscription-timeline-heading h2 { font-size:18px; font-weight:800; }
+.subscription-timeline-heading p { font-size:13px; color:var(--j-muted); }
+.subscription-timeline-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.subscription-timeline-card { display:block; min-width:0; border:1px solid var(--j-line); border-radius:10px; padding:14px; background:white; transition:border-color .15s; }
+.subscription-timeline-card:hover { border-color:var(--j-teal); }
+.subscription-timeline-label { display:inline-block; padding:3px 8px; border-radius:20px; background:var(--j-soft); color:var(--j-teal); font-size:12px; font-weight:700; }
+.subscription-timeline-date { margin:8px 0; font-size:23px; font-weight:800; color:var(--j-ink); }
+.subscription-timeline-date small { font-size:12px; font-weight:400; color:var(--j-muted); }
+.subscription-timeline-card h3 { font-size:14px; font-weight:700; line-height:1.6; overflow-wrap:anywhere; }
+.subscription-timeline-region { margin-top:6px; font-size:12px; color:var(--j-muted); }
+@media(min-width:640px) {
+ .listing-design > section > section.jibnun-page-hero { padding:36px 40px; }
+ .subscription-timeline-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }
+}
+@media(max-width:1023px) { .home-mobile-nav { overflow-x:auto; } .home-mobile-nav a { flex-shrink:0; white-space:nowrap; } }

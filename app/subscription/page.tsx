@@ -4,6 +4,9 @@ import type {
 
 import Link from "next/link";
 
+import { getServerReferenceNow } from "../../lib/serverReferenceTime";
+import SubscriptionTimeline from "../../components/ListingHub/SubscriptionTimeline";
+
 import ListingHubCard from "../../components/ListingHub/ListingHubCard";
 
 import {
@@ -89,6 +92,7 @@ export const metadata: Metadata = {
 };
 
 export default async function SubscriptionPage() {
+  const referenceNow = await getServerReferenceNow();
   const apartments =
     await getApartments({
       publishedOnly: true,
@@ -96,7 +100,7 @@ export default async function SubscriptionPage() {
 
   const subscriptions =
     getVisibleSubscriptions(
-      apartments
+      apartments, new Date(referenceNow)
     ).sort(
       (first, second) =>
         getSubscriptionSortDate(
@@ -169,7 +173,7 @@ export default async function SubscriptionPage() {
           </span>
         </nav>
 
-        <section className="mt-5 overflow-hidden rounded-2xl border border-blue-100 bg-[linear-gradient(135deg,#ffffff_0%,#f7fbff_58%,#f0fbf7_100%)] p-5 shadow-sm sm:mt-6 sm:rounded-3xl sm:p-8 lg:p-10">
+        <section className="jibnun-page-hero mt-5 overflow-hidden rounded-2xl border border-blue-100 bg-[linear-gradient(135deg,#ffffff_0%,#f7fbff_58%,#f0fbf7_100%)] p-5 shadow-sm sm:mt-6 sm:rounded-3xl sm:p-8 lg:p-10">
           <p className="text-xs font-extrabold text-blue-700 sm:text-sm">
             집눈 청약일정
           </p>
@@ -201,6 +205,8 @@ export default async function SubscriptionPage() {
             </Link>
           </div>
         </section>
+
+        <SubscriptionTimeline apartments={subscriptions} now={referenceNow} />
 
         <section className="mt-8 sm:mt-10">
           <div className="flex items-end justify-between gap-4">

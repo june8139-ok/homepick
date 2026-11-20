@@ -1146,7 +1146,8 @@ export default async function RegionPage({
             {cityName}
           </span>
         </nav>
-        <section className="mt-5 border-b border-zinc-200 pb-5 sm:mt-6 sm:pb-6">
+        <section className="jibnun-page-hero mt-5 sm:mt-6">
+            <p className="jibnun-hero-eyebrow">집눈 지역별 분양정보</p>
             <h1 className="break-keep text-2xl font-bold tracking-tight text-[#132238] sm:text-3xl">
               {cityName} 분양 아파트
             </h1>

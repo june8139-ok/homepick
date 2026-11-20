@@ -32,6 +32,11 @@ const menuItems = [
     query: "",
   },
   {
+    label: "집눈 브리핑",
+    href: "/briefing",
+    query: "",
+  },
+  {
     label: "관심단지",
     href: "/favorites",
     query: "",
@@ -352,7 +357,7 @@ export default function SiteHeader() {
                     )
                   }
                   className={[
-                    "rounded-xl px-4 py-2.5 text-sm font-bold transition-all duration-200",
+                    "rounded-xl px-2.5 py-2.5 text-sm font-bold transition-all duration-200",
                     "hover:bg-emerald-50 hover:text-emerald-700",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2",
                     isPendingHref(
@@ -652,7 +657,7 @@ export default function SiteHeader() {
           </div>
         </div>
       )}
-      {pathname === "/" && !isMenuOpen && <nav aria-label="모바일 주요 메뉴" className="home-mobile-nav lg:hidden">{menuItems.slice(0,4).map(item=><Link key={item.href} href={item.href}>{item.label}</Link>)}</nav>}
+      {pathname === "/" && !isMenuOpen && <nav aria-label="모바일 주요 메뉴" className="home-mobile-nav lg:hidden">{menuItems.slice(0,5).map(item=><Link key={item.href} href={item.href}>{item.label}</Link>)}</nav>}
     </header>
   );
 }
