@@ -954,7 +954,7 @@ box-shadow: 0 2px 8px #102e2010;
   overflow-x: auto;
   overscroll-behavior-inline: contain;
   scroll-snap-type: x mandatory;
-  scrollbar-width: thin;
+  scrollbar-width: none;
   padding-bottom: 8px;
 }
 .home-refined .home-card-rail.home-schedule-grid { --rail-gap: 10px; gap: var(--rail-gap); }
@@ -987,4 +987,17 @@ box-shadow: 0 2px 8px #102e2010;
   .home-refined .home-card-rail.home-schedule-grid { --rail-gap: 14px; }
   .home-refined .home-card-rail.home-unit-grid { --rail-gap: 18px; }
   .home-card-rail-controls[data-desktop-overflow="false"] { display: none; }
+}
+
+
+.home-refined .home-card-rail::-webkit-scrollbar { display: none; }
+.home-refined .home-card-rail[data-dragging="true"] {
+  scroll-snap-type: none;
+  user-select: none;
+}
+.home-refined .home-card-rail[data-dragging="true"],
+.home-refined .home-card-rail[data-dragging="true"] * { cursor: grabbing; }
+.home-card-rail-controls .home-card-rail-autoplay { font-size: 14px; }
+@media (prefers-reduced-motion: reduce) {
+  .home-card-rail-controls .home-card-rail-autoplay { display: none; }
 }
