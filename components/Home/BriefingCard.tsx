@@ -1,46 +1,34 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Briefing } from "../../types/briefing";
 
-import type {
-  Briefing,
-} from "../../types/briefing";
+const dateFormatter = new Intl.DateTimeFormat("ko-KR", {
+  timeZone: "Asia/Seoul",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
 
-function formatDate(
-  value: string | null
-) {
-  if (!value) {
-    return "";
-  }
+function formatDate(value: string | null) {
+  if (!value) return "";
 
-  return new Intl.DateTimeFormat(
-    "ko-KR",
-    {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }
-  ).format(new Date(value));
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "";
+
+  return dateFormatter.format(date);
 }
 
-function getCategoryClass(
-  category: string
-) {
-  if (
-    category === "청약 일정"
-  ) {
+function getCategoryClass(category: string) {
+  if (category === "청약 일정") {
     return "bg-blue-50 text-blue-700";
   }
 
-  if (
-    category === "선착순 소식"
-  ) {
+  if (category === "선착순 소식") {
     return "bg-emerald-50 text-emerald-700";
   }
 
-  if (
-    category ===
-    "계약조건 변경"
-  ) {
+  if (category === "계약조건 변경") {
     return "bg-amber-50 text-amber-700";
   }
 
@@ -83,9 +71,7 @@ export default function BriefingCard({
         >
           {briefing.thumbnailUrl ? (
             <Image
-              src={
-                briefing.thumbnailUrl
-              }
+              src={briefing.thumbnailUrl}
               alt={`${briefing.title} 대표 이미지`}
               fill
               sizes="
@@ -93,33 +79,24 @@ export default function BriefingCard({
                 (max-width: 1280px) 50vw,
                 33vw
               "
-              className="
-                object-cover
-                object-center
-              "
+              className="object-cover object-center"
             />
           ) : (
             <div
               className="
                 flex h-full
-                items-center
-                justify-center
+                items-center justify-center
                 bg-gradient-to-br
                 from-emerald-50
-                via-white
-                to-sky-50
+                via-white to-sky-50
               "
             >
               <div className="text-center">
-                <p className="text-3xl">
-                  📰
-                </p>
-
+                <p className="text-3xl">📰</p>
                 <p
                   className="
                     mt-2 text-[10px]
-                    font-bold
-                    text-zinc-400
+                    font-bold text-zinc-400
                     sm:text-xs
                   "
                 >
@@ -135,9 +112,7 @@ export default function BriefingCard({
             <span
               className={[
                 "rounded-full px-2.5 py-1 text-[10px] font-extrabold sm:text-xs",
-                getCategoryClass(
-                  briefing.category
-                ),
+                getCategoryClass(briefing.category),
               ].join(" ")}
             >
               {briefing.category}
@@ -153,11 +128,9 @@ export default function BriefingCard({
           <h3
             className="
               mt-3 line-clamp-2
-              min-h-12
-              break-keep
+              min-h-12 break-keep
               text-base font-black
-              leading-6
-              text-[#132238]
+              leading-6 text-[#132238]
               transition-colors
               group-hover:text-emerald-700
               sm:text-lg sm:leading-7
@@ -169,12 +142,10 @@ export default function BriefingCard({
           <p
             className="
               mt-2 line-clamp-2
-              min-h-10
-              break-keep
+              min-h-10 break-keep
               text-xs leading-5
               text-zinc-500
-              sm:text-sm
-              sm:leading-6
+              sm:text-sm sm:leading-6
             "
           >
             {briefing.summary}
@@ -182,17 +153,13 @@ export default function BriefingCard({
 
           <div className="mt-4 flex items-center justify-between gap-3">
             <time className="text-[10px] font-medium text-zinc-400 sm:text-xs">
-              {formatDate(
-                briefing.publishedAt ||
-                  briefing.createdAt
-              )}
+              {formatDate(briefing.publishedAt || briefing.createdAt)}
             </time>
 
             <span
               className="
                 shrink-0 text-xs
-                font-black
-                text-emerald-700
+                font-black text-emerald-700
                 transition-transform
                 group-hover:translate-x-1
                 sm:text-sm
