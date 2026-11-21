@@ -199,7 +199,12 @@ export default function DetailPagesSection() {
           g = guide[key],
           enabled = getDetailSections(a).includes(key);
         return (
-          <details key={key} className="admin-detail-section">
+          <details
+            key={key}
+            id={key === "overview" ? "edit-overview-images" : undefined}
+            open={key === "overview" ? true : undefined}
+            className="admin-detail-section scroll-mt-24"
+          >
             <summary>
               {sectionLabels[key]}{" "}
               <span>
@@ -351,8 +356,9 @@ export default function DetailPagesSection() {
                     연결
                   </h3>
                   <p>
-                    아래 기존 이미지를 선택하거나 자료를 추가 업로드하세요. 기존
-                    갤러리를 삭제하거나 이동하지 않고 이 페이지에 연결합니다.
+                    {key === "overview"
+                      ? "배치도나 조감도를 추가하세요. 첫 번째 이미지는 단지홈에도 표시되고, 사업개요 탭에서는 연결된 이미지를 모두 볼 수 있습니다."
+                      : "아래 기존 이미지를 선택하거나 분양가 자료를 추가 업로드하세요."}
                   </p>
                   <div className="admin-purpose-grid">
                     {[
@@ -397,8 +403,25 @@ export default function DetailPagesSection() {
                       uploadRef.current?.click();
                     }}
                   >
-                    {uploading ? "업로드 중…" : "이 페이지 자료 이미지 추가"}
+                    {uploading ? "업로드 중…" : key === "overview" ? "사업개요 이미지 업로드" : "이 페이지 자료 이미지 추가"}
                   </button>
+                  {key === "overview" && (content.images || []).filter(validImage).length > 0 && (
+                    <ol className="mt-3 space-y-2" aria-label="사업개요 이미지 표시 순서">
+                      {(content.images || []).filter(validImage).map((url, index) => (
+                        <li key={url} className="flex flex-wrap items-center gap-2">
+                          <Image src={url} alt={`사업개요 이미지 ${index + 1}`} width={64} height={44} unoptimized loading="lazy" className="rounded object-contain" />
+                          <span>{index === 0 ? "단지홈 대표 이미지" : `사업개요 이미지 ${index + 1}`}</span>
+                          {index > 0 && (
+                            <button type="button" onClick={() => update(key, {
+                              images: [url, ...(content.images || []).filter((image) => image !== url)],
+                            })}>
+                              단지홈 대표로 지정
+                            </button>
+                          )}
+                        </li>
+                      ))}
+                    </ol>
+                  )}
                   <p>
                     {sectionImages(a, key).length}장 연결됨 · 선택한 순서로 표시
                   </p>

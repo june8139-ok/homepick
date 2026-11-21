@@ -30,7 +30,10 @@ export default function AdminEditor({
 
         <div id="edit-location" className="scroll-mt-24"><LocationSection /></div>
 
-        <div id="edit-images" className="scroll-mt-24"><ImageSection /></div>
+        <div id="edit-images" className="scroll-mt-24">
+          <ImageSection />
+          <a href="#edit-overview-images" className="mt-3 inline-block text-sm font-bold text-emerald-700 underline">사업개요 이미지 등록으로 이동 ↓</a>
+        </div>
 
         <DetailPagesSection />
 
