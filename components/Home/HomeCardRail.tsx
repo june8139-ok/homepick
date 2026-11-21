@@ -2,8 +2,6 @@
 
 import { useEffect, useId, useRef, useState, type PointerEvent, type ReactNode } from "react";
 
-const AUTO_INTERVAL_MS = 3000;
-
 export default function HomeCardRail({
   children,
   className,
@@ -16,13 +14,9 @@ export default function HomeCardRail({
   count: number;
 }) {
   const id = useId();
-  const group = useRef<HTMLDivElement>(null);
   const rail = useRef<HTMLDivElement>(null);
   const drag = useRef<{ id: number; x: number; left: number; moved: boolean } | null>(null);
   const suppressClick = useRef(false);
-  const resumeAfter = useRef(0);
-  const autoDirection = useRef<-1 | 1>(1);
-  const [paused, setPaused] = useState(false);
   const [edges, setEdges] = useState({ previous: false, next: false });
 
   useEffect(() => {
@@ -43,44 +37,14 @@ export default function HomeCardRail({
     };
   }, [count]);
 
-  useEffect(() => {
-    const element = rail.current;
-    const container = group.current;
-    if (!element || !container || paused || count <= 2) return;
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const canHover = window.matchMedia("(hover: hover)");
-    const timer = window.setInterval(() => {
-      if (reducedMotion.matches || document.hidden || drag.current || Date.now() < resumeAfter.current ||
-          container.contains(document.activeElement) || (canHover.matches && container.matches(":hover"))) return;
-      const bounds = element.getBoundingClientRect();
-      if (bounds.bottom <= 0 || bounds.top >= window.innerHeight) return;
-
-      const end = element.scrollWidth - element.clientWidth;
-      const first = element.children[0];
-      const second = element.children[1];
-      if (end <= 1 || !first || !second) return;
-      if (element.scrollLeft >= end - 1) autoDirection.current = -1;
-      if (element.scrollLeft <= 1) autoDirection.current = 1;
-      const step = second.getBoundingClientRect().left - first.getBoundingClientRect().left;
-      element.scrollBy({ left: autoDirection.current * step, behavior: "smooth" });
-    }, AUTO_INTERVAL_MS);
-    return () => window.clearInterval(timer);
-  }, [count, paused]);
-
-  function delayAuto() {
-    resumeAfter.current = Date.now() + AUTO_INTERVAL_MS;
-  }
-
   function move(direction: -1 | 1) {
     const element = rail.current;
     if (!element) return;
-    delayAuto();
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     element.scrollBy({ left: direction * element.clientWidth, behavior: reducedMotion ? "instant" : "smooth" });
   }
 
   function beginDrag(event: PointerEvent<HTMLDivElement>) {
-    delayAuto();
     suppressClick.current = false;
     if (event.pointerType !== "mouse" || event.button !== 0 ||
         (event.target instanceof Element && event.target.closest("button"))) return;
@@ -113,11 +77,10 @@ export default function HomeCardRail({
     if (drag.current?.id !== event.pointerId) return;
     drag.current = null;
     delete event.currentTarget.dataset.dragging;
-    delayAuto();
   }
 
   return (
-    <div ref={group}>
+    <>
       <div
         id={id}
         ref={rail}
@@ -148,17 +111,8 @@ export default function HomeCardRail({
           <button type="button" aria-controls={id} aria-label={`${label} 다음 카드`} aria-disabled={!edges.next} onClick={() => edges.next && move(1)}>
             ›
           </button>
-          <button
-            type="button"
-            aria-controls={id}
-            aria-label={`${label} ${paused ? "자동 이동 재생" : "자동 이동 일시정지"}`}
-            className="home-card-rail-autoplay"
-            onClick={() => { delayAuto(); setPaused(!paused); }}
-          >
-            {paused ? "▶" : "Ⅱ"}
-          </button>
         </div>
       )}
-    </div>
+    </>
   );
 }

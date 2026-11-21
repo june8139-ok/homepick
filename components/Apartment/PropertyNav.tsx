@@ -26,7 +26,11 @@ export default function PropertyNav({
       <div className="property-nav-title">
         <div>
           <span>{region}</span>
-          <p>{name}</p>
+          <p>
+            <Link href={home} className="rounded-sm hover:underline focus-visible:outline-2 focus-visible:outline-offset-4">
+              {name}
+            </Link>
+          </p>
         </div>
         <FavoriteButton slug={slug} apartmentName={name} />
       </div>
