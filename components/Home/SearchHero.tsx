@@ -332,6 +332,7 @@ function SearchHero({ apartments }: { apartments: Apartment[] }) {
               </svg>
 
               <input
+                id="home-search-query"
                 ref={inputRef}
                 value={keyword}
                 onChange={(event) => {

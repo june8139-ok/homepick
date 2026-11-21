@@ -400,6 +400,7 @@ export default function SiteHeader() {
             </span>
 
             <input
+              id="header-desktop-search-query"
               value={
                 searchKeyword
               }
@@ -524,6 +525,7 @@ export default function SiteHeader() {
               </span>
 
               <input
+                id="header-mobile-search-query"
                 value={
                   searchKeyword
                 }
