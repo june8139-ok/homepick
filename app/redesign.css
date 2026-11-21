@@ -361,8 +361,7 @@
 }
 .property-hero-image {
   position: relative;
-  align-self: start;
-  aspect-ratio: 16 / 9;
+  height: 360px;
   background: #eef1ef;
   overflow: hidden;
   border-radius: 12px;
@@ -485,6 +484,9 @@
     grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
     gap: 32px;
   }
+  .property-hero-image {
+    height: 560px;
+  }
   .property-hero-summary {
     padding-top: 12px;
   }
@@ -495,6 +497,9 @@
   }
 }
 @media (max-width: 420px) {
+  .property-hero-image {
+    height: 300px;
+  }
   .property-hero-summary {
     padding-inline: 5px;
   }
