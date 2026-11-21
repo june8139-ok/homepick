@@ -254,6 +254,9 @@ export default function RegionMapSection({
             const sortedApartments = [
               ...regionApartments,
             ].sort((a, b) => {
+              const imageDiff = Number(Boolean(getHeroImage(b))) - Number(Boolean(getHeroImage(a)));
+              if (imageDiff !== 0) return imageDiff;
+
               const createdDiff =
                 getCreatedTime(b) -
                 getCreatedTime(a);

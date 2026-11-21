@@ -214,9 +214,6 @@
   background: #fff;
   min-height: 126px;
 }
-.home-schedule-card:nth-child(n + 3) {
-  display: none;
-}
 .home-event-label {
   display: inline-block;
   padding: 3px 7px;
@@ -464,9 +461,6 @@
   .home-schedule-grid {
     grid-template-columns: repeat(4, 1fr);
     gap: 15px;
-  }
-  .home-schedule-card:nth-child(n + 3) {
-    display: block;
   }
   .home-schedule-card {
     padding: 17px;
@@ -947,4 +941,50 @@ box-shadow: 0 2px 8px #102e2010;
   font-size: 11px;
   font-weight: 700;
   line-height: 16px;
+}
+
+/* 홈 카드 목록은 한 줄에서 네 장씩, 작은 화면에서는 두 장씩 넘깁니다. */
+.home-refined .home-card-rail {
+  --rail-gap: 12px;
+  grid-template-columns: none;
+  grid-auto-flow: column;
+  grid-auto-columns: calc((100% - var(--rail-gap)) / 2);
+  gap: var(--rail-gap);
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  padding-bottom: 8px;
+}
+.home-refined .home-card-rail.home-schedule-grid { --rail-gap: 10px; gap: var(--rail-gap); }
+.home-refined .home-card-rail.home-unit-grid { --rail-gap: 12px; gap: var(--rail-gap); }
+.home-card-rail > * { scroll-snap-align: start; }
+.home-card-rail-controls {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 4px;
+}
+.home-card-rail-controls button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #dbe7e1;
+  border-radius: 50%;
+  background: #fff;
+  color: #16483e;
+  font-size: 22px;
+  line-height: 1;
+}
+.home-card-rail-controls button[aria-disabled="true"] { opacity: .45; }
+.home-card-rail-controls button:focus-visible { outline: 2px solid #0f766e; outline-offset: 2px; }
+@media (min-width: 640px) {
+  .home-refined .home-card-rail {
+    grid-auto-columns: calc((100% - 3 * var(--rail-gap)) / 4);
+  }
+  .home-refined .home-card-rail.home-schedule-grid { --rail-gap: 14px; }
+  .home-refined .home-card-rail.home-unit-grid { --rail-gap: 18px; }
+  .home-card-rail-controls[data-desktop-overflow="false"] { display: none; }
 }

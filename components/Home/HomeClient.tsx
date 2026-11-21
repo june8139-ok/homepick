@@ -17,6 +17,7 @@ import FeaturedSlider from "./FeaturedSlider";
 import SearchHero from "./SearchHero";
 import DeferredRegionMapSection from "./DeferredRegionMapSection";
 import HomeBriefingSection from "./HomeBriefingSection";
+import HomeCardRail from "./HomeCardRail";
 const regions = [
   "서울",
   "경기",
@@ -146,14 +147,14 @@ export default function HomeClient({
     activity: recentFirstComeActivity(apartment, referenceNow),
     featured: featuredSlugs.has(apartment.slug),
   })).sort((a, b) => Number(a.featured) - Number(b.featured) || b.activity - a.activity)
-    .slice(0, 4).map(({ apartment }) => apartment);
+    .slice(0, 12).map(({ apartment }) => apartment);
   const schedules = getVisibleSubscriptions(apartments, new Date(referenceNow))
     .flatMap((a) => {
       const event = nextEvent(a, referenceNow);
       return event ? [{ a, event }] : [];
     })
     .sort((a, b) => a.event.sort - b.event.sort || a.a.slug.localeCompare(b.a.slug))
-    .slice(0, 4);
+    .slice(0, 12);
   const recent = getRecentUpdatedApartments(visible, undefined, referenceNow).slice(0, 4);
   return (
     <main className="home-refined">
@@ -173,8 +174,8 @@ export default function HomeClient({
             </Link>
           </div>
           {schedules.length ? (
-            <div className="home-schedule-grid">
-              {schedules.slice(0, 4).map(({ a, event }) => (
+            <HomeCardRail className="home-schedule-grid" label="청약 일정" count={schedules.length}>
+              {schedules.map(({ a, event }) => (
                 <Link
                   href={`/apartments/${encodeURIComponent(a.slug)}`}
                   key={a.slug}
@@ -206,7 +207,7 @@ export default function HomeClient({
                   </span>
                 </Link>
               ))}
-            </div>
+            </HomeCardRail>
           ) : (
             <p className="home-small-empty">
               확인 가능한 예정 일정이 없습니다.{" "}
@@ -223,11 +224,11 @@ export default function HomeClient({
               전체 보기 <span>›</span>
             </Link>
           </div>
-          <div className="home-unit-grid">
+          <HomeCardRail className="home-unit-grid" label="지금 살펴볼 단지" count={recommended.length}>
             {recommended.map((a) => (
               <UnitCard key={a.slug} a={a} />
             ))}
-          </div>
+          </HomeCardRail>
           {!firstCome.length && (
             <p className="home-small-empty">
               현재 공개된 선착순 단지가 없습니다.
