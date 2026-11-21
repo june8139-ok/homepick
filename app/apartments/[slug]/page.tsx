@@ -1,3 +1,5 @@
+import { canAcceptApartmentInquiry } from "../../../lib/apartmentInquiryPolicy";
+import ApartmentNoticeLinks from "../../../components/Apartment/ApartmentNoticeLinks";
 import { getDetailSections } from "../../../lib/apartmentPages";
 import PropertyHomeContent from "../../../components/Apartment/PropertyHomeContent";
 import PropertyHero from "../../../components/Apartment/PropertyHero";
@@ -965,9 +967,7 @@ export default async function ApartmentDetailPage({
       cityPathValue
     )}`;
 
-  const canInquire = !isSoldOut && (isSubscription
-    ? apartment.leadType !== "closed"
-    : listingStage === "firstCome");
+  const canInquire = canAcceptApartmentInquiry(apartment);
 
   const jsonLdItems =
     createJsonLd(apartment);
@@ -1094,6 +1094,9 @@ export default async function ApartmentDetailPage({
           </nav>
 
           <PropertyHero apartment={apartment}/>
+          <Suspense fallback={null}>
+            <ApartmentNoticeLinks apartment={apartment} />
+          </Suspense>
           <PropertyHomeContent a={apartment}/>
 
           <ApartmentFAQ

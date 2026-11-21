@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import CompareClient from "./CompareClient";
-import { getApartments } from "../../lib/getApartments";
+import { normalizeApartment } from "../../lib/normalizeApartment";
+import { supabase } from "../../lib/supabase";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -90,15 +91,31 @@ function CompareLoading() {
   );
 }
 
-export default async function ComparePage() {
-  const apartments =
-    await getApartments();
+type CompareParams = Record<string, string | string[] | undefined>;
 
+async function CompareResults({ searchParams }: { searchParams: Promise<CompareParams> }) {
+  const params = await searchParams;
+  const first = (value: string | string[] | undefined) => Array.isArray(value) ? value[0] : value;
+  const ids = first(params.ids)?.split(",").map((slug) => slug.trim()).filter(Boolean) ?? [];
+  const legacy = [first(params.left), first(params.right)].filter((slug): slug is string => Boolean(slug));
+  const slugs = [...new Set(ids.length ? ids : legacy)].slice(0, 2);
+  if (!slugs.length) return <CompareClient apartments={[]} />;
+
+  const { data, error } = await supabase.from("apartments").select("*")
+    .eq("is_published", true).in("slug", slugs);
+  if (error) throw new Error("비교할 단지를 조회하지 못했습니다.", { cause: error });
+
+  const bySlug = new Map((data ?? []).map((row) => [row.slug, normalizeApartment(row)]));
+  return <CompareClient apartments={slugs.flatMap((slug) => {
+    const apartment = bySlug.get(slug);
+    return apartment ? [apartment] : [];
+  })} />;
+}
+
+export default function ComparePage({ searchParams }: { searchParams: Promise<CompareParams> }) {
   return (
     <Suspense fallback={<CompareLoading />}>
-      <CompareClient
-        apartments={apartments}
-      />
+      <CompareResults searchParams={searchParams} />
     </Suspense>
   );
 }

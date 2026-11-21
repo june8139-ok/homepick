@@ -56,42 +56,12 @@ export default function HomeBriefingSection({
         </Link>
       </div>
 
-      {/* 모바일: 가로 스크롤 */}
-      <div className="mt-4 overflow-x-auto pb-2 sm:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <div className="flex w-max snap-x snap-mandatory gap-3">
-          {briefings.map(
-            (briefing) => (
-              <div
-                key={
-                  briefing.id
-                }
-                className="w-[82vw] max-w-[330px] shrink-0 snap-center"
-              >
-                <BriefingCard
-                  briefing={
-                    briefing
-                  }
-                />
-              </div>
-            )
-          )}
-        </div>
-      </div>
-
-      {/* 태블릿·PC */}
-      <div className="mt-5 hidden gap-4 sm:grid sm:grid-cols-2 xl:grid-cols-3">
-        {briefings.map(
-          (briefing) => (
-            <BriefingCard
-              key={
-                briefing.id
-              }
-              briefing={
-                briefing
-              }
-            />
-          )
-        )}
+      <div className="mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 sm:mt-5 sm:grid sm:snap-none sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:pb-0 xl:grid-cols-3">
+        {briefings.map((briefing) => (
+          <div key={briefing.id} className="w-[82vw] max-w-[330px] shrink-0 snap-center sm:w-auto sm:max-w-none">
+            <BriefingCard briefing={briefing} />
+          </div>
+        ))}
       </div>
     </section>
   );

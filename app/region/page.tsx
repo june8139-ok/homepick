@@ -611,7 +611,7 @@ export default async function RegionIndexPage() {
               <p className="region-hub-eyebrow">
                 <span aria-hidden="true" />집눈 지역별 분양정보
               </p>
-              <h1>전국 부동산을 <span>한눈에</span></h1>
+              <h1>지역별 아파트 <span>분양·청약 정보</span></h1>
               <p className="region-hub-description">
                 17개 시·도 기준으로 현재 청약 중인 아파트와 선착순 분양 단지,
                 분양가와 계약조건을 비교해보세요.

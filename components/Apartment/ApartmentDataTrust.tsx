@@ -29,7 +29,7 @@ function formatCheckedAt(
       date.getTime()
     )
   ) {
-    return value.trim();
+    return "";
   }
 
   return new Intl.DateTimeFormat(
@@ -58,67 +58,32 @@ function getTrustItems(
     apartment.isAutoCreated ===
       true;
 
-  const administratorReviewed =
-    apartment.manualOverride ===
-      true;
-
-  const checkedAt =
-    formatCheckedAt(
-      apartment.lastSyncedAt ||
-      apartment.priceInfo
-        ?.updatedAt
-    );
-
-  if (isApplyHome) {
-    return [
-      {
-        label: "정보 출처",
-        value:
-          "청약홈 공개자료",
-        tone: "blue",
-      },
-      {
-        label: "정보 상태",
-        value:
-          administratorReviewed
-            ? "집눈 관리자 수정 반영"
-            : "자동수집 정보",
-        tone:
-          administratorReviewed
-            ? "emerald"
-            : "amber",
-      },
-      {
-        label: "최근 동기화",
-        value:
-          checkedAt ||
-          "확인일 미기록",
-        tone: "zinc",
-      },
-    ];
-  }
-
-  return [
+  const items: TrustItem[] = [
     {
-      label: "정보 출처",
-      value:
-        "집눈 직접 등록",
-      tone: "emerald",
+      label: "자료 출처",
+      value: apartment.materialSource || (isApplyHome ? "청약홈 공개자료" : "출처 확인 필요"),
+      tone: isApplyHome ? "blue" : "emerald",
     },
     {
-      label: "정보 상태",
-      value:
-        "관리자 입력 정보",
-      tone: "emerald",
+      label: "자료 기준일",
+      value: formatCheckedAt(apartment.materialDate) || "미상",
+      tone: "zinc",
     },
     {
-      label: "최근 확인",
-      value:
-        checkedAt ||
-        "확인일 미기록",
+      label: "집눈 수정일",
+      value: formatCheckedAt(apartment.editorialUpdatedAt) || "미기록",
       tone: "zinc",
     },
   ];
+
+  if (isApplyHome) {
+    items.push({
+      label: "청약홈 동기화일",
+      value: formatCheckedAt(apartment.lastSyncedAt) || "미기록",
+      tone: "zinc",
+    });
+  }
+  return items;
 }
 
 export default function ApartmentDataTrust({
@@ -147,7 +112,7 @@ export default function ApartmentDataTrust({
 
   return (
     <section
-      aria-label="정보 출처와 확인 상태"
+      aria-label="자료 출처와 기준일"
       className="mt-4 rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm sm:mt-5 sm:p-4"
     >
       <div className="flex flex-wrap items-center gap-2">

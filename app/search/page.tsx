@@ -114,7 +114,7 @@ export async function generateMetadata({
 
 async function SearchResults() {
   const apartments = await getApartments();
-  return <SearchClient apartments={apartments.map(toSearchApartment)} />;
+  return <SearchClient apartments={apartments.map((apartment) => toSearchApartment(apartment))} />;
 }
 
 export default function SearchPage() {

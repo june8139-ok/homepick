@@ -107,6 +107,10 @@ export type Apartment = {
   detailPages?: DetailPages;
   slug: string;
   projectGroup?: string;
+  noticeParentSlug?: string;
+  materialSource?: string;
+  materialDate?: string;
+  editorialUpdatedAt?: string;
   city: string;
   cityName: string;
   district: string;
@@ -161,6 +165,7 @@ export type Apartment = {
    */
   lastMeaningfulUpdateAt?: string | null;
   lastUpdateType?: string | null;
+  firstComeConfirmedAt?: string | null;
 
   totalSupply?: number | null;
   subscription?: SubscriptionSchedule;

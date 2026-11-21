@@ -1,4 +1,7 @@
+import { canAcceptApartmentInquiry } from "../../../lib/apartmentInquiryPolicy";
 import { isAllowedVisitDate, VISIT_SUCCESS_MESSAGE } from "../../../lib/inquiryDate";
+import { getListingStage } from "../../../lib/listingStage";
+import { normalizeApartment } from "../../../lib/normalizeApartment";
 
 import {
   NextRequest,
@@ -74,7 +77,7 @@ export async function POST(
         body.apartmentSlug
       );
 
-    const apartmentName =
+    let apartmentName =
       normalizeText(
         body.apartmentName
       );
@@ -204,6 +207,35 @@ export async function POST(
         { success: false, message: "방문 희망일은 오늘부터 선택해주세요." },
         { status: 400 }
       );
+    }
+
+    if (inquiryType !== "subscription-alert") {
+      const { data: row, error } = await supabaseAdmin
+        .from("apartments")
+        .select("*")
+        .eq("slug", apartmentSlug)
+        .eq("is_published", true)
+        .maybeSingle();
+
+      if (error) {
+        console.error("상담 접수 단지 조회 실패:", error.code);
+        return NextResponse.json(
+          { success: false, message: "접수 상태를 확인하지 못했습니다. 잠시 후 다시 시도해주세요." },
+          { status: 503 }
+        );
+      }
+
+      const apartment = row ? normalizeApartment(row) : null;
+      const stage = apartment ? getListingStage(apartment) : null;
+      if (!apartment || !canAcceptApartmentInquiry(apartment) ||
+          (isVisitReservation && stage !== "firstCome")) {
+        return NextResponse.json(
+          { success: false, message: "현재 이 단지는 해당 상담 또는 방문예약을 받지 않습니다." },
+          { status: 409 }
+        );
+      }
+
+      apartmentName = apartment.name;
     }
 
     const now =

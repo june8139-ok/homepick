@@ -3,7 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { Apartment } from "../../types/apartment";
-import { getListingStage } from "../../lib/listingStage";
 function photo(a: Apartment) {
   return (
     [a.images.hero, ...a.images.gallery].find(
@@ -12,18 +11,10 @@ function photo(a: Apartment) {
   );
 }
 export default function FeaturedSlider({
-  apartments,
+  apartments: slides,
 }: {
   apartments: Apartment[];
 }) {
-  const slides = apartments
-    .filter((a) => getListingStage(a) === "firstCome" && photo(a))
-    .sort(
-      (a, b) =>
-        (Date.parse(b.createdAt || "") || 0) -
-          (Date.parse(a.createdAt || "") || 0) || a.slug.localeCompare(b.slug),
-    )
-    .slice(0, 4);
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [interacting, setInteracting] = useState(false);
@@ -113,7 +104,14 @@ export default function FeaturedSlider({
             />
             <div className="featured-shade" />
             <div className="featured-copy">
-              <p className="featured-eyebrow">선착순 분양</p>
+              <div className={a.housingSupplyType === "privateRental" ? "featured-badges featured-badges-rental" : "featured-badges"}>
+                <p className="featured-eyebrow">
+                  {a.housingSupplyType === "privateRental" ? "선착순" : "선착순 분양"}
+                </p>
+                {a.housingSupplyType === "privateRental" && (
+                  <span className="home-rental-badge">민간임대</span>
+                )}
+              </div>
               <h2>{a.name}</h2>
               <p className="featured-location"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z" stroke="currentColor" strokeWidth="1.8"/><circle cx="12" cy="10" r="2.3" stroke="currentColor" strokeWidth="1.8"/></svg>{a.cityName || a.region}</p>
               {a.condition && (

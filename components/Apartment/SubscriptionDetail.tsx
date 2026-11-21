@@ -1,3 +1,4 @@
+import { isPublicSale } from "../../lib/apartmentInquiryPolicy";
 import type { Apartment } from "../../types/apartment";
 import { formatSubscriptionDate } from "../../lib/subscriptionVisibility";
 import { getMoveInText } from "../../lib/apartmentDisplay";
@@ -72,6 +73,8 @@ export default function SubscriptionDetail({ apartment: a, archived = false }: {
   ].filter(([, value]) => Boolean(value));
   const notice = safeUrl(schedule?.noticeUrl || text(raw, "PBLANC_URL") || a.applyHomeUrl);
   const homepage = safeUrl(text(raw, "HMPG_ADRES"));
+  const publicSale = isPublicSale(a);
+  const apply = publicSale && !archived ? safeUrl(schedule?.applyUrl) : "";
   const models = (a.applyHomeModels || []).filter((row) => text(row, "HOUSE_TY"));
   const flags = [
     ["분양가상한제 적용", "PARCPRC_ULS_AT"],
@@ -79,14 +82,16 @@ export default function SubscriptionDetail({ apartment: a, archived = false }: {
     ["조정대상지역", "MDAT_TRGET_AREA_SECD"],
     ["공공주택지구", "PUBLIC_HOUSE_EARTH_AT"],
   ].filter(([, key]) => text(raw, key) === "Y");
-  if (!schedules.length && !Object.keys(raw).length && !models.length) return null;
+  if (!schedules.length && !Object.keys(raw).length && !models.length && !notice && (!publicSale || archived)) return null;
 
   const content = (
     <>
       <p className={styles.note}>
         {archived
           ? "청약홈에 등록된 공고 당시 기록입니다. 아래 공급세대수·공급금액은 현재 잔여세대수·선착순 계약조건을 뜻하지 않습니다."
-          : "청약홈 공개자료 기준입니다. 공급 유형과 신청자별 자격·세부 조건은 공식 모집공고를 확인하세요."}
+          : publicSale
+            ? "신청 자격과 접수 가능 여부는 사업주체의 공식 모집공고에서 확인해 주세요."
+            : "청약홈 공개자료 기준입니다. 공급 유형과 신청자별 자격·세부 조건은 공식 모집공고를 확인하세요."}
       </p>
       {schedules.length > 0 && (
         <div id={archived ? undefined : "schedule"}>
@@ -135,7 +140,11 @@ export default function SubscriptionDetail({ apartment: a, archived = false }: {
           <p className={styles.note}>최고 공급금액은 해당 타입의 공고 당시 최고금액입니다. 실제 최저가·현재 판매가격·발코니 및 옵션 포함 총액과 다릅니다. ‘—’는 제공된 값이 없는 항목입니다.</p>
         </div>
       )}
-      {(notice || homepage) && <div className={styles.sourceLinks}>
+      {publicSale && !notice && !apply && (
+        <p className={styles.note}>등록된 공식 공고 또는 신청처 링크가 없습니다.</p>
+      )}
+      {(notice || homepage || apply) && <div className={styles.sourceLinks}>
+        {apply && apply !== notice && <a className={styles.more} href={apply} target="_blank" rel="noopener noreferrer">공식 신청처 확인 ↗</a>}
         {notice && <a className={styles.more} href={notice} target="_blank" rel="noopener noreferrer">공식 모집공고 확인 ↗</a>}
         {homepage && <a className={styles.more} href={homepage} target="_blank" rel="noopener noreferrer">공고에 등록된 홈페이지 ↗</a>}
       </div>}

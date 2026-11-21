@@ -1,3 +1,4 @@
+import { canAcceptApartmentInquiry } from "../../../../lib/apartmentInquiryPolicy";
 import PropertySectionContent from "../../../../components/Apartment/PropertySectionContent";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -87,9 +88,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function DetailSectionPage({ params }: Props) {
   const { a, section } = await resolve(params);
   const stage = getListingStage(a);
-  const canInquire =
-    (stage === "firstCome" || stage === "subscription") &&
-    a.leadType !== "closed";
+  const canInquire = canAcceptApartmentInquiry(a);
 
   const site =
     process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||

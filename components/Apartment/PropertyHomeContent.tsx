@@ -1,3 +1,4 @@
+import { canAcceptApartmentInquiry } from "../../lib/apartmentInquiryPolicy";
 import type { Apartment } from "../../types/apartment";
 import {
   getDetailSections,
@@ -5,8 +6,11 @@ import {
   sectionLabels,
   overviewRows,
   locationRows,
+  sectionImages,
+  validImage,
 } from "../../lib/apartmentPages";
 import Link from "next/link";
+import Image from "next/image";
 import SubscriptionDetail from "./SubscriptionDetail";
 import { getListingStage } from "../../lib/listingStage";
 import PropertyConditionSummary from "./PropertyConditionSummary";
@@ -24,15 +28,25 @@ function locationPreview(value: string) {
   }
   return selected.join(" · ") || "상세 메뉴에서 등록된 내용을 확인하세요.";
 }
+function PreviewImage({ src, label, href }: { src: string; label: string; href: string }) {
+  return (
+    <Link href={href} className="relative mt-4 block aspect-[16/9] max-h-80 overflow-hidden rounded-xl border border-emerald-100 bg-zinc-50 focus-visible:outline-2 focus-visible:outline-emerald-700">
+      <Image src={src} alt={label} fill sizes="(max-width: 640px) 90vw, 850px" className="object-contain" />
+    </Link>
+  );
+}
+
 export default function PropertyHomeContent({ a }: { a: Apartment }) {
   const stage = getListingStage(a);
-  const canInquire =
-    (stage === "firstCome" || stage === "subscription") &&
-    a.leadType !== "closed";
+  const canInquire = canAcceptApartmentInquiry(a);
   const sections = getDetailSections(a);
   const overview = sections.includes("overview")
-    ? overviewRows(a).filter(([label]) => ["사업지 위치", "건축 규모", "총 세대수", "입주예정"].includes(label))
+    ? overviewRows(a).filter(([label]) => ["사업지 위치", "건축 규모", "총 세대수", "이번 공고 공급 세대수", "주차", "입주예정"].includes(label))
     : [];
+  const overviewImage = sections.includes("overview") ? sectionImages(a, "overview")[0] : undefined;
+  const representativePlan = sections.includes("plans")
+    ? a.images.floorPlans.find((plan) => validImage(plan.url))
+    : undefined;
   const location = sections.includes("location")
     ? locationRows(a)
         .filter(([label]) => ["교통", "교육·통학", "생활 편의"].includes(label))
@@ -47,20 +61,6 @@ export default function PropertyHomeContent({ a }: { a: Apartment }) {
         </p>
       )}
       {stage === "subscription" && <SubscriptionDetail apartment={a} />}
-      {overview.length > 0 && (
-        <section className={styles.panel}>
-          <p className={styles.eyebrow}>집눈 · 단지 기본정보</p>
-          <h2 className={styles.heading}>{a.name} 사업개요</h2>
-          <dl className={styles.facts}>
-            {overview.map(([label, value]) => (
-              <div key={label}><dt>{label}</dt><dd>{value}</dd></div>
-            ))}
-          </dl>
-          <Link className={styles.more} href={detailHref(a.slug, "overview")}>
-            사업개요 자세히 보기 <span aria-hidden="true">→</span>
-          </Link>
-        </section>
-      )}
       {sections.includes("pricing") && (
         <>
           <PropertyConditionSummary apartment={a} compact />
@@ -68,6 +68,37 @@ export default function PropertyHomeContent({ a }: { a: Apartment }) {
             {a.housingSupplyType === "privateRental" ? "임대·계약조건" : "평형별 분양가·계약조건"} 자세히 보기 <span aria-hidden="true">→</span>
           </Link>
         </>
+      )}
+      {(overview.length > 0 || overviewImage) && (
+        <section className={styles.panel}>
+          <p className={styles.eyebrow}>집눈 · 단지 기본정보</p>
+          <h2 className={styles.heading}>{a.name} 사업개요</h2>
+          {overviewImage && (
+            <PreviewImage src={overviewImage} label={`${a.name} 사업개요 자료`} href={detailHref(a.slug, "overview")} />
+          )}
+          {overview.length > 0 && <dl className={styles.facts}>
+            {overview.map(([label, value]) => (
+              <div key={label}><dt>{label}</dt><dd>{value}</dd></div>
+            ))}
+          </dl>}
+          <Link className={styles.more} href={detailHref(a.slug, "overview")}>
+            사업개요 자세히 보기 <span aria-hidden="true">→</span>
+          </Link>
+        </section>
+      )}
+      {representativePlan && (
+        <section className={styles.panel}>
+          <h2 className={styles.heading}>대표 평면도</h2>
+          <PreviewImage
+            src={representativePlan.url}
+            label={`${a.name} ${representativePlan.name} 평면도`}
+            href={detailHref(a.slug, "plans")}
+          />
+          {representativePlan.name && <p className={styles.note}>{representativePlan.name}</p>}
+          <Link className={styles.more} href={detailHref(a.slug, "plans")}>
+            타입별 평면도 보기 <span aria-hidden="true">→</span>
+          </Link>
+        </section>
       )}
       {location.length > 0 && (
         <section className={styles.panel}>

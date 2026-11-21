@@ -633,6 +633,10 @@ export function buildApartment(
     name:
       basicInfo.name,
 
+    noticeParentSlug: basicInfo.noticeParentSlug.trim(),
+    materialSource: basicInfo.materialSource.trim(),
+    materialDate: basicInfo.materialDate.trim(),
+
     projectGroup:
       basicInfo.projectGroup.trim() ||
       undefined,

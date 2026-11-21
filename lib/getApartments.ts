@@ -24,7 +24,7 @@ async function fetchPublishedApartments() {
       error
     );
 
-    return [];
+    throw new Error("단지 목록을 조회하지 못했습니다.");
   }
 
   return (data ?? []).map(
@@ -42,7 +42,7 @@ const getCachedPublishedApartments =
       return gzipSync(Buffer.from(JSON.stringify(apartments), "utf8"))
         .toString("base64");
     },
-    ["published-apartments-gzip-v1"],
+    ["published-apartments-gzip-v3"],
     {
       revalidate: 3600,
       tags: ["apartments"],
@@ -79,7 +79,7 @@ export async function getApartments(
       error
     );
 
-    return [];
+    throw new Error("단지 목록을 조회하지 못했습니다.");
   }
 
   return (data ?? []).map(

@@ -4,9 +4,7 @@ import type { Apartment } from "../../types/apartment";
 import {
   overviewRows,
   locationRows,
-  paymentRows,
   sectionImages,
-  overviewIntroduction,
   validImage,
   type DetailSection,
 } from "../../lib/apartmentPages";
@@ -131,9 +129,6 @@ export default function PropertySectionContent({
     <>
       {section === "overview" && (
         <>
-          <div className="property-prose">
-            <p>{overviewIntroduction(a)}</p>
-          </div>
           <Facts rows={overviewRows(a)} />
           <SectionPictures
             images={sectionImages(a, section)}
@@ -157,12 +152,6 @@ export default function PropertySectionContent({
           )}
           <PropertyConditionSummary apartment={a} />
           <PriceConditionCard apartment={a} />
-          {paymentRows(a).length > 0 && (
-            <section className="property-detail-block">
-              <h2>납부 일정·혜택 적용 조건</h2>
-              <Facts rows={paymentRows(a)} />
-            </section>
-          )}
           {a.contractDetails && (
             <section className="property-prose">
               <h2>계약조건 상세 안내</h2>

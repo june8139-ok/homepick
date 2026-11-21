@@ -641,6 +641,56 @@ export async function POST(
       );
     }
 
+    const materialSource = payload.data.materialSource;
+    const materialDate = payload.data.materialDate;
+    if (materialSource !== undefined) {
+      if (typeof materialSource !== "string" || materialSource.trim().length > 120) {
+        return NextResponse.json({ message: "자료 출처는 120자 이내로 입력해 주세요." }, { status: 400 });
+      }
+      payload.data.materialSource = materialSource.trim();
+    }
+    if (materialDate !== undefined) {
+      const value = typeof materialDate === "string" ? materialDate.trim() : null;
+      const date = value ? new Date(value + "T00:00:00Z") : null;
+      if (value === null || (value && (
+        !/^\d{4}-\d{2}-\d{2}$/.test(value) ||
+        !date || !Number.isFinite(date.getTime()) ||
+        date.toISOString().slice(0, 10) !== value
+      ))) {
+        return NextResponse.json({ message: "자료 기준일은 YYYY-MM-DD 형식의 실제 날짜로 입력해 주세요." }, { status: 400 });
+      }
+      payload.data.materialDate = value;
+    }
+
+    if (Object.hasOwn(payload.data, "noticeParentSlug") || mode === "edit") {
+      const parentSlug = payload.data.noticeParentSlug;
+      if (parentSlug !== undefined && typeof parentSlug !== "string") {
+        return NextResponse.json({ message: "대표 단지 주소를 확인해 주세요." }, { status: 400 });
+      }
+
+      const parent = typeof parentSlug === "string" ? parentSlug.trim() : "";
+      if (typeof parentSlug === "string") payload.data.noticeParentSlug = parent;
+      if (parent) {
+        if (parent === payload.slug.trim() || parent === editingSlug) {
+          return NextResponse.json({ message: "현재 공고를 자기 자신에 연결할 수 없습니다." }, { status: 400 });
+        }
+        const { data: target, error } = await supabaseAdmin
+          .from("apartments").select("data").eq("slug", parent).eq("is_published", true).maybeSingle();
+        if (error) throw new Error("대표 단지 조회 실패", { cause: error });
+        if (!target || toRecord(target.data).noticeParentSlug) {
+          return NextResponse.json({ message: "다른 단지에 연결되지 않은 공개 대표 페이지를 입력해 주세요." }, { status: 400 });
+        }
+      }
+      if (mode === "edit" && editingSlug && (parent || payload.slug.trim() !== editingSlug)) {
+        const { data: children, error } = await supabaseAdmin
+          .from("apartments").select("slug").contains("data", { noticeParentSlug: editingSlug }).limit(1);
+        if (error) throw new Error("연결된 공고 조회 실패", { cause: error });
+        if (children?.length) {
+          return NextResponse.json({ message: "연결된 공고가 있어 대표 페이지의 주소나 연결 대상을 바꿀 수 없습니다." }, { status: 409 });
+        }
+      }
+    }
+
     /*
      * 기존 단지 수정
      */
@@ -731,6 +781,8 @@ export async function POST(
           existingApartment.data,
           payload.data
         );
+
+      mergedData.editorialUpdatedAt = new Date().toISOString();
 
       if (meaningfulUpdateType) {
         mergedData.lastMeaningfulUpdateAt =
@@ -847,6 +899,7 @@ export async function POST(
     const createdAt =
       new Date().toISOString();
 
+    createdData.editorialUpdatedAt = createdAt;
     createdData.detailPages = normalizeDetailPages(createdData.detailPages);
     delete createdData.firstComeReview;
     if (createdData.listingStage === "firstCome") {

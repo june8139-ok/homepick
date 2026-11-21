@@ -1,3 +1,5 @@
+import { canAcceptApartmentInquiry } from "../../../lib/apartmentInquiryPolicy";
+import { normalizeApartment } from "../../../lib/normalizeApartment";
 import {
   NextRequest,
   NextResponse,
@@ -274,6 +276,22 @@ export async function POST(
         {
           status: 400,
         }
+      );
+    }
+
+    const { data: apartmentRow, error: apartmentError } = await supabaseAdmin
+      .from("apartments").select("*").eq("slug", apartmentSlug).eq("is_published", true).maybeSingle();
+    if (apartmentError) {
+      console.error("청약 접수 단지 조회 실패:", apartmentError.code);
+      return NextResponse.json(
+        { success: false, message: "접수 상태를 확인하지 못했습니다. 잠시 후 다시 시도해주세요." },
+        { status: 503 }
+      );
+    }
+    if (!apartmentRow || !canAcceptApartmentInquiry(normalizeApartment(apartmentRow))) {
+      return NextResponse.json(
+        { success: false, message: "현재 이 단지는 청약 알림이나 상담을 받지 않습니다." },
+        { status: 409 }
       );
     }
 

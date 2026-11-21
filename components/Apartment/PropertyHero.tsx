@@ -1,3 +1,4 @@
+import { canAcceptApartmentInquiry } from "../../lib/apartmentInquiryPolicy";
 import Image from "next/image";
 import PropertyGallery from "./PropertyGallery";
 import Link from "next/link";
@@ -98,7 +99,7 @@ export default function PropertyHero({
           <Link href="/favorites">관심단지 보기 ♡</Link>
         </div>
         <ApartmentDataTrust apartment={a} />
-        {first && a.leadType !== "closed" && (
+        {first && canAcceptApartmentInquiry(a) && (
           <InquiryActions apartmentSlug={a.slug} apartmentName={a.name} />
         )}
       </div>

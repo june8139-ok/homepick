@@ -481,6 +481,35 @@ export default function BasicInfoSection() {
             </p>
           </div>
 
+          <div>
+            <Input
+              label="자료 출처"
+              placeholder="예: 공식 모집공고, 사업주체 홈페이지, 현장 안내"
+              value={basicInfo.materialSource}
+              onChange={(value) => setBasicInfo({ ...basicInfo, materialSource: value })}
+            />
+          </div>
+          <div>
+            <Input
+              label="자료 기준일"
+              placeholder="YYYY-MM-DD · 자료에 날짜가 없으면 비워두세요"
+              value={basicInfo.materialDate}
+              onChange={(value) => setBasicInfo({ ...basicInfo, materialDate: value })}
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <Input
+              label="같은 단지의 대표 페이지 주소 이름"
+              placeholder="대표 단지 주소의 마지막 부분"
+              value={basicInfo.noticeParentSlug}
+              onChange={(value) => setBasicInfo({ ...basicInfo, noticeParentSlug: value })}
+            />
+            <p className="mt-2 text-xs leading-5 text-zinc-400">
+              추가 모집·공가세대·조합원 취소분에서만 대표 단지 주소의 마지막 부분을 입력하세요.
+              대표 페이지와 다른 블록은 비워두세요. 연결을 해제할 때는 값을 지우고 저장하세요.
+            </p>
+          </div>
+
           <Input
             label="브랜드"
             value={

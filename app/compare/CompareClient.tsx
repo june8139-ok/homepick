@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 
 import type {
@@ -1053,48 +1052,7 @@ function CompactSummaryItem({
 export default function CompareClient({
   apartments,
 }: Props) {
-  const searchParams =
-    useSearchParams();
-
-  const idsFromQuery =
-    searchParams
-      .get("ids")
-      ?.split(",")
-      .map((slug) =>
-        slug.trim()
-      )
-      .filter(Boolean) ?? [];
-
-  const legacyIds = [
-    searchParams.get("left"),
-    searchParams.get("right"),
-  ].filter(
-    (slug): slug is string =>
-      Boolean(slug)
-  );
-
-  const selectedSlugs = [
-    ...new Set(
-      idsFromQuery.length > 0
-        ? idsFromQuery
-        : legacyIds
-    ),
-  ].slice(0, 2);
-
-  const selectedApartments =
-    selectedSlugs
-      .map((slug) =>
-        apartments.find(
-          (apartment) =>
-            apartment.slug === slug
-        )
-      )
-      .filter(
-        (
-          apartment
-        ): apartment is Apartment =>
-          Boolean(apartment)
-      );
+  const selectedApartments = apartments;
 
   if (
     selectedApartments.length < 2

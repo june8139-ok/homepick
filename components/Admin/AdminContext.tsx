@@ -35,6 +35,9 @@ export type BasicInfo = {
   name: string;
   searchAliases: string;
   projectGroup: string;
+  noticeParentSlug: string;
+  materialSource: string;
+  materialDate: string;
   brand: string;
   builder: string;
 
@@ -97,6 +100,9 @@ type InitialApartment = {
   name?: string;
   searchAliases?: string[];
   projectGroup?: string;
+  noticeParentSlug?: string;
+  materialSource?: string;
+  materialDate?: string;
   brand?: string;
   builder?: string;
 
@@ -260,6 +266,9 @@ const defaultBasicInfo: BasicInfo = {
   name: "",
   searchAliases: "",
   projectGroup: "",
+  noticeParentSlug: "",
+  materialSource: "",
+  materialDate: "",
   brand: "",
   builder: "",
 
@@ -678,6 +687,9 @@ function createInitialBasicInfo(
 
     projectGroup:
       apartment.projectGroup ?? "",
+    noticeParentSlug: apartment.noticeParentSlug ?? "",
+    materialSource: apartment.materialSource ?? "",
+    materialDate: apartment.materialDate ?? "",
 
     brand:
       apartment.brand ?? "",

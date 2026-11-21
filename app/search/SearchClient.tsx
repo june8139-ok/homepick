@@ -1,4 +1,5 @@
 "use client";
+import { matchesSupplySearch } from "../../lib/supplySearch";
 import dynamic from "next/dynamic";
 import MobileSearchCarousel from "./components/MobileSearchCarousel";
 
@@ -193,6 +194,9 @@ function keywordMatch(
   if (!keyword) {
     return true;
   }
+
+  const supplyMatch = matchesSupplySearch(apartment, keyword);
+  if (supplyMatch !== undefined) return supplyMatch;
 
   if (locationMode) {
     return locationKeywordMatch(

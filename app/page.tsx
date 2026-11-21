@@ -6,7 +6,7 @@ import { getBriefings } from "../lib/getBriefings";
 import { getServerReferenceNow } from "../lib/serverReferenceTime";
 
 /*
- * 홈 데이터는 최대 60초마다 다시 갱신합니다.
+ * 홈 페이지의 재검증 간격을 300초로 설정합니다.
  *
  * 새 단지 등록, 공개/숨김 변경, 청약·선착순 상태 변경이
  * 홈 현황과 지역별 지도 숫자에 자동 반영됩니다.

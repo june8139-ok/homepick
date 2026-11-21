@@ -151,7 +151,8 @@ export function overviewRows(a: Apartment) {
     ["시행사", p.developer],
     ["시공사", a.builder],
     ["건축 규모", p.scale],
-    ["총 세대수", p.totalHouseholds || String(a.totalSupply || "")],
+    ["총 세대수", p.totalHouseholds],
+    ["이번 공고 공급 세대수", !p.totalHouseholds && !p.saleHouseholds && a.totalSupply ? String(a.totalSupply) : ""],
     ["일반분양 세대수", p.saleHouseholds],
     ["주차", p.parking],
     ["입주예정", p.moveInDate],
@@ -224,20 +225,6 @@ export function getDetailSections(a: Apartment): DetailSection[] {
   return detailSections.filter(
     (k) => a.detailPages?.[k]?.mode !== "hidden" && hasSectionContent(a, k),
   );
-}
-export function overviewIntroduction(a: Apartment) {
-  const p = a.projectInfo;
-  return [
-    `${a.name}의 사업개요입니다.`,
-    a.region ? `사업지는 ${a.region}입니다.` : "",
-    p?.scale ? `건축 규모는 ${p.scale}입니다.` : "",
-    p?.totalHouseholds ? `총 ${p.totalHouseholds} 규모입니다.` : "",
-    p?.moveInDate
-      ? `입주 일정은 ${p.moveInDate} 기준으로 안내되어 있습니다.`
-      : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
 }
 export function detailDescription(a: Apartment, key: DetailSection) {
   const c = a.detailPages?.[key];

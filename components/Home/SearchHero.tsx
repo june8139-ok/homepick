@@ -1,5 +1,6 @@
 "use client";
 
+import { getSupplySearch, matchesSupplySearch } from "../../lib/supplySearch";
 import Link from "next/link";
 
 import {
@@ -180,6 +181,8 @@ function SearchHero({ apartments }: { apartments: Apartment[] }) {
 
     return apartments
       .filter((apartment) => {
+        const supplyMatch = matchesSupplySearch(apartment, normalizedKeyword);
+        if (supplyMatch !== undefined) return supplyMatch;
         if (locationMode) {
           return locationSearchMatch(apartment, normalizedKeyword);
         }
@@ -232,6 +235,11 @@ function SearchHero({ apartments }: { apartments: Apartment[] }) {
     if (activeIndex >= 0 && suggestions[activeIndex]) {
       openApartment(suggestions[activeIndex]);
 
+      return;
+    }
+
+    if (getSupplySearch(keyword)) {
+      openSearch(keyword);
       return;
     }
 

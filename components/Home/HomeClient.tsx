@@ -1,7 +1,6 @@
-"use client";
+import { toSearchApartment } from "../../lib/searchApartmentData";
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo } from "react";
 import type { Apartment, SubscriptionSchedule } from "../../types/apartment";
 import type { Briefing } from "../../types/briefing";
 import {
@@ -12,7 +11,7 @@ import {
 } from "../../lib/subscriptionVisibility";
 import { isPublicListing } from "../../lib/listingStage";
 import { getListingCardPrice } from "../../lib/apartmentDisplay";
-import { getRecentUpdatedApartments } from "../../lib/recentApartments";
+import { getRecentUpdatedApartments, RECENT_UPDATE_DAYS } from "../../lib/recentApartments";
 import FavoriteButton from "../Apartment/FavoriteButton";
 import FeaturedSlider from "./FeaturedSlider";
 import SearchHero from "./SearchHero";
@@ -76,6 +75,14 @@ function photo(a: Apartment) {
     ) || ""
   );
 }
+function recentFirstComeActivity(a: Apartment, now: number) {
+  const changedAt = a.lastUpdateType === "계약조건 변경" ? a.lastMeaningfulUpdateAt : null;
+  const cutoff = now - RECENT_UPDATE_DAYS * 86_400_000;
+  return Math.max(0, ...[changedAt, a.firstComeConfirmedAt].map((value) => {
+    const time = Date.parse(value || "");
+    return time >= cutoff && time <= now ? time : 0;
+  }));
+}
 function UnitCard({ a }: { a: Apartment }) {
   const image = photo(a);
   const href = `/apartments/${encodeURIComponent(a.slug)}`;
@@ -83,7 +90,12 @@ function UnitCard({ a }: { a: Apartment }) {
   return (
     <article className="home-unit-card">
       <Link href={href} className="home-unit-photo">
-        <span className="home-unit-badge">선착순 분양</span>
+        <span className="home-unit-badge">
+          <span>{a.housingSupplyType === "privateRental" ? "선착순" : "선착순 분양"}</span>
+          {a.housingSupplyType === "privateRental" && (
+            <span className="home-rental-badge">민간임대</span>
+          )}
+        </span>
         {image ? (
           <Image
             src={image}
@@ -120,49 +132,34 @@ export default function HomeClient({
   briefings: Briefing[];
   referenceNow: number;
 }) {
-  const visible = useMemo(
-    () => getHomeVisibleApartments(apartments, new Date(referenceNow)),
-    [apartments, referenceNow],
+  const visible = getHomeVisibleApartments(apartments, new Date(referenceNow));
+  const homeSearch = new Map(apartments.filter(isPublicListing).map((a) => [a.slug, toSearchApartment(a, true)]));
+  const mapApartments = visible.map((a) => homeSearch.get(a.slug) ?? toSearchApartment(a, true));
+  const firstCome = visible.filter(isFirstComeApartment).sort(
+    (a, b) => (Date.parse(b.createdAt || "") || 0) -
+      (Date.parse(a.createdAt || "") || 0) || a.slug.localeCompare(b.slug),
   );
-  const search = useMemo(
-    () => apartments.filter(isPublicListing),
-    [apartments],
-  );
-  const firstCome = useMemo(
-    () =>
-      visible
-        .filter(isFirstComeApartment)
-        .sort(
-          (a, b) =>
-            (Date.parse(b.createdAt || "") || 0) -
-            (Date.parse(a.createdAt || "") || 0),
-        ),
-    [visible],
-  );
-  const schedules = useMemo(
-    () =>
-      getVisibleSubscriptions(apartments, new Date(referenceNow))
-        .flatMap((a) => {
-          const event = nextEvent(a, referenceNow);
-          return event ? [{ a, event }] : [];
-        })
-        .sort(
-          (a, b) =>
-            a.event.sort - b.event.sort || a.a.slug.localeCompare(b.a.slug),
-        )
-        .slice(0, 4),
-    [apartments, referenceNow],
-  );
-  const recent = useMemo(
-    () =>
-      getRecentUpdatedApartments(visible, undefined, referenceNow).slice(0, 4),
-    [visible, referenceNow],
-  );
+  const featured = firstCome.filter(photo).slice(0, 4);
+  const featuredSlugs = new Set(featured.map((a) => a.slug));
+  const recommended = firstCome.map((apartment) => ({
+    apartment,
+    activity: recentFirstComeActivity(apartment, referenceNow),
+    featured: featuredSlugs.has(apartment.slug),
+  })).sort((a, b) => Number(a.featured) - Number(b.featured) || b.activity - a.activity)
+    .slice(0, 4).map(({ apartment }) => apartment);
+  const schedules = getVisibleSubscriptions(apartments, new Date(referenceNow))
+    .flatMap((a) => {
+      const event = nextEvent(a, referenceNow);
+      return event ? [{ a, event }] : [];
+    })
+    .sort((a, b) => a.event.sort - b.event.sort || a.a.slug.localeCompare(b.a.slug))
+    .slice(0, 4);
+  const recent = getRecentUpdatedApartments(visible, undefined, referenceNow).slice(0, 4);
   return (
     <main className="home-refined">
       <div className="home-lead">
-      <FeaturedSlider apartments={firstCome} />
-      <SearchHero apartments={search} />
+      <FeaturedSlider apartments={featured.map((a) => homeSearch.get(a.slug) ?? toSearchApartment(a, true))} />
+      <SearchHero apartments={[...homeSearch.values()]} />
         <section className="home-schedules">
           <div className="home-section-title">
             <h2>
@@ -227,7 +224,7 @@ export default function HomeClient({
             </Link>
           </div>
           <div className="home-unit-grid">
-            {firstCome.slice(0, 4).map((a) => (
+            {recommended.map((a) => (
               <UnitCard key={a.slug} a={a} />
             ))}
           </div>
@@ -257,7 +254,7 @@ export default function HomeClient({
             </div>
           </section>
         )}
-        <DeferredRegionMapSection apartments={visible} />
+        <DeferredRegionMapSection apartments={mapApartments} />
         <section className="home-region-links">
           <div className="home-section-title">
             <h2>지역별 분양정보</h2>

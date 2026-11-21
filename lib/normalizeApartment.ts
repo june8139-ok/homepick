@@ -495,6 +495,11 @@ export function normalizeApartment(
       )
     ),
 
+    noticeParentSlug: toStringValue(data.noticeParentSlug).trim() || undefined,
+    materialSource: toStringValue(data.materialSource).trim() || undefined,
+    materialDate: toStringValue(data.materialDate).trim() || undefined,
+    editorialUpdatedAt: toStringValue(data.editorialUpdatedAt).trim() || undefined,
+
     projectGroup:
       toStringValue(
         data.projectGroup
@@ -627,6 +632,9 @@ export function normalizeApartment(
         )
       ),
 
+    lastMeaningfulUpdateAt: toNullableString(data.lastMeaningfulUpdateAt),
+    lastUpdateType: toNullableString(data.lastUpdateType),
+    firstComeConfirmedAt: toNullableString(asRecord(data.firstComeReview).lastConfirmedAt),
     updatedAt:
       toNullableString(
         firstDefined(

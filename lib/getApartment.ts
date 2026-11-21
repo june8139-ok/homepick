@@ -13,8 +13,7 @@ const getApartmentCached = cache(async (slug: string) => {
   const exact = await supabase.from("apartments").select("*")
     .eq("is_published", true).eq("slug", decodedSlug).maybeSingle();
   if (exact.error) {
-    console.error("단지 주소 조회 오류:", exact.error.code);
-    return null;
+    throw new Error("단지 주소 조회에 실패했습니다.", { cause: exact.error });
   }
   if (exact.data) return normalizeApartment(exact.data);
 
@@ -23,13 +22,18 @@ const getApartmentCached = cache(async (slug: string) => {
   if (nameLikeSlug !== decodedSlug) {
     const legacy = await supabase.from("apartments").select("*")
       .eq("is_published", true).eq("slug", nameLikeSlug).maybeSingle();
-    if (legacy.error) return null;
+    if (legacy.error) {
+      throw new Error("이전 단지 주소 조회에 실패했습니다.", { cause: legacy.error });
+    }
     if (legacy.data) return normalizeApartment(legacy.data);
   }
   const byName = await supabase.from("apartments").select("*")
     .eq("is_published", true).eq("name", nameLikeSlug).limit(2);
+  if (byName.error) {
+    throw new Error("단지 이름 조회에 실패했습니다.", { cause: byName.error });
+  }
   // 이름만 일치하는 후보가 여러 개라면 임의로 다른 공고에 연결하지 않습니다.
-  if (byName.error || byName.data?.length !== 1) return null;
+  if (byName.data?.length !== 1) return null;
   return normalizeApartment(byName.data[0]);
 });
 

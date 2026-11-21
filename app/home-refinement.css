@@ -906,3 +906,45 @@ box-shadow: 0 2px 8px #102e2010;
 .home-refined .home-unit-card:hover,
 .home-refined .home-unit-card:hover .home-unit-photo img { transform: none; }
 }
+
+.home-refined .featured-badges {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+.home-refined .featured-copy .featured-badges-rental .featured-eyebrow {
+  display: inline-flex;
+}
+.home-refined .home-unit-photo > .home-unit-badge:has(.home-rental-badge) {
+  display: inline-flex;
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 1;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.home-refined .home-unit-badge:has(.home-rental-badge) > span:first-child,
+.home-refined .featured-copy .featured-badges-rental .featured-eyebrow {
+  padding: 4px 10px;
+  border: 1px solid #c4ddce;
+  border-radius: 999px;
+  background: #e1efe8;
+  color: #245d49;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 16px;
+}
+.home-refined .home-rental-badge {
+  padding: 4px 10px;
+  border: 1px solid #13223826;
+  border-radius: 999px;
+  background: #fff;
+  color: #132238;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 16px;
+}
