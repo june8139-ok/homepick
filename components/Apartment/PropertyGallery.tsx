@@ -20,7 +20,7 @@ export default function PropertyGallery({
         priority
         quality={90}
         sizes="(max-width:768px) 100vw, 800px"
-        className="object-cover"
+        className="object-contain"
       />
       {images.length > 1 && (
         <div className="property-gallery-controls">
