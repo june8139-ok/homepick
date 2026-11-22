@@ -44,9 +44,18 @@ export default function PropertyHomeContent({ a }: { a: Apartment }) {
     ? overviewRows(a).filter(([label]) => ["사업지 위치", "건축 규모", "총 세대수", "이번 공고 공급 세대수", "주차", "입주예정"].includes(label))
     : [];
   const overviewImage = sections.includes("overview") ? sectionImages(a, "overview")[0] : undefined;
-  const representativePlan = sections.includes("plans")
-    ? a.images.floorPlans.find((plan) => validImage(plan.url))
-    : undefined;
+  const availablePlans = sections.includes("plans")
+    ? a.images.floorPlans.filter((plan) => validImage(plan.url))
+    : [];
+  const firstPlan = availablePlans[0];
+  const areaOf = (name: string) => name.trim().match(/^(?:전용\s*)?(\d+)/u)?.[1];
+  const firstArea = firstPlan ? areaOf(firstPlan.name) : undefined;
+  const otherPlans = availablePlans.filter((plan) => plan !== firstPlan && plan.url !== firstPlan?.url);
+  const secondPlan = otherPlans.find((plan) => {
+    const area = areaOf(plan.name);
+    return area !== undefined && firstArea !== undefined && area !== firstArea;
+  }) ?? otherPlans[0];
+  const representativePlans = firstPlan ? secondPlan ? [firstPlan, secondPlan] : [firstPlan] : [];
   const location = sections.includes("location")
     ? locationRows(a)
         .filter(([label]) => ["교통", "교육·통학", "생활 편의"].includes(label))
@@ -86,15 +95,23 @@ export default function PropertyHomeContent({ a }: { a: Apartment }) {
           </Link>
         </section>
       )}
-      {representativePlan && (
+      {representativePlans.length > 0 && (
         <section className={styles.panel}>
           <h2 className={styles.heading}>대표 평면도</h2>
-          <PreviewImage
-            src={representativePlan.url}
-            label={`${a.name} ${representativePlan.name} 평면도`}
-            href={detailHref(a.slug, "plans")}
-          />
-          {representativePlan.name && <p className={styles.note}>{representativePlan.name}</p>}
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            {representativePlans.map((plan) => (
+              <div key={plan.url} className="min-w-0 rounded-xl border border-emerald-100 bg-zinc-50 p-3 sm:p-4">
+                <h3 className="text-lg font-extrabold text-emerald-950 sm:text-xl">
+                  {plan.name.trim() || "평면도"}
+                </h3>
+                <PreviewImage
+                  src={plan.url}
+                  label={`${a.name} ${plan.name} 평면도`}
+                  href={detailHref(a.slug, "plans")}
+                />
+              </div>
+            ))}
+          </div>
           <Link className={styles.more} href={detailHref(a.slug, "plans")}>
             타입별 평면도 보기 <span aria-hidden="true">→</span>
           </Link>
