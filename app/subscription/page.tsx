@@ -1,3 +1,4 @@
+import { HOME_OG_IMAGE } from "../../lib/ogMetadata";
 import type {
   Metadata,
 } from "next";
@@ -69,7 +70,7 @@ export const metadata: Metadata = {
     images: [
       {
         url:
-          "/opengraph-image",
+          HOME_OG_IMAGE,
         width: 1200,
         height: 630,
         alt:
@@ -86,7 +87,7 @@ export const metadata: Metadata = {
     description:
       PAGE_DESCRIPTION,
     images: [
-      "/opengraph-image",
+      HOME_OG_IMAGE,
     ],
   },
 };

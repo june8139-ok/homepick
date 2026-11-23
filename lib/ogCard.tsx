@@ -40,7 +40,7 @@ function publicPhoto(raw: string) {
   return null;
 }
 
-async function loadPhoto(candidate: string) {
+async function loadPhoto(candidate: string, briefing: boolean) {
   const url = publicPhoto(candidate);
   if (!url) return undefined;
   try {
@@ -63,7 +63,9 @@ async function loadPhoto(candidate: string) {
       chunks.push(value);
     }
     const photo = await sharp(Buffer.concat(chunks), { limitInputPixels: 32_000_000 })
-      .rotate().resize(430, 466, { fit: "cover", position: "attention" })
+      .rotate().resize(briefing ? 640 : 430, briefing ? 440 : 466, briefing
+        ? { fit: "contain", background: "#edf2eb" }
+        : { fit: "cover", position: "attention" })
       .jpeg({ quality: 82 }).toBuffer();
     return `data:image/jpeg;base64,${photo.toString("base64")}`;
   } catch {
@@ -75,9 +77,10 @@ const labels = { home: "집눈", apartment: "집눈", briefing: "집눈 브리�
 
 export async function renderOgCard({ kind, title, candidates = [] }: Card) {
   const [font, logo] = await readAssets();
+  const briefing = kind === "briefing";
   let photo: string | undefined;
   for (const candidate of [...new Set(candidates.filter(Boolean))].slice(0, 2)) {
-    photo = await loadPhoto(candidate);
+    photo = await loadPhoto(candidate, briefing);
     if (photo) break;
   }
 
@@ -86,11 +89,14 @@ export async function renderOgCard({ kind, title, candidates = [] }: Card) {
   const ink = dark ? "#ffffff" : "#103b31";
   const heading = Array.from(title.replace(/\s+/gu, " ").trim());
   const text = heading.length > 64 ? `${heading.slice(0, 63).join("")}…` : heading.join("");
-  const textWidth = photo ? 490 : 980;
+  const columnWidth = photo ? (briefing ? 755 : 660) : 1200;
+  const photoWidth = briefing ? 335 : 430;
+  const photoHeight = briefing ? 230 : 466;
+  const textWidth = photo ? (briefing ? 609 : 490) : 980;
   const words = text.split(" ");
   const longestWord = Math.max(1, ...words.map((word) => Array.from(word).length));
   const fontSize = home ? 96 : Math.max(37, Math.min(
-    heading.length > 34 ? 49 : 70,
+    briefing ? (heading.length > 40 ? 44 : 53) : heading.length > 34 ? 49 : 70,
     Math.floor(textWidth / longestWord),
   ));
   const maxCharacters = Math.floor(textWidth / fontSize);
@@ -121,8 +127,8 @@ export async function renderOgCard({ kind, title, candidates = [] }: Card) {
       )}
       <div style={{
         display: "flex", flexDirection: "column", justifyContent: "center",
-        alignItems: home ? "center" : "flex-start", width: photo ? 660 : 1200,
-        padding: photo ? "64px 60px 64px 110px" : "64px 110px", gap: home ? 19 : 24,
+        alignItems: home ? "center" : "flex-start", width: columnWidth,
+        padding: photo ? (briefing ? "64px 36px 64px 110px" : "64px 60px 64px 110px") : "64px 110px", gap: home ? 19 : 24,
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -140,9 +146,9 @@ export async function renderOgCard({ kind, title, candidates = [] }: Card) {
         )}
       </div>
       {photo && (
-        <div style={{ display: "flex", width: 430, height: 466, borderRadius: 24, overflow: "hidden" }}>
+        <div style={{ display: "flex", width: photoWidth, height: photoHeight, borderRadius: 24, overflow: "hidden" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={photo} alt="" width={430} height={466} style={{ objectFit: "cover", borderRadius: 24 }} />
+          <img src={photo} alt="" width={photoWidth} height={photoHeight} style={{ objectFit: "cover", borderRadius: 24 }} />
         </div>
       )}
     </div>,

@@ -1,3 +1,4 @@
+import { HOME_OG_IMAGE } from "../../lib/ogMetadata";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
@@ -50,7 +51,7 @@ export const metadata: Metadata = {
       "관심 아파트의 분양가, 계약조건과 주요 정보를 집눈에서 비교하세요.",
     images: [
       {
-        url: `${SITE_URL}/opengraph-image`,
+        url: `${SITE_URL}${HOME_OG_IMAGE}`,
         width: 1200,
         height: 630,
         alt: "집눈 아파트 비교",
@@ -63,7 +64,7 @@ export const metadata: Metadata = {
     title: "아파트 비교 | 집눈",
     description:
       "관심 아파트의 분양가, 계약조건과 주요 정보를 집눈에서 비교하세요.",
-    images: [`${SITE_URL}/opengraph-image`],
+    images: [`${SITE_URL}${HOME_OG_IMAGE}`],
   },
 };
 

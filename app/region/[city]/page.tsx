@@ -1,3 +1,4 @@
+import { HOME_OG_IMAGE } from "../../../lib/ogMetadata";
 import type {
   Metadata,
 } from "next";
@@ -584,7 +585,7 @@ export async function generateMetadata({
         {
           url:
             representativeImage ||
-            "/opengraph-image",
+            HOME_OG_IMAGE,
           width:
             representativeImage
               ? undefined
@@ -608,7 +609,7 @@ export async function generateMetadata({
       description,
       images: [
         representativeImage ||
-          "/opengraph-image",
+          HOME_OG_IMAGE,
       ],
     },
   };

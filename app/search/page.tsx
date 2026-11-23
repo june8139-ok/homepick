@@ -1,3 +1,4 @@
+import { HOME_OG_IMAGE } from "../../lib/ogMetadata";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
@@ -91,7 +92,7 @@ export async function generateMetadata({
 
       images: [
         {
-          url: `${SITE_URL}/opengraph-image`,
+          url: `${SITE_URL}${HOME_OG_IMAGE}`,
           width: 1200,
           height: 630,
           alt: "집눈 | 전국 부동산을 한눈에",
@@ -107,7 +108,7 @@ export async function generateMetadata({
       description:
         "전국 청약·선착순 분양 단지를 지도에서 검색하고 비교하세요.",
 
-      images: [`${SITE_URL}/opengraph-image`],
+      images: [`${SITE_URL}${HOME_OG_IMAGE}`],
     },
   };
 }
