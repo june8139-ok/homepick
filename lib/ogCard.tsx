@@ -63,7 +63,7 @@ async function loadPhoto(candidate: string, briefing: boolean) {
       chunks.push(value);
     }
     const photo = await sharp(Buffer.concat(chunks), { limitInputPixels: 32_000_000 })
-      .rotate().resize(briefing ? 640 : 430, briefing ? 440 : 466, briefing
+      .rotate().resize(briefing ? 490 : 430, briefing ? 490 : 466, briefing
         ? { fit: "contain", background: "#edf2eb" }
         : { fit: "cover", position: "attention" })
       .jpeg({ quality: 82 }).toBuffer();
@@ -89,14 +89,14 @@ export async function renderOgCard({ kind, title, candidates = [] }: Card) {
   const ink = dark ? "#ffffff" : "#103b31";
   const heading = Array.from(title.replace(/\s+/gu, " ").trim());
   const text = heading.length > 64 ? `${heading.slice(0, 63).join("")}…` : heading.join("");
-  const columnWidth = photo ? (briefing ? 755 : 660) : 1200;
-  const photoWidth = briefing ? 335 : 430;
-  const photoHeight = briefing ? 230 : 466;
-  const textWidth = photo ? (briefing ? 609 : 490) : 980;
+  const columnWidth = photo ? (briefing ? 600 : 660) : 1200;
+  const photoWidth = briefing ? 490 : 430;
+  const photoHeight = briefing ? 490 : 466;
+  const textWidth = photo ? (briefing ? 458 : 490) : 980;
   const words = text.split(" ");
   const longestWord = Math.max(1, ...words.map((word) => Array.from(word).length));
   const fontSize = home ? 96 : Math.max(37, Math.min(
-    briefing ? (heading.length > 40 ? 44 : 53) : heading.length > 34 ? 49 : 70,
+    briefing ? (heading.length > 42 ? 44 : 50) : heading.length > 34 ? 49 : 70,
     Math.floor(textWidth / longestWord),
   ));
   const maxCharacters = Math.floor(textWidth / fontSize);
@@ -128,7 +128,7 @@ export async function renderOgCard({ kind, title, candidates = [] }: Card) {
       <div style={{
         display: "flex", flexDirection: "column", justifyContent: "center",
         alignItems: home ? "center" : "flex-start", width: columnWidth,
-        padding: photo ? (briefing ? "64px 36px 64px 110px" : "64px 60px 64px 110px") : "64px 110px", gap: home ? 19 : 24,
+        padding: photo ? (briefing ? "60px 32px 60px 110px" : "64px 60px 64px 110px") : "64px 110px", gap: home ? 19 : 24,
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}

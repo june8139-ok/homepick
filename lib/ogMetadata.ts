@@ -10,7 +10,7 @@ export function ogImageUrl(
   updatedAt?: string | null,
 ) {
   const url = new URL(`/og/${kind}/${encodeURIComponent(slug)}`, site);
-  const version = kind === "briefing" ? OG_DESIGN_VERSION : "2";
+  const version = kind === "briefing" ? "4" : "2";
   url.searchParams.set("v", updatedAt ? `${version}-${updatedAt}` : version);
   return url.href;
 }
