@@ -1,3 +1,5 @@
+import { getHeroImage } from "../../../lib/apartmentHeroImage";
+import { ogImageUrl, OG_SIZE, OG_CONTENT_TYPE } from "../../../lib/ogMetadata";
 import { canAcceptApartmentInquiry } from "../../../lib/apartmentInquiryPolicy";
 import ApartmentNoticeLinks from "../../../components/Apartment/ApartmentNoticeLinks";
 import { getDetailSections } from "../../../lib/apartmentPages";
@@ -43,36 +45,6 @@ const SITE_URL =
     /\/$/,
     ""
   ) || "https://jibnun.com";
-
-function getHeroImage(
-  apartment?: Apartment | null
-) {
-  if (!apartment) {
-    return "";
-  }
-
-  const hero = apartment.images?.hero;
-
-  if (
-    typeof hero === "string" &&
-    hero.trim() &&
-    !hero.includes(
-      "/images/apartments/default/main.jpg"
-    )
-  ) {
-    return hero;
-  }
-
-  return (
-    apartment.images?.gallery?.find(
-      (image) =>
-        Boolean(image) &&
-        !image.includes(
-          "/images/apartments/default/main.jpg"
-        )
-    ) ?? ""
-  );
-}
 
 function cleanText(
   value?: string | null
@@ -435,8 +407,7 @@ export async function generateMetadata({
   const description =
     getSeoDescription(apartment);
 
-  const image =
-    getHeroImage(apartment);
+  const image = ogImageUrl(SITE_URL, "apartment", apartment.slug, apartment.updatedAt);
 
   const completed =
     isCompletedListing(apartment);
@@ -482,27 +453,16 @@ export async function generateMetadata({
       title,
       description,
 
-      images: image
-        ? [
-            {
-              url: image,
-              alt: `${apartment.name} 대표 이미지`,
-            },
-          ]
-        : undefined,
+      images: [{ url: image, ...OG_SIZE, type: OG_CONTENT_TYPE, alt: `${apartment.name} 공유 카드` }],
     },
 
     twitter: {
-      card: image
-        ? "summary_large_image"
-        : "summary",
+      card: "summary_large_image",
 
       title,
       description,
 
-      images: image
-        ? [image]
-        : undefined,
+      images: [image],
     },
   };
 }

@@ -1,3 +1,4 @@
+import { ogImageUrl, OG_SIZE, OG_CONTENT_TYPE } from "../../../lib/ogMetadata";
 import type {
   Metadata,
 } from "next";
@@ -144,6 +145,8 @@ export async function generateMetadata({
         `${briefing.title} 관련 분양시장과 단지 정보를 집눈 브리핑에서 확인하세요.`
     );
 
+  const image = ogImageUrl(SITE_URL, "briefing", briefing.slug, briefing.updatedAt);
+
   return {
     title: {
       absolute:
@@ -174,37 +177,18 @@ export async function generateMetadata({
         briefing.publishedAt ||
         briefing.createdAt,
 
-      images:
-        briefing.thumbnailUrl
-          ? [
-              {
-                url:
-                  briefing.thumbnailUrl,
-
-                alt:
-                  briefing.title,
-              },
-            ]
-          : undefined,
+      images: [{ url: image, ...OG_SIZE, type: OG_CONTENT_TYPE, alt: briefing.title }],
     },
 
     twitter: {
-      card:
-        briefing.thumbnailUrl
-          ? "summary_large_image"
-          : "summary",
+      card: "summary_large_image",
 
       title:
         briefing.title,
 
       description,
 
-      images:
-        briefing.thumbnailUrl
-          ? [
-              briefing.thumbnailUrl,
-            ]
-          : undefined,
+      images: [image],
     },
   };
 }

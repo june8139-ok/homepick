@@ -1,3 +1,4 @@
+import { ogImageUrl, OG_SIZE, OG_CONTENT_TYPE } from "../../../../lib/ogMetadata";
 import { canAcceptApartmentInquiry } from "../../../../lib/apartmentInquiryPolicy";
 import PropertySectionContent from "../../../../components/Apartment/PropertySectionContent";
 import type { Metadata } from "next";
@@ -14,7 +15,6 @@ import {
   getDetailSections,
   sectionLabels,
   detailDescription,
-  sectionImages,
 } from "../../../../lib/apartmentPages";
 import InquiryActions from "../../../../components/Apartment/InquiryActions";
 import SubscriptionAlertForm from "../../../../components/Apartment/SubscriptionAlertForm";
@@ -52,15 +52,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const description = detailDescription(a, section);
   const url = site + detailHref(a.slug, section);
 
-  const representative = sectionImages(a, section)[0] || a.images.hero;
-  const images = representative
-    ? [
-        {
-          url: new URL(representative, site).href,
-          alt: `${a.name} ${sectionLabels[section]}`,
-        },
-      ]
-    : [{ url: site + "/opengraph-image" }];
+  const images = [{
+    url: ogImageUrl(site, `apartment-${section}`, a.slug, a.updatedAt),
+    ...OG_SIZE,
+    type: OG_CONTENT_TYPE,
+    alt: `${a.name} ${sectionLabels[section]}`,
+  }];
 
   return {
     title: { absolute: title },

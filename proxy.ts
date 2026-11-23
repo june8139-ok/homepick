@@ -127,6 +127,6 @@ export const config = {
      * Next.js 내부 파일, 이미지, favicon은 제외하고
      * 나머지 페이지에서 인증 쿠키를 갱신합니다.
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!og/|opengraph-image(?:/|$)|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
