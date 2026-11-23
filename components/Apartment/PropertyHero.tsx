@@ -1,3 +1,4 @@
+import { conditionHistoryId, getApartmentConditionHistory } from "../../lib/apartmentConditionHistory";
 import { canAcceptApartmentInquiry } from "../../lib/apartmentInquiryPolicy";
 import Image from "next/image";
 import PropertyGallery from "./PropertyGallery";
@@ -41,6 +42,39 @@ export default function PropertyHero({
       ].filter(([, value]) => value)
     : [];
   const condition = reviewed ? clean(a.condition) : "";
+  const sections = getDetailSections(a);
+  const today = new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+  const datedUpdates = sections.includes("pricing")
+    ? getApartmentConditionHistory(a).flatMap((item) => {
+        const date = item.date?.trim().replace(/[./]/g, "-");
+        if (!item.title?.trim() || !date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return [];
+        if (item.dateType === "unknown" || item.dateType === "month-only") return [];
+        const parsed = new Date(date);
+        if (!Number.isFinite(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== date) return [];
+        return [{ item, date }];
+      }).sort((left, right) => left.date.localeCompare(right.date))
+    : [];
+  const update = datedUpdates.find(({ date }) => date >= today) ?? datedUpdates.at(-1);
+  const updateLink = update && (
+    <Link
+      href={`${detailHref(a.slug, "pricing")}#${conditionHistoryId}`}
+      className="mt-3 flex min-w-0 items-center gap-2 rounded-lg border border-emerald-900/10 bg-emerald-50/60 px-3 py-2 text-sm text-emerald-950 hover:bg-emerald-50"
+    >
+      <span className="shrink-0 text-xs font-semibold">
+        {update.date >= today ? "예정" : update.item.dateType === "changed" ? "최근 변경" : "최근 소식"}
+      </span>
+      <time className="shrink-0 text-xs tabular-nums" dateTime={update.date}>
+        {update.date.slice(5).replace("-", ".")}
+      </time>
+      <span className="min-w-0 flex-1 truncate font-medium">{update.item.title}</span>
+      <span aria-hidden="true" className="shrink-0">›</span>
+    </Link>
+  );
   const facts = [
     [a.housingSupplyType === "privateRental" ? "임대보증금" : "분양가", price],
     ["계약조건", a.condition],
@@ -49,13 +83,16 @@ export default function PropertyHero({
   ];
   return (
     <section className="property-hero">
-      <PropertyGallery
-        key={a.slug}
-        name={a.name}
-        images={[
-          ...new Set([a.images.hero, ...a.images.gallery].filter(validImage)),
-        ]}
-      />
+      <div className="min-w-0">
+        <PropertyGallery
+          key={a.slug}
+          name={a.name}
+          images={[
+            ...new Set([a.images.hero, ...a.images.gallery].filter(validImage)),
+          ]}
+        />
+        {updateLink && <div className="hidden lg:block">{updateLink}</div>}
+      </div>
       <div className="property-hero-summary">
         <p className="property-status">
           {first
@@ -92,6 +129,7 @@ export default function PropertyHero({
               </div>
             ))}
         </dl>
+        {updateLink && <div className="lg:hidden">{updateLink}</div>}
         <div className="property-quick-links">
           <Link href={`/compare?left=${encodeURIComponent(a.slug)}`}>
             비교하기 +
@@ -103,9 +141,9 @@ export default function PropertyHero({
           <InquiryActions apartmentSlug={a.slug} apartmentName={a.name} />
         )}
       </div>
-      {getDetailSections(a).length > 0 && (
+      {sections.length > 0 && (
         <nav className="property-page-cards" aria-label="단지 정보 바로가기">
-          {getDetailSections(a).map((key) => (
+          {sections.map((key) => (
             <Link key={key} href={detailHref(a.slug, key)}>
               {key === "pricing" ? (
                 <div className={`property-page-preview ${styles.preview}`}>

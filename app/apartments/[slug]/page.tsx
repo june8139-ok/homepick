@@ -1,3 +1,4 @@
+import { getListingCardPrice, isApplyHomeUnverified } from "../../../lib/apartmentDisplay";
 import { getHeroImage } from "../../../lib/apartmentHeroImage";
 import { ogImageUrl, OG_SIZE, OG_CONTENT_TYPE } from "../../../lib/ogMetadata";
 import { canAcceptApartmentInquiry } from "../../../lib/apartmentInquiryPolicy";
@@ -245,7 +246,7 @@ function getSeoTitle(
   return `${apartment.name} 분양정보`;
 }
 
-/** 공급유형에 맞는 문장과 공개된 메뉴만 설명합니다. 혜택을 추출하거나 문장을 자르지 않습니다. */
+/** 공개된 대표 가격과 계약조건을 사용할 수 있으면 검색 설명에 먼저 표시합니다. */
 function getSeoDescription(apartment: Apartment) {
   const name = cleanText(apartment.name);
   const rental = isPrivateRentalApartment(apartment);
@@ -259,6 +260,15 @@ function getSeoDescription(apartment: Apartment) {
     return `${name}의 상세정보 제공이 종료되었습니다. 집눈에서 다른 단지의 분양·청약 정보를 확인하세요.`;
   }
   const sections = getDetailSections(apartment);
+  if (stage === "firstCome" && !rental && !isApplyHomeUnverified(apartment) && sections.includes("pricing")) {
+    const price = cleanText(getListingCardPrice(apartment, true).text);
+    if (price.length <= 45 && /\d[\d,.]*\s*(?:억|만\s*원|원)/u.test(price)) {
+      const condition = cleanText(apartment.condition);
+      const conditionText = condition.length <= 55 && /계약금|중도금|잔금/u.test(condition) ? condition : "";
+      const details = sections.includes("plans") ? "타입별 평면도와 계약조건을 확인하세요." : "분양가와 계약조건을 확인하세요.";
+      return [`${name} 분양가 ${price}.`, conditionText && `${conditionText.replace(/[.!?。]+$/u, "")}.`, details].filter(Boolean).join(" ");
+    }
+  }
   const topics = [
     stage === "subscription" ? "청약일정" : "",
     sections.includes("pricing") ? rental ? "임대보증금과 임대조건" : "평형별 분양가와 계약조건" : "",

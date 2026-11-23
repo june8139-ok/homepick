@@ -1,4 +1,4 @@
-import { conditionHistories } from "../../data/history";
+import { conditionHistoryId, getApartmentConditionHistory } from "../../lib/apartmentConditionHistory";
 import Image from "next/image";
 import type { Apartment } from "../../types/apartment";
 import {
@@ -121,9 +121,7 @@ export default function PropertySectionContent({
   section: DetailSection;
 }) {
   const content = a.detailPages?.[section] || {};
-  const history = a.conditionHistory.length
-    ? a.conditionHistory
-    : conditionHistories.find((x) => x.apartmentSlug === a.slug)?.history || [];
+  const history = getApartmentConditionHistory(a);
 
   return (
     <>
@@ -163,7 +161,7 @@ export default function PropertySectionContent({
             label={`${a.name} 가격·계약조건 자료`}
           />
           {history.length > 0 && (
-            <section className="property-detail-block">
+            <section id={conditionHistoryId} className="property-detail-block scroll-mt-32">
               <h2>조건 변경·확인 이력</h2>
               <ConditionHistory items={history} />
             </section>
