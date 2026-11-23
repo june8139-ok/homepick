@@ -63,7 +63,7 @@ async function loadPhoto(candidate: string) {
       chunks.push(value);
     }
     const photo = await sharp(Buffer.concat(chunks), { limitInputPixels: 32_000_000 })
-      .rotate().resize(640, 630, { fit: "cover", position: "attention" })
+      .rotate().resize(430, 466, { fit: "cover", position: "attention" })
       .jpeg({ quality: 82 }).toBuffer();
     return `data:image/jpeg;base64,${photo.toString("base64")}`;
   } catch {
@@ -86,10 +86,10 @@ export async function renderOgCard({ kind, title, candidates = [] }: Card) {
   const ink = dark ? "#ffffff" : "#103b31";
   const heading = Array.from(title.replace(/\s+/gu, " ").trim());
   const text = heading.length > 64 ? `${heading.slice(0, 63).join("")}…` : heading.join("");
-  const textWidth = photo ? 535 : 1080;
+  const textWidth = photo ? 490 : 980;
   const words = text.split(" ");
   const longestWord = Math.max(1, ...words.map((word) => Array.from(word).length));
-  const fontSize = home ? 110 : Math.max(37, Math.min(
+  const fontSize = home ? 96 : Math.max(37, Math.min(
     heading.length > 34 ? 49 : 70,
     Math.floor(textWidth / longestWord),
   ));
@@ -103,28 +103,47 @@ export async function renderOgCard({ kind, title, candidates = [] }: Card) {
       lines.push(word);
     }
   }
-  const logoSize = home ? 124 : 66;
+  const logoSize = home ? 110 : 60;
   const logoUrl = `data:image/png;base64,${logo.toString("base64")}`;
   const subtitle = home ? "전국 분양·청약 정보" :
     kind === "apartment" ? "분양가 · 평형 · 계약조건 · 입지정보" : "";
 
   return new ImageResponse(
-    <div style={{ display: "flex", width: "100%", height: "100%", background: dark ? "#103b31" : kind === "guide" ? "#e3f3e9" : "#f6f5ef", color: ink, fontFamily: "Jibnun Korean" }}>
-      <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: home ? "center" : "flex-start", width: photo ? 655 : 1200, padding: "48px 60px", gap: 27 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 15 }}>
-          {/* ImageResponse renders native image elements. */}
+    <div style={{
+      display: "flex", position: "relative", width: "100%", height: "100%",
+      alignItems: "center", overflow: "hidden", color: ink, fontFamily: "Jibnun Korean",
+      backgroundImage: dark
+        ? "linear-gradient(135deg, #0b3028 0%, #175949 100%)"
+        : "linear-gradient(135deg, #f9faf5 0%, #e4f1e8 100%)",
+    }}>
+      {home && (
+        <div style={{ display: "flex", position: "absolute", top: 42, left: 98, right: 98, bottom: 42, border: "1px solid #6fa995", borderRadius: 32 }} />
+      )}
+      <div style={{
+        display: "flex", flexDirection: "column", justifyContent: "center",
+        alignItems: home ? "center" : "flex-start", width: photo ? 660 : 1200,
+        padding: photo ? "64px 60px 64px 110px" : "64px 110px", gap: home ? 19 : 24,
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={logoUrl} alt="" width={logoSize} height={logoSize} style={{ borderRadius: home ? 25 : 15 }} />
-          {!home && <div style={{ fontSize: 29 }}>{labels[kind]}</div>}
+          <img src={logoUrl} alt="" width={logoSize} height={logoSize} style={{ borderRadius: home ? 24 : 13 }} />
+          {!home && <div style={{ fontSize: 27 }}>{labels[kind]}</div>}
         </div>
-        <div style={{ display: "flex", flexDirection: "column", maxWidth: "100%", fontSize, lineHeight: 1.12 }}>
+        <div style={{ display: "flex", maxWidth: "100%", flexDirection: "column", fontSize, lineHeight: 1.12 }}>
           {lines.map((line, i) => <div key={i} style={{ display: "flex", wordBreak: "break-word" }}>{line}</div>)}
         </div>
-        {subtitle && <div style={{ fontSize: home ? 37 : 25, color: "#e1f2eb" }}>{subtitle}</div>}
+        {subtitle && (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: home ? "center" : "flex-start", gap: 14 }}>
+            <div style={{ width: 42, height: 3, borderRadius: 2, background: "#ec8668" }} />
+            <div style={{ fontSize: home ? 37 : 25, color: "#e1f2eb" }}>{subtitle}</div>
+          </div>
+        )}
       </div>
       {photo && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={photo} alt="" width={545} height={630} style={{ objectFit: "cover" }} />
+        <div style={{ display: "flex", width: 430, height: 466, borderRadius: 24, overflow: "hidden" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={photo} alt="" width={430} height={466} style={{ objectFit: "cover", borderRadius: 24 }} />
+        </div>
       )}
     </div>,
     {

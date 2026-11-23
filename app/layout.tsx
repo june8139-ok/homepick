@@ -1,3 +1,4 @@
+import { HOME_OG_IMAGE } from "../lib/ogMetadata";
 import type { Metadata } from "next";
 
 import { Suspense } from "react";
@@ -143,7 +144,7 @@ export const metadata: Metadata = {
      */
     images: [
       {
-        url: "/opengraph-image",
+        url: HOME_OG_IMAGE,
         width: 1200,
         height: 630,
         alt: "집눈 전국 부동산을 한눈에",
@@ -162,7 +163,7 @@ export const metadata: Metadata = {
       DEFAULT_DESCRIPTION,
 
     images: [
-      "/opengraph-image",
+      HOME_OG_IMAGE,
     ],
   },
 
